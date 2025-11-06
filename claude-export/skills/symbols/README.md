@@ -40,10 +40,21 @@ python scripts/validate_symbols.py
 
 | Document | Purpose | Audience |
 |----------|---------|----------|
-| **[SKILL.md](./SKILL.md)** | Complete AI agent reference - all query functions, integration patterns | AI Agents |
+| **[SKILL.md](./SKILL.md)** | Core AI agent reference - essential capabilities and quick start | AI Agents |
+| **[references/](./references/)** | Detailed documentation (API, workflows, architecture, performance) | AI Agents |
 | **[scripts/README.md](./scripts/README.md)** | Complete human guide - workflows, configuration, troubleshooting | Developers |
 | **[symbols.config.json](./symbols.config.json)** | Project configuration - domains, paths, extraction rules | Configuration |
 | **[docs/project_plans/impl_tracking/ai/skill-symbol/](../../docs/project_plans/impl_tracking/ai/skill-symbol/)** | Historical docs and detailed planning | Archive |
+
+### Supporting Documentation (references/)
+
+The skill uses **progressive disclosure** with core instructions in SKILL.md (~245 lines) and detailed documentation in supporting files:
+
+- **[symbol-api-reference.md](./references/symbol-api-reference.md)** - Complete API documentation with all parameters and examples
+- **[symbol-workflows-by-role.md](./references/symbol-workflows-by-role.md)** - Development workflows for different roles
+- **[symbol-script-operations.md](./references/symbol-script-operations.md)** - Script documentation and update procedures
+- **[symbol-schema-architecture.md](./references/symbol-schema-architecture.md)** - Symbol schema and architecture integration
+- **[symbol-performance-metrics.md](./references/symbol-performance-metrics.md)** - Performance benchmarks and optimization
 
 ## Key Capabilities
 
