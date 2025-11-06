@@ -1,0 +1,14 @@
+[lock]
+version = "1.0.0"
+
+[lock.entries.claudekit-skills]
+source = "mrgoonie/claudekit-skills/.claude/skills/postgresql-psql@latest"
+version_spec = "latest"
+resolved_sha = "592ebdaeb44b7bdfce81817ac85039cec376c44a"
+resolved_version = "latest"
+
+[lock.entries.awesome-claude-skills]
+source = "ComposioHQ/awesome-claude-skills/meeting-insights-analyzer@latest"
+version_spec = "latest"
+resolved_sha = "edb1c6ef5873581b556a6f84d5129dfdcf756edc"
+resolved_version = "latest"

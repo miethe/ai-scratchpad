@@ -1,0 +1,65 @@
+{
+  "subagents": {
+    "backend-architect": {
+      "description": "Analyzes backend architecture and proposes implementation approaches",
+      "capabilities": ["analyze", "design", "review"],
+      "domains": ["python", "fastapi", "sqlalchemy", "postgresql"],
+      "invocation": "@backend-architect <command> <args>"
+    },
+    "backend-developer": {
+      "description": "Implements backend code following MeatyPrompts standards",
+      "capabilities": ["implement", "refactor", "optimize"],
+      "domains": ["python", "fastapi", "sqlalchemy", "alembic"],
+      "invocation": "@backend-developer <command> <args>"
+    },
+    "frontend-developer": {
+      "description": "Implements frontend code using React/Next.js",
+      "capabilities": ["implement", "refactor", "optimize"],
+      "domains": ["typescript", "react", "nextjs", "tailwind"],
+      "invocation": "@frontend-developer <command> <args>"
+    },
+    "ui-designer": {
+      "description": "Creates and reviews UI components following design system",
+      "capabilities": ["create-component", "review", "design"],
+      "domains": ["react", "tailwind", "radix", "storybook"],
+      "invocation": "@ui-designer <command> <args>"
+    },
+    "test-engineer": {
+      "description": "Creates comprehensive test suites",
+      "capabilities": ["create-tests", "review-coverage", "e2e"],
+      "domains": ["pytest", "jest", "playwright", "vitest"],
+      "invocation": "@test-engineer <command> <args>"
+    },
+    "code-reviewer": {
+      "description": "Reviews code for standards, security, and best practices",
+      "capabilities": ["review", "security-check", "performance-check"],
+      "domains": ["all"],
+      "invocation": "@code-reviewer <command> <args>"
+    }
+  },
+  "invocation_rules": {
+    "always_use": [
+      {
+        "condition": "implementing backend file",
+        "subagent": "backend-developer"
+      },
+      {
+        "condition": "implementing frontend file",
+        "subagent": "frontend-developer"
+      },
+      {
+        "condition": "creating UI component",
+        "subagent": "ui-designer"
+      },
+      {
+        "condition": "final review",
+        "subagent": "code-reviewer"
+      }
+    ],
+    "fallback": {
+      "on_failure": "proceed_directly",
+      "max_retries": 1,
+      "log_errors": true
+    }
+  }
+}

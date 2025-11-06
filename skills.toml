@@ -1,0 +1,16 @@
+[tool.skillman]
+version = "1.0.0"
+
+[[tool.skillman.skills]]
+name = "claudekit-skills"
+source = "mrgoonie/claudekit-skills/.claude/skills/postgresql-psql@latest"
+version = "latest"
+scope = "local"
+aliases = []
+
+[[tool.skillman.skills]]
+name = "awesome-claude-skills"
+source = "ComposioHQ/awesome-claude-skills/meeting-insights-analyzer@latest"
+version = "latest"
+scope = "local"
+aliases = []
