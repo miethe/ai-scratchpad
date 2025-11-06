@@ -178,10 +178,38 @@
 
 ## Quick Links
 
+> **Note:** The Implementation Plan uses a modular structure with individual phase documents for easier navigation and maintenance. Start with the overview document, then dive into specific phases as needed.
+
+### Planning Documents
+
 | Link | URL | Purpose |
 |------|-----|---------|
 | **Product Spec** | `knit-wit/project_plans/mvp/prd.md` | Reference feature requirements |
-| **Implementation Plan** | `knit-wit/project_plans/mvp/implementation-plan.md` | Detailed phase/epic/story breakdown |
+| **Implementation Plan Overview** | `knit-wit/project_plans/mvp/implementation-plan-overview.md` | High-level phases and navigation |
+
+### Implementation Plan Phases
+
+| Link | URL | Purpose |
+|------|-----|---------|
+| **Phase 0: Setup & Planning** | `knit-wit/project_plans/mvp/phases/phase-0.md` | Project kickoff and planning |
+| **Phase 1: Project Setup** | `knit-wit/project_plans/mvp/phases/phase-1.md` | Infrastructure and architecture |
+| **Phase 2: Core Pattern Engine** | `knit-wit/project_plans/mvp/phases/phase-2.md` | Shape generation implementation |
+| **Phase 3: Visualization** | `knit-wit/project_plans/mvp/phases/phase-3.md` | Display and rendering features |
+| **Phase 4: Full Features** | `knit-wit/project_plans/mvp/phases/phase-4.md` | Generate screen, export, Kid Mode |
+| **Phase 5: QA & Polish** | `knit-wit/project_plans/mvp/phases/phase-5.md` | Testing, bugs, accessibility |
+
+### Supporting Documentation
+
+| Link | URL | Purpose |
+|------|-----|---------|
+| **Technical Architecture** | `knit-wit/project_plans/mvp/supporting-docs/technical-architecture.md` | System design and architecture |
+| **Testing Strategy** | `knit-wit/project_plans/mvp/supporting-docs/testing-strategy.md` | Test plans and coverage goals |
+| **DevOps & Infrastructure** | `knit-wit/project_plans/mvp/supporting-docs/devops-infrastructure.md` | CI/CD, deployment, monitoring |
+
+### Project Resources
+
+| Link | URL | Purpose |
+|------|-----|---------|
 | **Repository** | [GitHub URL] | Source code repository |
 | **CI/CD Dashboard** | [GitHub Actions URL] | Build and test status |
 | **Team Chat** | [Slack/Discord] | Team communication channel |
@@ -276,4 +304,4 @@ This tracker should be updated **at the end of each sprint** (Friday EOD) and **
 **Created:** 2025-11-05
 **Maintained By:** [Development Team]
 
-*This is a living document. Refer to the Implementation Plan for detailed technical specifications.*
+*This is a living document. Refer to the Implementation Plan Overview and individual phase documents for detailed technical specifications.*
