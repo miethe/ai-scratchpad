@@ -80,6 +80,23 @@ Request: "Load UI package context"
 Parameters: domain='ui'
 ```
 
+**Token-Efficient API Loading:**
+
+For API domain exploration, prefer layer-specific loading for 50-80% token reduction:
+
+```
+Request: "Load API service layer"
+Parameters: layer='services'  # 454 symbols vs 3,041 full API
+
+Request: "Load API schemas/DTOs"
+Parameters: layer='schemas'   # 570 symbols, perfect for DTO work
+
+Request: "Load API routers"
+Parameters: layer='routers'   # 289 symbols, ideal for endpoint work
+```
+
+Available API layers: `routers`, `services`, `repositories`, `schemas`, `cores`
+
 #### Search Patterns
 
 Pattern-based search with architectural awareness:
@@ -159,7 +176,11 @@ Based on validation testing:
    Skill("symbols")
    Request: "Find similar features in the same domain"
 
-2. Load domain context:
+2. Load relevant context (token-efficient):
+   # For API features, load only the layer you need
+   Request: "Load API service layer" (for business logic)
+   Request: "Load API schemas" (for DTOs)
+   # Or for full domain context
    Request: "Load [domain] domain symbols"
 
 3. Analyze layer patterns:
@@ -210,7 +231,13 @@ Based on validation testing:
    Request: "Find CRUD endpoints for similar resources"
    Parameters: domain='api', layer='router'
 
-2. Trace request flow:
+2. Load relevant layers for request flow:
+   Request: "Load API routers"      # 289 symbols - endpoint patterns
+   Request: "Load API services"     # 454 symbols - business logic
+   Request: "Load API repositories" # 387 symbols - data access
+   Request: "Load API schemas"      # 570 symbols - DTOs
+
+3. Trace request flow:
    - Router/handler (validation, error handling)
    - Service (business logic, DTO mapping)
    - Repository (DB access, RLS)

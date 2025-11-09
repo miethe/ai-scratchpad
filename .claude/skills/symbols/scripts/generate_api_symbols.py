@@ -2,10 +2,14 @@
 """
 Generate API Symbol Artifacts
 
-Extracts Python symbols from services/api and separates them into:
+Extracts Python symbols from configured API directories and separates them into:
 - symbols-api.json: Business logic (routers, services, repositories, schemas)
 - symbols-api-tests.json: Test files
 - symbols-api-scripts.json: Utility scripts and migrations
+
+Configuration:
+    Uses symbols.config.json for extraction directories and output paths.
+    Falls back to 'services/api' and 'ai/' if config is not available.
 
 Usage:
     python generate_api_symbols.py [--output-dir=ai/]
@@ -107,25 +111,57 @@ def symbols_to_output_format(
 
 def main():
     """Main entry point."""
-    # Find project root
-    script_dir = Path(__file__).parent
-    project_root = script_dir.parent.parent.parent.parent  # Up to meatyprompts/
+    # Try to load configuration
+    try:
+        from config import get_config
+        config = get_config()
 
-    # API directory
-    api_dir = project_root / "services" / "api"
+        # Get extraction directories from config
+        extraction_dirs = config.get_extraction_directories("python")
+        if not extraction_dirs:
+            print("Warning: No Python extraction directories configured, using default", file=sys.stderr)
+            extraction_dirs = None
 
-    if not api_dir.exists():
-        print(f"Error: API directory not found: {api_dir}", file=sys.stderr)
+        # Get output directory from config
+        output_dir = config.get_symbols_dir()
+
+        print(f"Using configuration: {config.project_name}", file=sys.stderr)
+
+    except Exception as e:
+        print(f"Warning: Could not load configuration ({e}), using defaults", file=sys.stderr)
+
+        # Fallback to hardcoded paths
+        script_dir = Path(__file__).parent
+        project_root = script_dir.parent.parent.parent.parent  # Up to project root
+        extraction_dirs = [project_root / "services" / "api"]
+        output_dir = project_root / "ai"
+
+    # If we got extraction dirs from config, use them; otherwise use fallback
+    if extraction_dirs is None:
+        script_dir = Path(__file__).parent
+        project_root = script_dir.parent.parent.parent.parent
+        extraction_dirs = [project_root / "services" / "api"]
+
+    # Extract from all configured directories
+    all_symbols = []
+    for api_dir in extraction_dirs:
+        if not api_dir.exists():
+            print(f"Warning: Directory not found, skipping: {api_dir}", file=sys.stderr)
+            continue
+
+        print(f"Extracting symbols from {api_dir}", file=sys.stderr)
+
+        # Extract all symbols (including tests)
+        dir_symbols = extract_symbols_from_directory(
+            api_dir,
+            exclude_tests=False,
+            exclude_private=False
+        )
+        all_symbols.extend(dir_symbols)
+
+    if not all_symbols:
+        print("Error: No symbols extracted from any directory", file=sys.stderr)
         sys.exit(1)
-
-    print(f"Extracting symbols from {api_dir}", file=sys.stderr)
-
-    # Extract all symbols (including tests)
-    all_symbols = extract_symbols_from_directory(
-        api_dir,
-        exclude_tests=False,
-        exclude_private=False
-    )
 
     print(f"Extracted {len(all_symbols)} total symbols", file=sys.stderr)
 
@@ -136,9 +172,8 @@ def main():
     print(f"  Tests: {len(categorized['test'])} symbols", file=sys.stderr)
     print(f"  Scripts/Migrations: {len(categorized['script'])} symbols", file=sys.stderr)
 
-    # Output directory
-    output_dir = project_root / "ai"
-    output_dir.mkdir(exist_ok=True)
+    # Ensure output directory exists
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     # Generate artifact files
     artifacts = {

@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 """
-Symbol Merger for MeatyPrompts
+Symbol Merger
 
 Merges programmatically extracted symbols into existing symbol graphs. Handles
 incremental updates, validates consistency, and preserves existing relationships.
+
+Configuration:
+    Uses symbols.config.json for domain file paths. Falls back to default
+    'ai/' directory if configuration is not available.
 
 Usage:
     python merge_symbols.py --domain=<domain> --input=<file.json> [--validate] [--backup]
@@ -58,18 +62,51 @@ import argparse
 class SymbolMerger:
     """Handles merging of extracted symbols into existing symbol graphs."""
 
-    # Map domain names to file paths
-    DOMAIN_FILES = {
-        'ui': 'ai/symbols-ui.json',
-        'api': 'ai/symbols-api.json',
-        'shared': 'ai/symbols-shared.json',
-        'ui-tests': 'ai/symbols-ui-tests.json',
-        'api-tests': 'ai/symbols-api-tests.json',
-        'shared-tests': 'ai/symbols-shared-tests.json',
-    }
+    def __init__(self, project_root: Path, config=None):
+        """
+        Initialize SymbolMerger.
 
-    def __init__(self, project_root: Path):
+        Args:
+            project_root: Project root directory
+            config: Optional SymbolConfig instance. If None, will attempt to load.
+        """
         self.project_root = project_root
+        self._config = config
+
+        # Try to load config if not provided
+        if self._config is None:
+            try:
+                from config import get_config
+                self._config = get_config()
+            except Exception:
+                pass  # Will use fallback paths
+
+        # Build domain files mapping from config or use minimal defaults
+        if self._config:
+            self.DOMAIN_FILES = {}
+            for domain in self._config.get_enabled_domains():
+                try:
+                    domain_file = self._config.get_domain_file(domain)
+                    # Make relative to project root for compatibility
+                    self.DOMAIN_FILES[domain] = str(domain_file.relative_to(self.project_root))
+                except Exception:
+                    pass
+            # Add test files
+            for domain in self._config.get_enabled_domains():
+                try:
+                    test_file = self._config.get_test_file(domain)
+                    if test_file:
+                        self.DOMAIN_FILES[f"{domain}-tests"] = str(test_file.relative_to(self.project_root))
+                except Exception:
+                    pass
+        else:
+            # Minimal generic fallback - only basic domains
+            print("Warning: Configuration not loaded, using minimal defaults", file=sys.stderr)
+            print("  Run 'python init_symbols.py' to initialize the symbols system", file=sys.stderr)
+            self.DOMAIN_FILES = {
+                'api': 'ai/symbols-api.json',
+                'ui': 'ai/symbols-ui.json',
+            }
 
     def merge(
         self,
@@ -206,7 +243,7 @@ class SymbolMerger:
         index: Dict[Tuple[str, str], Dict[str, Any]] = {}
 
         domains = existing_data.get('domains', {})
-        for domain_name, domain_data in domains.items():
+        for domain_data in domains.values():
             modules = domain_data.get('modules', [])
             for module in modules:
                 path = module.get('path', '')

@@ -1,22 +1,26 @@
 #!/usr/bin/env python3
 """
-Python Symbol Extractor for MeatyPrompts
+Python Symbol Extractor
 
 Extracts symbols from Python files including modules, classes, functions, methods.
 Supports batch processing for entire directories and outputs JSON-compatible metadata.
+
+Configuration:
+    Can use symbols.config.json for extraction settings (directories, excludes).
+    Falls back to command-line arguments if config is not available.
 
 Usage:
     python extract_symbols_python.py <path> [--output=file.json] [--exclude-tests] [--exclude-private]
 
 Examples:
-    # Extract symbols from API directory
-    python extract_symbols_python.py services/api/app
+    # Extract symbols from backend directory
+    python extract_symbols_python.py backend
 
     # Extract with output file
-    python extract_symbols_python.py services/api/app --output=api_symbols.json
+    python extract_symbols_python.py api --output=api_symbols.json
 
     # Exclude test files and private methods
-    python extract_symbols_python.py services/api/app --exclude-tests --exclude-private
+    python extract_symbols_python.py backend --exclude-tests --exclude-private
 
 Output Format:
     {
@@ -51,18 +55,17 @@ import argparse
 
 @dataclass
 class Symbol:
-    """Represents a single extracted symbol."""
+    """Represents a single extracted symbol (Schema v2.0)."""
     name: str
     kind: str
     path: str
     line: int
     signature: str
     summary: str
+    layer: str  # Architectural layer: router, service, repository, schema, model, core
     parent: Optional[str] = None  # For methods, the class name
-    expected_response: Optional[str] = None  # Return type
-    decorators: Optional[List[str]] = None  # List of decorators
     docstring: Optional[str] = None  # Full docstring
-    file_category: Optional[str] = None  # Category: business_logic, test, script, etc.
+    category: Optional[str] = None  # File category: business_logic, test, script, etc.
 
 
 class PythonSymbolExtractor(ast.NodeVisitor):
@@ -92,9 +95,6 @@ class PythonSymbolExtractor(ast.NodeVisitor):
         docstring = ast.get_docstring(node)
         summary = self._extract_docstring_summary(docstring)
 
-        # Extract decorators
-        decorators = self._extract_decorators(node)
-
         symbol = Symbol(
             name=node.name,
             kind="class",
@@ -102,7 +102,7 @@ class PythonSymbolExtractor(ast.NodeVisitor):
             line=node.lineno,
             signature=signature,
             summary=summary,
-            decorators=decorators if decorators else None,
+            layer="unknown",  # Will be set by categorize_file
             docstring=docstring if docstring else None
         )
         self.symbols.append(symbol)
@@ -130,17 +130,9 @@ class PythonSymbolExtractor(ast.NodeVisitor):
         # Build signature
         signature = self._build_signature(node)
 
-        # Extract return type
-        expected_response = None
-        if node.returns:
-            expected_response = self._get_annotation(node.returns)
-
         # Extract docstring
         docstring = ast.get_docstring(node)
         summary = self._extract_docstring_summary(docstring)
-
-        # Extract decorators
-        decorators = self._extract_decorators(node)
 
         symbol = Symbol(
             name=node.name,
@@ -149,9 +141,8 @@ class PythonSymbolExtractor(ast.NodeVisitor):
             line=node.lineno,
             signature=signature,
             summary=summary,
+            layer="unknown",  # Will be set by categorize_file
             parent=parent,
-            expected_response=expected_response,
-            decorators=decorators if decorators else None,
             docstring=docstring if docstring else None
         )
         self.symbols.append(symbol)
@@ -176,17 +167,9 @@ class PythonSymbolExtractor(ast.NodeVisitor):
         # Build signature
         signature = self._build_signature(node, is_async=True)
 
-        # Extract return type
-        expected_response = None
-        if node.returns:
-            expected_response = self._get_annotation(node.returns)
-
         # Extract docstring
         docstring = ast.get_docstring(node)
         summary = self._extract_docstring_summary(docstring)
-
-        # Extract decorators
-        decorators = self._extract_decorators(node)
 
         symbol = Symbol(
             name=node.name,
@@ -195,9 +178,8 @@ class PythonSymbolExtractor(ast.NodeVisitor):
             line=node.lineno,
             signature=signature,
             summary=summary,
+            layer="unknown",  # Will be set by categorize_file
             parent=parent,
-            expected_response=expected_response,
-            decorators=decorators if decorators else None,
             docstring=docstring if docstring else None
         )
         self.symbols.append(symbol)
@@ -262,21 +244,6 @@ class PythonSymbolExtractor(ast.NodeVisitor):
             return first_line[:97] + "..."
         return first_line
 
-    def _extract_decorators(self, node: ast.ClassDef | ast.FunctionDef | ast.AsyncFunctionDef) -> List[str]:
-        """Extract decorator names from a node."""
-        decorators = []
-        for decorator in node.decorator_list:
-            if isinstance(decorator, ast.Name):
-                decorators.append(f"@{decorator.id}")
-            elif isinstance(decorator, ast.Call):
-                if isinstance(decorator.func, ast.Name):
-                    decorators.append(f"@{decorator.func.id}")
-                elif isinstance(decorator.func, ast.Attribute):
-                    decorators.append(f"@{self._get_name(decorator.func)}")
-            elif isinstance(decorator, ast.Attribute):
-                decorators.append(f"@{self._get_name(decorator)}")
-        return decorators
-
 
 def is_test_file(file_path: Path) -> bool:
     """Check if a file is a test file."""
@@ -289,20 +256,14 @@ def is_test_file(file_path: Path) -> bool:
     )
 
 
-def categorize_file(file_path: Path) -> str:
+def categorize_file(file_path: Path) -> tuple[str, str]:
     """
-    Categorize a file by its purpose.
+    Categorize a file by its architectural layer and optional category.
 
-    Returns one of:
-    - test: Test files
-    - router: API routers/endpoints
-    - service: Service layer
-    - repository: Repository/data access layer
-    - schema: DTOs/schemas/models
-    - migration: Database migrations
-    - script: Utility scripts
-    - config: Configuration files
-    - business_logic: Other business logic files
+    Returns:
+        Tuple of (layer, category) where:
+        - layer: Architectural layer (router, service, repository, schema, model, core, middleware, auth, observability, test)
+        - category: Optional file category (business_logic, test, script, config, migration)
     """
     path_str = str(file_path).lower()
     parts = file_path.parts
@@ -310,38 +271,58 @@ def categorize_file(file_path: Path) -> str:
 
     # Test files
     if is_test_file(file_path):
-        return "test"
+        return ("test", "test")
 
     # Routers/API endpoints
-    if any(p in parts for p in ['routes', 'routers', 'api']) and 'router' in name:
-        return "router"
+    if any(p in parts for p in ['routes', 'routers', 'api']) and ('router' in name or 'endpoint' in name):
+        return ("router", "business_logic")
 
     # Services
     if 'services' in parts or 'service' in name:
-        return "service"
+        return ("service", "business_logic")
 
     # Repositories
     if 'repositories' in parts or 'repository' in name or 'repo' in name:
-        return "repository"
+        return ("repository", "business_logic")
 
-    # Schemas/DTOs/Models
-    if any(p in parts for p in ['schemas', 'models', 'dto']) or any(k in name for k in ['schema', 'model', 'dto']):
-        return "schema"
+    # Schemas/DTOs
+    if 'schemas' in parts or 'schema' in name or 'dto' in name:
+        return ("schema", "business_logic")
+
+    # Models (ORM definitions)
+    if 'models' in parts or 'model' in name:
+        return ("model", "business_logic")
+
+    # Middleware
+    if 'middleware' in parts or 'middleware' in name:
+        return ("middleware", "business_logic")
+
+    # Auth
+    if 'auth' in parts or 'auth' in name:
+        return ("auth", "business_logic")
+
+    # Observability (logging, tracing, monitoring)
+    if any(p in parts for p in ['observability', 'logging', 'tracing', 'monitoring']):
+        return ("observability", "business_logic")
 
     # Migrations
     if 'migrations' in parts or 'alembic' in parts or name.startswith('migration_'):
-        return "migration"
+        return ("core", "migration")
 
     # Scripts
     if 'scripts' in parts or file_path.parent.name == 'scripts':
-        return "script"
+        return ("core", "script")
 
     # Config files
     if 'config' in name or name in ['settings.py', 'constants.py', '__init__.py']:
-        return "config"
+        return ("core", "config")
 
-    # Default: business logic
-    return "business_logic"
+    # Core (database, cache, utilities)
+    if any(p in parts for p in ['core', 'db', 'cache', 'utils', 'helpers']):
+        return ("core", "business_logic")
+
+    # Default: core business logic
+    return ("core", "business_logic")
 
 
 def extract_symbols_from_file(file_path: Path, base_path: Path) -> List[Symbol]:
@@ -355,16 +336,17 @@ def extract_symbols_from_file(file_path: Path, base_path: Path) -> List[Symbol]:
         # Calculate relative path
         rel_path = file_path.relative_to(base_path)
 
-        # Categorize file
-        file_category = categorize_file(file_path)
+        # Categorize file (layer and category)
+        layer, category = categorize_file(file_path)
 
         # Extract symbols
         extractor = PythonSymbolExtractor(str(rel_path), source_code)
         extractor.visit(tree)
 
-        # Add file category to all symbols
+        # Add layer and category to all symbols
         for symbol in extractor.symbols:
-            symbol.file_category = file_category
+            symbol.layer = layer
+            symbol.category = category
 
         return extractor.symbols
 
@@ -412,9 +394,10 @@ def extract_symbols_from_directory(
 
 
 def symbols_to_dict(symbols: List[Symbol]) -> Dict[str, Any]:
-    """Convert symbols list to output dictionary."""
+    """Convert symbols list to output dictionary (Schema v2.0)."""
     symbol_list = []
     for s in symbols:
+        # Required fields (Schema v2.0)
         symbol_dict = {
             "name": s.name,
             "kind": s.kind,
@@ -422,19 +405,16 @@ def symbols_to_dict(symbols: List[Symbol]) -> Dict[str, Any]:
             "line": s.line,
             "signature": s.signature,
             "summary": s.summary,
+            "layer": s.layer,
         }
 
-        # Add optional fields if present
+        # Optional fields (Schema v2.0)
         if s.parent:
             symbol_dict["parent"] = s.parent
-        if s.expected_response:
-            symbol_dict["expected_response"] = s.expected_response
-        if s.decorators:
-            symbol_dict["decorators"] = s.decorators
         if s.docstring:
             symbol_dict["docstring"] = s.docstring
-        if s.file_category:
-            symbol_dict["file_category"] = s.file_category
+        if s.category:
+            symbol_dict["category"] = s.category
 
         symbol_list.append(symbol_dict)
 

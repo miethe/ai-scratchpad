@@ -9,14 +9,14 @@ Usage:
     python extract_symbols_typescript.py <path> [--output=file.json] [--exclude-tests] [--exclude-private]
 
 Examples:
-    # Extract symbols from web app
-    python extract_symbols_typescript.py apps/web/src
+    # Extract symbols from source directory
+    python extract_symbols_typescript.py src
 
-    # Extract from UI package with output
-    python extract_symbols_typescript.py packages/ui --output=ui_symbols.json
+    # Extract from specific directory with output
+    python extract_symbols_typescript.py frontend --output=frontend_symbols.json
 
     # Exclude test files and private symbols
-    python extract_symbols_typescript.py apps/web/src --exclude-tests --exclude-private
+    python extract_symbols_typescript.py src --exclude-tests --exclude-private
 
 Output Format:
     {
@@ -52,14 +52,17 @@ import argparse
 
 @dataclass
 class Symbol:
-    """Represents a single extracted symbol."""
+    """Represents a single extracted symbol (Schema v2.0)."""
     name: str
     kind: str
     path: str
     line: int
     signature: str
     summary: str
+    layer: str  # Architectural layer: component, hook, page, util, router, service, test
     parent: Optional[str] = None
+    docstring: Optional[str] = None  # Full JSDoc/TSDoc
+    category: Optional[str] = None  # Optional file category
 
 
 class TypeScriptSymbolExtractor:
@@ -125,8 +128,8 @@ class TypeScriptSymbolExtractor:
             if name.startswith('_'):
                 continue
 
-            # Get JSDoc summary
-            summary = self._get_jsdoc_summary(match.start())
+            # Get JSDoc summary and full doc
+            summary, docstring = self._get_jsdoc(match.start())
 
             # Build signature
             signature = f"interface {name}"
@@ -137,7 +140,9 @@ class TypeScriptSymbolExtractor:
                 path=self.file_path,
                 line=line,
                 signature=signature,
-                summary=summary
+                summary=summary,
+                layer="unknown",  # Will be set by categorize_file
+                docstring=docstring if docstring else None
             )
             self.symbols.append(symbol)
 
@@ -151,8 +156,8 @@ class TypeScriptSymbolExtractor:
             if name.startswith('_'):
                 continue
 
-            # Get JSDoc summary
-            summary = self._get_jsdoc_summary(match.start())
+            # Get JSDoc summary and full doc
+            summary, docstring = self._get_jsdoc(match.start())
 
             # Build signature
             signature = f"type {name}"
@@ -163,7 +168,9 @@ class TypeScriptSymbolExtractor:
                 path=self.file_path,
                 line=line,
                 signature=signature,
-                summary=summary
+                summary=summary,
+                layer="unknown",  # Will be set by categorize_file
+                docstring=docstring if docstring else None
             )
             self.symbols.append(symbol)
 
@@ -178,8 +185,8 @@ class TypeScriptSymbolExtractor:
             if name.startswith('_'):
                 continue
 
-            # Get JSDoc summary
-            summary = self._get_jsdoc_summary(match.start())
+            # Get JSDoc summary and full doc
+            summary, docstring = self._get_jsdoc(match.start())
 
             # Build signature
             if base_class:
@@ -193,7 +200,9 @@ class TypeScriptSymbolExtractor:
                 path=self.file_path,
                 line=line,
                 signature=signature,
-                summary=summary
+                summary=summary,
+                layer="unknown",  # Will be set by categorize_file
+                docstring=docstring if docstring else None
             )
             self.symbols.append(symbol)
 
@@ -207,8 +216,8 @@ class TypeScriptSymbolExtractor:
             if name.startswith('_'):
                 continue
 
-            # Get JSDoc summary
-            summary = self._get_jsdoc_summary(match.start())
+            # Get JSDoc summary and full doc
+            summary, docstring = self._get_jsdoc(match.start())
 
             # Determine kind based on naming conventions
             kind = self._determine_function_kind(name, match.start())
@@ -222,7 +231,9 @@ class TypeScriptSymbolExtractor:
                 path=self.file_path,
                 line=line,
                 signature=signature,
-                summary=summary
+                summary=summary,
+                layer="unknown",  # Will be set by categorize_file
+                docstring=docstring if docstring else None
             )
             self.symbols.append(symbol)
 
@@ -236,8 +247,8 @@ class TypeScriptSymbolExtractor:
             if name.startswith('_'):
                 continue
 
-            # Get JSDoc summary
-            summary = self._get_jsdoc_summary(match.start())
+            # Get JSDoc summary and full doc
+            summary, docstring = self._get_jsdoc(match.start())
 
             # Determine kind based on naming conventions
             kind = self._determine_function_kind(name, match.start())
@@ -251,7 +262,9 @@ class TypeScriptSymbolExtractor:
                 path=self.file_path,
                 line=line,
                 signature=signature,
-                summary=summary
+                summary=summary,
+                layer="unknown",  # Will be set by categorize_file
+                docstring=docstring if docstring else None
             )
             self.symbols.append(symbol)
 
@@ -334,8 +347,14 @@ class TypeScriptSymbolExtractor:
 
         return signature
 
-    def _get_jsdoc_summary(self, position: int) -> str:
-        """Extract JSDoc comment summary before a symbol."""
+    def _get_jsdoc(self, position: int) -> tuple[str, str]:
+        """
+        Extract JSDoc comment summary and full docstring before a symbol.
+
+        Returns:
+            Tuple of (summary, docstring) where summary is the first line and
+            docstring is the full comment text.
+        """
         # Look backwards for JSDoc comment
         search_start = max(0, position - 500)  # Look back 500 chars
         search_text = self.source_code[search_start:position]
@@ -343,23 +362,33 @@ class TypeScriptSymbolExtractor:
         # Find the last JSDoc comment
         jsdoc_matches = list(self.JSDOC_PATTERN.finditer(search_text))
         if not jsdoc_matches:
-            return ""
+            return ("", "")
 
         last_match = jsdoc_matches[-1]
         jsdoc_text = last_match.group(0)
 
-        # Extract summary (first line of comment)
-        lines = jsdoc_text.split('\n')
-        for line in lines:
-            # Remove comment markers and whitespace
+        # Extract full docstring (clean up comment markers)
+        docstring_lines = []
+        for line in jsdoc_text.split('\n'):
+            cleaned = re.sub(r'^\s*/?\*+\s*', '', line).strip()
+            if cleaned and cleaned != '/':
+                docstring_lines.append(cleaned)
+
+        full_docstring = '\n'.join(docstring_lines) if docstring_lines else ""
+
+        # Extract summary (first line that's not a tag)
+        summary = ""
+        for line in jsdoc_text.split('\n'):
             cleaned = re.sub(r'^\s*/?\*+\s*', '', line).strip()
             if cleaned and not cleaned.startswith('@'):
                 # Truncate if too long
                 if len(cleaned) > 100:
-                    return cleaned[:97] + "..."
-                return cleaned
+                    summary = cleaned[:97] + "..."
+                else:
+                    summary = cleaned
+                break
 
-        return ""
+        return (summary, full_docstring)
 
     def _get_line_number(self, position: int) -> int:
         """Get line number from character position."""
@@ -389,6 +418,55 @@ def is_typescript_file(file_path: Path) -> bool:
     return file_path.suffix in ['.ts', '.tsx', '.js', '.jsx']
 
 
+def categorize_file(file_path: Path) -> tuple[str, str]:
+    """
+    Categorize a TypeScript/JavaScript file by its architectural layer and category.
+
+    Returns:
+        Tuple of (layer, category) where:
+        - layer: Architectural layer (component, hook, page, util, router, service, test)
+        - category: Optional file category (ui, business_logic, test, config)
+    """
+    path_str = str(file_path).lower()
+    parts = file_path.parts
+    name = file_path.name.lower()
+
+    # Test files
+    if is_test_file(file_path):
+        return ("test", "test")
+
+    # Pages (Next.js app router or pages router)
+    if 'pages' in parts or 'app' in parts and any(s in name for s in ['page.tsx', 'page.ts', 'page.jsx', 'page.js']):
+        return ("page", "ui")
+
+    # Components (React components)
+    if 'components' in parts or 'component' in name:
+        return ("component", "ui")
+
+    # Hooks (React hooks)
+    if name.startswith('use') and any(name.endswith(ext) for ext in ['.ts', '.tsx', '.js', '.jsx']):
+        return ("hook", "ui")
+
+    # API routes (Next.js)
+    if 'api' in parts or 'route' in name:
+        return ("router", "business_logic")
+
+    # Services (business logic)
+    if 'services' in parts or 'service' in name:
+        return ("service", "business_logic")
+
+    # Utils/helpers
+    if any(p in parts for p in ['utils', 'helpers', 'lib', 'utilities']) or any(k in name for k in ['util', 'helper']):
+        return ("util", "business_logic")
+
+    # Config files
+    if any(k in name for k in ['config', 'constant', 'env']):
+        return ("util", "config")
+
+    # Default: util layer
+    return ("util", "business_logic")
+
+
 def extract_symbols_from_file(file_path: Path, base_path: Path) -> List[Symbol]:
     """Extract symbols from a single TypeScript/JavaScript file."""
     try:
@@ -397,9 +475,17 @@ def extract_symbols_from_file(file_path: Path, base_path: Path) -> List[Symbol]:
         # Calculate relative path
         rel_path = file_path.relative_to(base_path)
 
+        # Categorize file (layer and category)
+        layer, category = categorize_file(file_path)
+
         # Extract symbols
         extractor = TypeScriptSymbolExtractor(str(rel_path), source_code)
         symbols = extractor.extract()
+
+        # Add layer and category to all symbols
+        for symbol in symbols:
+            symbol.layer = layer
+            symbol.category = category
 
         return symbols
 
@@ -447,21 +533,31 @@ def extract_symbols_from_directory(
 
 
 def symbols_to_dict(symbols: List[Symbol]) -> Dict[str, Any]:
-    """Convert symbols list to output dictionary."""
-    return {
-        "symbols": [
-            {
-                "name": s.name,
-                "kind": s.kind,
-                "path": s.path,
-                "line": s.line,
-                "signature": s.signature,
-                "summary": s.summary,
-                **({"parent": s.parent} if s.parent else {})
-            }
-            for s in symbols
-        ]
-    }
+    """Convert symbols list to output dictionary (Schema v2.0)."""
+    symbol_list = []
+    for s in symbols:
+        # Required fields (Schema v2.0)
+        symbol_dict = {
+            "name": s.name,
+            "kind": s.kind,
+            "path": s.path,
+            "line": s.line,
+            "signature": s.signature,
+            "summary": s.summary,
+            "layer": s.layer,
+        }
+
+        # Optional fields (Schema v2.0)
+        if s.parent:
+            symbol_dict["parent"] = s.parent
+        if s.docstring:
+            symbol_dict["docstring"] = s.docstring
+        if s.category:
+            symbol_dict["category"] = s.category
+
+        symbol_list.append(symbol_dict)
+
+    return {"symbols": symbol_list}
 
 
 def main():
