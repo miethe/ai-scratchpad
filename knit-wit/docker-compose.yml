@@ -1,0 +1,101 @@
+version: '3.9'
+
+services:
+  # FastAPI Backend Service
+  backend:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+      target: development
+    container_name: knitwit-backend
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    volumes:
+      # Mount source code for hot-reload
+      - ./apps/api/app:/app/app:ro
+      - ./apps/api/tests:/app/tests:ro
+      # Mount pyproject.toml for dependency changes
+      - ./apps/api/pyproject.toml:/app/pyproject.toml:ro
+      # Exclude virtual environments
+      - /app/.venv
+    environment:
+      # Backend configuration
+      - BACKEND_ENV=${BACKEND_ENV:-development}
+      - BACKEND_HOST=${BACKEND_HOST:-0.0.0.0}
+      - BACKEND_PORT=${BACKEND_PORT:-8000}
+      # Database configuration (uses service name when running in Docker)
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-knitwit}:${POSTGRES_PASSWORD:-knitwit_dev_pass}@db:5432/${POSTGRES_DB:-knitwit_dev}
+      # CORS configuration
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:19006,http://localhost:8081}
+      # Logging
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - knitwit-network
+    restart: unless-stopped
+
+  # PostgreSQL Database Service (optional for MVP, required for future features)
+  db:
+    image: postgres:15-alpine
+    container_name: knitwit-db
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-knitwit}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-knitwit_dev_pass}
+      - POSTGRES_DB=${POSTGRES_DB:-knitwit_dev}
+      # Performance tuning for development
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --locale=en_US.UTF-8
+    volumes:
+      # Persistent database storage
+      - postgres-data:/var/lib/postgresql/data
+      # Optional: initialization scripts
+      - ./apps/api/scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-knitwit} -d ${POSTGRES_DB:-knitwit_dev}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - knitwit-network
+    restart: unless-stopped
+
+  # pgAdmin (optional database management UI)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: knitwit-pgadmin
+    profiles:
+      - tools  # Only start with --profile tools
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL:-admin@knitwit.local}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD:-admin}
+      - PGADMIN_CONFIG_SERVER_MODE=False
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    depends_on:
+      - db
+    networks:
+      - knitwit-network
+    restart: unless-stopped
+
+volumes:
+  # Persistent volumes for database data
+  postgres-data:
+    driver: local
+  pgadmin-data:
+    driver: local
+
+networks:
+  knitwit-network:
+    driver: bridge
