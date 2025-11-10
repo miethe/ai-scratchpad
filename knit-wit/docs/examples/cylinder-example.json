@@ -1,0 +1,316 @@
+{
+  "shape": {
+    "shape_type": "cylinder",
+    "diameter_cm": 8.0,
+    "height_cm": 12.0
+  },
+  "gauge": {
+    "stitches_per_cm": 1.5,
+    "rows_per_cm": 1.7,
+    "hook_size_mm": 3.5,
+    "yarn_weight": "DK",
+    "swatch_notes": "Worked in single crochet with DK weight yarn"
+  },
+  "rounds": [
+    {
+      "round_number": 0,
+      "stitches": [
+        {
+          "stitch_type": "ch",
+          "count": 2,
+          "target": null,
+          "note": "Magic ring or ch 2"
+        },
+        {
+          "stitch_type": "sc",
+          "count": 6,
+          "target": "second ch from hook",
+          "note": null
+        }
+      ],
+      "total_stitches": 6,
+      "description": "Start: magic ring, 6 sc"
+    },
+    {
+      "round_number": 1,
+      "stitches": [
+        {
+          "stitch_type": "inc",
+          "count": 6,
+          "target": "each st",
+          "note": "2 sc in each st"
+        }
+      ],
+      "total_stitches": 12,
+      "description": "inc around (12)"
+    },
+    {
+      "round_number": 2,
+      "stitches": [
+        {
+          "stitch_type": "sc",
+          "count": 1,
+          "target": "next st",
+          "note": null
+        },
+        {
+          "stitch_type": "inc",
+          "count": 1,
+          "target": "next st",
+          "note": null
+        }
+      ],
+      "total_stitches": 18,
+      "description": "[sc, inc] around (18)"
+    },
+    {
+      "round_number": 3,
+      "stitches": [
+        {
+          "stitch_type": "sc",
+          "count": 2,
+          "target": "next 2 sts",
+          "note": null
+        },
+        {
+          "stitch_type": "inc",
+          "count": 1,
+          "target": "next st",
+          "note": null
+        }
+      ],
+      "total_stitches": 24,
+      "description": "[sc 2, inc] around (24)"
+    },
+    {
+      "round_number": 4,
+      "stitches": [
+        {
+          "stitch_type": "sc",
+          "count": 24,
+          "target": "each st",
+          "note": null
+        }
+      ],
+      "total_stitches": 24,
+      "description": "sc around (24)"
+    },
+    {
+      "round_number": 5,
+      "stitches": [
+        {
+          "stitch_type": "sc",
+          "count": 24,
+          "target": "each st",
+          "note": null
+        }
+      ],
+      "total_stitches": 24,
+      "description": "sc around (24)"
+    },
+    {
+      "round_number": 6,
+      "stitches": [
+        {
+          "stitch_type": "sc",
+          "count": 24,
+          "target": "each st",
+          "note": null
+        }
+      ],
+      "total_stitches": 24,
+      "description": "sc around (24)"
+    },
+    {
+      "round_number": 7,
+      "stitches": [
+        {
+          "stitch_type": "sc",
+          "count": 24,
+          "target": "each st",
+          "note": null
+        }
+      ],
+      "total_stitches": 24,
+      "description": "sc around (24)"
+    },
+    {
+      "round_number": 8,
+      "stitches": [
+        {
+          "stitch_type": "sc",
+          "count": 24,
+          "target": "each st",
+          "note": null
+        }
+      ],
+      "total_stitches": 24,
+      "description": "sc around (24)"
+    },
+    {
+      "round_number": 9,
+      "stitches": [
+        {
+          "stitch_type": "sc",
+          "count": 24,
+          "target": "each st",
+          "note": null
+        }
+      ],
+      "total_stitches": 24,
+      "description": "sc around (24)"
+    },
+    {
+      "round_number": 10,
+      "stitches": [
+        {
+          "stitch_type": "sc",
+          "count": 24,
+          "target": "each st",
+          "note": null
+        }
+      ],
+      "total_stitches": 24,
+      "description": "sc around (24)"
+    },
+    {
+      "round_number": 11,
+      "stitches": [
+        {
+          "stitch_type": "sc",
+          "count": 24,
+          "target": "each st",
+          "note": null
+        }
+      ],
+      "total_stitches": 24,
+      "description": "sc around (24)"
+    },
+    {
+      "round_number": 12,
+      "stitches": [
+        {
+          "stitch_type": "sc",
+          "count": 24,
+          "target": "each st",
+          "note": null
+        }
+      ],
+      "total_stitches": 24,
+      "description": "sc around (24)"
+    },
+    {
+      "round_number": 13,
+      "stitches": [
+        {
+          "stitch_type": "sc",
+          "count": 24,
+          "target": "each st",
+          "note": null
+        }
+      ],
+      "total_stitches": 24,
+      "description": "sc around (24)"
+    },
+    {
+      "round_number": 14,
+      "stitches": [
+        {
+          "stitch_type": "sc",
+          "count": 24,
+          "target": "each st",
+          "note": null
+        }
+      ],
+      "total_stitches": 24,
+      "description": "sc around (24)"
+    },
+    {
+      "round_number": 15,
+      "stitches": [
+        {
+          "stitch_type": "sc",
+          "count": 24,
+          "target": "each st",
+          "note": null
+        }
+      ],
+      "total_stitches": 24,
+      "description": "sc around (24)"
+    },
+    {
+      "round_number": 16,
+      "stitches": [
+        {
+          "stitch_type": "sc",
+          "count": 24,
+          "target": "each st",
+          "note": null
+        }
+      ],
+      "total_stitches": 24,
+      "description": "sc around (24)"
+    },
+    {
+      "round_number": 17,
+      "stitches": [
+        {
+          "stitch_type": "sc",
+          "count": 24,
+          "target": "each st",
+          "note": null
+        }
+      ],
+      "total_stitches": 24,
+      "description": "sc around (24)"
+    },
+    {
+      "round_number": 18,
+      "stitches": [
+        {
+          "stitch_type": "sc",
+          "count": 24,
+          "target": "each st",
+          "note": null
+        }
+      ],
+      "total_stitches": 24,
+      "description": "sc around (24)"
+    },
+    {
+      "round_number": 19,
+      "stitches": [
+        {
+          "stitch_type": "sc",
+          "count": 24,
+          "target": "each st",
+          "note": null
+        }
+      ],
+      "total_stitches": 24,
+      "description": "sc around (24)"
+    },
+    {
+      "round_number": 20,
+      "stitches": [
+        {
+          "stitch_type": "slst",
+          "count": 1,
+          "target": "next st",
+          "note": "slip stitch to close"
+        }
+      ],
+      "total_stitches": 24,
+      "description": "Fasten off"
+    }
+  ],
+  "metadata": {
+    "generated_at": "2024-11-10T10:35:00Z",
+    "engine_version": "0.1.0",
+    "total_rounds": 21,
+    "estimated_time_minutes": 75,
+    "difficulty": "beginner",
+    "tags": ["cylinder", "3d-shape", "tube", "beginner-friendly"]
+  },
+  "notes": "Work in continuous spiral for body. Stuff as you go for easier handling. Can be used for pencil cases, containers, or amigurumi limbs."
+}
