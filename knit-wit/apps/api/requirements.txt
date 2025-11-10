@@ -13,7 +13,7 @@ httpx==0.28.1
 idna==3.11
 iniconfig==2.3.0
 isort==7.0.0
--e file:///home/user/ai-scratchpad/knit-wit/apps/api
+-e .
 mypy==1.18.2
 mypy-extensions==1.1.0
 packaging==25.0
