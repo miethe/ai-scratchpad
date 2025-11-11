@@ -13,6 +13,10 @@ from knit_wit_engine.algorithms.gauge import (
     gauge_to_stitch_length,
     estimate_yardage,
 )
+from knit_wit_engine.algorithms.distribution import (
+    even_distribution,
+    jitter_offset,
+)
 
 __all__ = [
     "generate_sphere",
@@ -20,4 +24,6 @@ __all__ = [
     "generate_cone",
     "gauge_to_stitch_length",
     "estimate_yardage",
+    "even_distribution",
+    "jitter_offset",
 ]
