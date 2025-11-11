@@ -12,10 +12,11 @@ Each shape compiler:
 Available Compilers:
 - SphereCompiler: Generates spiral-round single crochet spheres
 - CylinderCompiler: Generates cylindrical patterns with optional caps
-- ConeCompiler: (Future) Generates tapered/conical patterns
+- ConeCompiler: Generates tapered/conical patterns with Bresenham distribution
 """
 
 from knit_wit_engine.shapes.sphere import SphereCompiler
 from knit_wit_engine.shapes.cylinder import CylinderCompiler
+from knit_wit_engine.shapes.cone import ConeCompiler
 
-__all__ = ["SphereCompiler", "CylinderCompiler"]
+__all__ = ["SphereCompiler", "CylinderCompiler", "ConeCompiler"]
