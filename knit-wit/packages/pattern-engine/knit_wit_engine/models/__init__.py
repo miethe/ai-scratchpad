@@ -14,6 +14,7 @@ from knit_wit_engine.models.dsl import (
     ShapeParameters,
     PatternMetadata,
 )
+from knit_wit_engine.models.requests import Gauge
 
 __all__ = [
     "PatternDSL",
@@ -22,4 +23,5 @@ __all__ = [
     "GaugeInfo",
     "ShapeParameters",
     "PatternMetadata",
+    "Gauge",
 ]

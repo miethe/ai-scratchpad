@@ -79,6 +79,7 @@ markers = [
     "unit: Unit tests",
     "integration: Integration tests",
     "slow: Slow running tests",
+    "benchmark: Performance benchmark tests",
 ]
 
 [tool.coverage.run]
