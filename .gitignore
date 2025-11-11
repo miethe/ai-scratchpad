@@ -1,1 +1,14 @@
 **/.DS_Store
+
+**/venv/
+**/__pycache__/
+**/*.pyc
+**/.mypy_cache/
+**/.pytest_cache/
+**/.vscode/
+**/.idea/
+**/.env
+**/.venv
+**/env/
+
+**/node_modules/
