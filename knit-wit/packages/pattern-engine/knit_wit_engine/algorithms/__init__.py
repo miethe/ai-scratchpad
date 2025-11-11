@@ -17,6 +17,10 @@ from knit_wit_engine.algorithms.distribution import (
     even_distribution,
     jitter_offset,
 )
+from knit_wit_engine.algorithms.translator import (
+    translate_term,
+    translate_pattern_dsl,
+)
 
 __all__ = [
     "generate_sphere",
@@ -26,4 +30,6 @@ __all__ = [
     "estimate_yardage",
     "even_distribution",
     "jitter_offset",
+    "translate_term",
+    "translate_pattern_dsl",
 ]
