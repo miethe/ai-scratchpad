@@ -1,29 +1,42 @@
 # Phase 3: Full Feature Implementation
 
-**Knit-Wit MVP Implementation Plan**
+**Duration:** Weeks 8-11 (Sprints 5-7)
+**Team:** 2 BE, 2 FE, 1 QA
+**Capacity:** ~180-200 story points
+**Status:** Planned
 
 ---
 
 ## Phase Overview
 
-**Phase Number:** 3
-**Phase Name:** Full Feature Implementation
-**Duration:** 4 weeks (Weeks 8-11 of project timeline)
-**Sprints:** Sprint 5, Sprint 6, Sprint 7
-**Target Dates:** Week 8 (Start) → End of Week 11
-**Capacity:** ~180-200 story points
-**Team:** Full team (2 backend engineers, 2 frontend engineers, 1 QA engineer)
+Phase 3 completes MVP feature development by implementing pattern parsing, multi-format exports, accessibility features, and telemetry. This phase delivers end-to-end user flows from pattern generation through visualization to professional exports.
 
-### Phase Purpose
+**Core Deliverables:**
+- Backend: Text pattern parser (limited grammar)
+- Backend: PDF export (reportlab/weasyprint)
+- Backend: SVG/PNG export endpoints
+- Backend: Telemetry event pipeline (opt-in)
+- Frontend: Export screen with format selection
+- Frontend: Kid Mode toggle and simplified UI
+- Frontend: Full accessibility (screen reader, high contrast, dyslexia font)
+- Frontend: Settings screen completion
+- Frontend: Telemetry opt-in/opt-out controls
 
-Phase 3 represents the feature completion milestone for the Knit-Wit MVP. This phase brings together all core functionality into a cohesive, end-to-end user experience. Users will be able to generate patterns via a form interface, parse external pattern text (limited grammar), visualize patterns interactively, and export results in multiple formats (PDF, SVG, JSON).
-
-This phase also introduces critical usability enhancements: Kid Mode for beginner-friendly UI, comprehensive accessibility features (WCAG AA compliance), and telemetry for data-driven improvements. By the end of Phase 3, the application will have all MVP features implemented and ready for QA polish in Phase 4.
+**Key Technologies:**
+- Backend: pyparsing (parser), reportlab/weasyprint (PDF), Pillow (PNG)
+- Frontend: AsyncStorage (settings), react-native-fs (downloads)
+- Testing: pytest (BE), Jest (FE), axe-core (accessibility)
 
 ### Phase Context
 
-- **Previous Phase:** Phase 2 (Visualization Foundation, Weeks 5-7) established the React Native app shell, navigation, and interactive pattern visualization with SVG rendering. The `Visualizer` class converts DSL to render primitives, and the scrubber/step controls allow round-by-round navigation.
-- **Next Phase:** Phase 4 (QA & Polish, Weeks 12-15) will focus on cross-device testing, accessibility audits, performance optimization, bug fixes, and documentation to prepare for launch.
+**Preceding Phase:**
+- Phase 2: Visualization Foundation (Weeks 5-7) delivered RN/Expo app shell, SVG rendering engine, round scrubber, and basic interactivity. DSL → visualization frames functional.
+
+**Following Phase:**
+- Phase 4: QA & Polish (Weeks 12-15) focuses on cross-device testing, performance optimization, accessibility audits, and bug fixes for launch readiness.
+
+**Critical Path:**
+Yes. Export and accessibility features block launch. Parser enables external pattern workflows.
 
 ---
 
@@ -31,33 +44,78 @@ This phase also introduces critical usability enhancements: Kid Mode for beginne
 
 ### Primary Goals
 
-1. **Pattern Generation UI:** Complete generation form with shape selection, parameter inputs, gauge entry, and API integration
-2. **Pattern Parsing:** Text parser supporting limited crochet pattern syntax (brackets, repeats, common abbreviations)
-3. **Multi-Format Export:** PDF, SVG, and JSON export fully functional with professional formatting
-4. **Kid Mode:** Beginner-friendly UI variant with simplified terminology and larger tap targets
-5. **Accessibility Compliance:** WCAG AA compliance with screen reader support, keyboard navigation, and high-contrast options
-6. **Telemetry Infrastructure:** Opt-in usage tracking for key events (generation, visualization, export)
+1. **Text Pattern Parsing**
+   - Parse bracket/repeat grammar: `R3: [2 sc, inc] x6 (18)`
+   - Convert to PatternDSL with validation
+   - User-friendly error messages for unsupported syntax
+
+2. **Multi-Format Export**
+   - PDF: Professional layout (cover, materials, pattern, diagrams)
+   - SVG: Editable vector diagrams per round or composite
+   - PNG: Raster preview (72 DPI screen, 300 DPI print)
+   - JSON: Pattern DSL round-trip compatible
+
+3. **Kid Mode Implementation**
+   - Simplified UI with larger tap targets (56×56 dp)
+   - Beginner-friendly copy (grade 4-5 reading level)
+   - Animated stitch tutorials (increase, decrease)
+   - Safe, vibrant color palette
+
+4. **Accessibility Compliance**
+   - WCAG AA: color contrast, ARIA labels, keyboard nav
+   - Screen reader support (NVDA, JAWS, VoiceOver)
+   - Colorblind-friendly palettes (patterns + symbols)
+   - Dyslexia-friendly font option (OpenDyslexic)
+   - Motion respect (prefers-reduced-motion)
+
+5. **Telemetry Infrastructure**
+   - Opt-in event tracking (generation, visualization, export)
+   - Backend logging pipeline (no PII)
+   - Settings toggle for opt-in/opt-out
+   - 90-day data retention policy
+
+6. **Settings Persistence**
+   - AsyncStorage for preferences (terminology, units, theme)
+   - Kid Mode toggle
+   - Accessibility preferences
+   - Telemetry consent
 
 ### Key Deliverables
 
-| Deliverable | Description | Success Metric |
-|------------|-------------|----------------|
-| **Generation Screen** | Form-based UI for pattern generation with shape/params/gauge inputs | End-to-end generate → visualize works |
-| **Text Parser** | Backend parser supporting limited crochet pattern grammar | Parses canonical patterns with 90%+ accuracy |
-| **PDF Export** | Professional PDF with cover, materials, pattern text, and diagrams | PDFs print correctly on A4/Letter paper |
-| **SVG/PNG Export** | Vector and raster diagram exports | SVGs editable in Illustrator/Inkscape |
-| **JSON DSL Export** | Machine-readable pattern DSL for integration | Round-trip export/import works identically |
-| **Kid Mode UI** | Simplified UI with beginner-friendly terminology and animations | Toggle activates; UI is noticeably simplified |
-| **Accessibility Features** | Screen reader labels, keyboard navigation, high-contrast mode | WCAG AA audit shows 0 critical issues |
-| **Telemetry Pipeline** | Event tracking for generation, visualization, export | Opt-in toggle works; events logged correctly |
+**Backend:**
+- [ ] `app/services/parser_service.py` - Text → DSL converter
+- [ ] `app/services/export_service.py` - PDF/SVG/PNG generators
+- [ ] `app/api/routes/parser.py` - POST /parse endpoint
+- [ ] `app/api/routes/export.py` - POST /export/{format} endpoints
+- [ ] `app/services/telemetry_service.py` - Event pipeline
+- [ ] `tests/unit/test_parser_service.py` - Parser unit tests
+- [ ] `tests/unit/test_export_service.py` - Export unit tests
+- [ ] `tests/integration/test_export_api.py` - Export contract tests
 
-### Non-Goals (Deferred to Later Phases or v1.1)
+**Frontend:**
+- [ ] `src/screens/ExportScreen.tsx` - Export format selection UI
+- [ ] `src/screens/ParseScreen.tsx` - Text input and validation
+- [ ] `src/screens/SettingsScreen.tsx` - Complete settings UI
+- [ ] `src/components/kidmode/SimplifiedUI.tsx` - Kid Mode components
+- [ ] `src/components/accessibility/A11yControls.tsx` - Accessibility toggles
+- [ ] `src/services/telemetryClient.ts` - Event tracking
+- [ ] `src/theme/kidModeTheme.ts` - Kid Mode color/typography
+- [ ] `src/theme/accessibilityTheme.ts` - High contrast, dyslexia font
+- [ ] `__tests__/screens/ExportScreen.test.tsx` - Component tests
+- [ ] `__tests__/accessibility/a11y.test.tsx` - Accessibility tests
 
-- Advanced pattern parsing (complex abbreviations, colorwork, tapestry)
-- User authentication and saved patterns (v1.1)
-- Advanced export templates or custom branding (v1.1)
-- Offline mode and local storage (v1.1)
-- Community pattern library (v2.0)
+### Success Metrics
+
+| Metric | Target | Measurement |
+|--------|--------|-------------|
+| Parser accuracy | 90%+ canonical patterns | Unit tests |
+| PDF generation time | < 5s | pytest-benchmark |
+| Export file size (PDF) | < 5 MB | Manual verification |
+| Kid Mode readability | Grade 4-5 | Flesch-Kincaid |
+| WCAG AA compliance | 100% critical paths | axe-core audit |
+| Colorblind verification | Pass simulations | Chrome DevTools |
+| Test coverage (BE) | > 80% | pytest-cov |
+| Test coverage (FE) | > 60% | Jest coverage |
 
 ---
 
@@ -65,1370 +123,1070 @@ This phase also introduces critical usability enhancements: Kid Mode for beginne
 
 ### EPIC C: Parsing & I/O
 
-**Epic Owner:** Backend Engineer + Frontend Engineer
-**Epic Duration:** Weeks 8-10 (Sprints 5-6)
-**Total Effort:** ~60 story points
+**Owner:** Backend Lead + Frontend Eng
+**Duration:** Weeks 8-10 (Sprints 5-6)
+**Total Effort:** 60 story points
 **Priority:** P0 (Critical Path)
 
-#### Epic Overview
+**Epic Overview:**
+Enable users to paste external crochet patterns (limited syntax) and export generated patterns in professional formats. Parser converts bracket/repeat syntax to PatternDSL. Export service generates printable PDFs, editable SVGs, and machine-readable JSON.
 
-Enable users to paste their own crochet patterns (limited syntax support) and export generated results in multiple professional formats. The text parser converts common pattern syntax to Pattern DSL, allowing users to import external patterns. Export functionality produces printable PDFs, editable SVGs, and machine-readable JSON for integration and sharing.
+**Epic Goals:**
+- Parse canonical patterns: `R3: [2 sc, inc] x6 (18)`
+- Export PDFs < 5 MB with professional layout
+- Export SVGs editable in Illustrator/Inkscape
+- Export JSON round-trip compatible
+- User-friendly error messages for parse failures
 
-#### Epic Goals
+#### Stories
 
-- Parse common bracket/repeat pattern syntax with clear error messages
-- Export patterns to PDF (printable, professional quality)
-- Export diagrams to SVG and PNG (editable, shareable)
-- Export DSL to JSON (round-trip compatible)
-- User-friendly error handling for parsing failures
-
-#### Epic Stories Summary
-
-| Story ID | Title | Effort | Priority | Dependencies |
-|----------|-------|--------|----------|--------------|
-| C1 | Text parser (backend) | 13 pt | P0 | A6 (US/UK translator) |
-| C2 | Parser test suite | 8 pt | P0 | C1 |
-| C3 | PDF export endpoint (backend) | 13 pt | P0 | B1 (render primitives) |
-| C4 | SVG/PNG export endpoint (backend) | 8 pt | P1 | B1 (render primitives) |
-| C5 | Export screen UI (frontend) | 8 pt | P0 | C3, C4 |
-| C6 | Parse input screen UI (frontend) | 8 pt | P1 | C1 |
+| ID | Title | Effort | Priority | Dependencies | Owner |
+|----|-------|--------|----------|--------------|-------|
+| **C1** | Text parser (backend) | 13 pt | P0 | Phase 1 (DSL) | BE Lead |
+| **C2** | Parser error handling | 5 pt | P0 | C1 | BE Lead |
+| **C3** | PDF export endpoint (backend) | 13 pt | P0 | Phase 2 (vis frames) | BE Eng |
+| **C4** | SVG/PNG export endpoint (backend) | 8 pt | P1 | Phase 2 (vis frames) | BE Eng |
+| **C5** | JSON DSL export | 3 pt | P0 | Phase 1 (DSL) | BE Eng |
+| **C6** | Export screen UI (frontend) | 8 pt | P0 | C3, C4, C5 | FE Eng |
+| **C7** | Parse screen UI (frontend) | 8 pt | P1 | C1, C2 | FE Eng |
 
 **Total:** 58 story points
-
-#### Epic Acceptance Criteria
-
-- **AC-C-1:** Parser successfully parses canonical patterns: `R4: [2 sc, inc] x6 (24)`
-- **AC-C-2:** PDF exports are printable on A4 and Letter paper without text overflow
-- **AC-C-3:** SVG exports are valid and editable in standard design tools (Illustrator, Inkscape)
-- **AC-C-4:** JSON export round-trips correctly (export → re-import produces identical pattern)
-- **AC-C-5:** Parse errors show user-friendly messages indicating which line/token failed
-- **AC-C-6:** All export formats respect US/UK terminology toggle
-
-#### Technical Implementation
-
-**Text Parser Architecture:**
-
-The text parser uses a simple lexer + parser approach for the limited MVP grammar. Implementation in `knit_wit_engine/parsing/text_parser.py`.
-
-**Supported Grammar (MVP Scope):**
-
-```
-<pattern>     ::= <round>+
-<round>       ::= "R" <number> ":" <operations> "(" <stitch_count> ")"
-<operations>  ::= <operation> ( "," <operation> )*
-<operation>   ::= <stitch> | <repeat_group>
-<stitch>      ::= [ <count> ] <stitch_type>
-<stitch_type> ::= "sc" | "hdc" | "dc" | "slst" | "ch" | "inc" | "dec" | "MR"
-<repeat_group>::= "[" <operations> "]" "x" <number>
-<count>       ::= <number>
-```
-
-**Example Patterns:**
-
-```
-R1: MR 6 sc (6)
-R2: inc x6 (12)
-R3: [sc, inc] x6 (18)
-R4: [2 sc, inc] x6 (24)
-R5: [sc, inc] x2 [hdc, inc] x2 [dc, inc] x2 (30)
-```
-
-**Lexer Tokens:**
-
-- `ROUND_LABEL`: `R<N>:`
-- `MAGIC_RING`: `MR`
-- `STITCH`: `sc`, `hdc`, `dc`, `slst`, `ch`
-- `OPERATION`: `inc`, `dec`
-- `LBRACKET`: `[`
-- `RBRACKET`: `]`
-- `REPEAT`: `x<N>`
-- `STITCH_COUNT`: `(<N>)`
-- `NUMBER`: `\d+`
-- `COMMA`: `,`
-
-**Parser Implementation Approach:**
-
-```python
-# knit_wit_engine/parsing/text_parser.py
-
-from typing import List, Optional
-from dataclasses import dataclass
-from knit_wit_engine.models.dsl import PatternDSL, Round, Operation
-
-@dataclass
-class Token:
-    type: str
-    value: str
-    line: int
-    column: int
-
-class Lexer:
-    """Tokenize pattern text into a stream of tokens."""
-
-    def __init__(self, text: str):
-        self.text = text
-        self.pos = 0
-        self.line = 1
-        self.column = 1
-
-    def tokenize(self) -> List[Token]:
-        """Return list of tokens."""
-        tokens = []
-        while self.pos < len(self.text):
-            # Skip whitespace
-            if self.text[self.pos].isspace():
-                if self.text[self.pos] == '\n':
-                    self.line += 1
-                    self.column = 1
-                else:
-                    self.column += 1
-                self.pos += 1
-                continue
-
-            # Match round label: R1:
-            if self.text[self.pos] == 'R' and self.peek_ahead().isdigit():
-                tokens.append(self.read_round_label())
-                continue
-
-            # Match magic ring: MR
-            if self.text[self.pos:self.pos+2] == 'MR':
-                tokens.append(Token('MAGIC_RING', 'MR', self.line, self.column))
-                self.pos += 2
-                self.column += 2
-                continue
-
-            # Match stitches: sc, hdc, dc, etc.
-            if self.match_stitch():
-                tokens.append(self.read_stitch())
-                continue
-
-            # Match operations: inc, dec
-            if self.match_operation():
-                tokens.append(self.read_operation())
-                continue
-
-            # Match brackets
-            if self.text[self.pos] == '[':
-                tokens.append(Token('LBRACKET', '[', self.line, self.column))
-                self.pos += 1
-                self.column += 1
-                continue
-
-            if self.text[self.pos] == ']':
-                tokens.append(Token('RBRACKET', ']', self.line, self.column))
-                self.pos += 1
-                self.column += 1
-                continue
-
-            # Match repeat: x6
-            if self.text[self.pos] == 'x' and self.peek_ahead().isdigit():
-                tokens.append(self.read_repeat())
-                continue
-
-            # Match stitch count: (24)
-            if self.text[self.pos] == '(':
-                tokens.append(self.read_stitch_count())
-                continue
-
-            # Match comma
-            if self.text[self.pos] == ',':
-                tokens.append(Token('COMMA', ',', self.line, self.column))
-                self.pos += 1
-                self.column += 1
-                continue
-
-            # Match number
-            if self.text[self.pos].isdigit():
-                tokens.append(self.read_number())
-                continue
-
-            # Unknown character - raise error
-            raise ParseError(f"Unexpected character '{self.text[self.pos]}' at line {self.line}, column {self.column}")
-
-        return tokens
-
-    def read_round_label(self) -> Token:
-        """Read R<N>: token."""
-        start_col = self.column
-        self.pos += 1  # Skip 'R'
-        self.column += 1
-
-        num = ''
-        while self.pos < len(self.text) and self.text[self.pos].isdigit():
-            num += self.text[self.pos]
-            self.pos += 1
-            self.column += 1
-
-        if self.pos < len(self.text) and self.text[self.pos] == ':':
-            self.pos += 1
-            self.column += 1
-            return Token('ROUND_LABEL', f'R{num}:', self.line, start_col)
-        else:
-            raise ParseError(f"Expected ':' after round number at line {self.line}, column {self.column}")
-
-    # ... (additional read methods for other tokens)
-
-class Parser:
-    """Parse tokens into PatternDSL."""
-
-    def __init__(self, tokens: List[Token]):
-        self.tokens = tokens
-        self.pos = 0
-
-    def parse(self) -> PatternDSL:
-        """Parse tokens into PatternDSL structure."""
-        rounds = []
-
-        while self.pos < len(self.tokens):
-            round_obj = self.parse_round()
-            rounds.append(round_obj)
-
-        return PatternDSL(
-            meta={
-                'terms': 'US',  # Default to US
-                'units': 'cm',
-                'round_mode': 'spiral',
-                'generated_by': 'text_parser',
-            },
-            rounds=rounds
-        )
-
-    def parse_round(self) -> Round:
-        """Parse a single round."""
-        # Expect ROUND_LABEL
-        if not self.match('ROUND_LABEL'):
-            raise ParseError(f"Expected round label, got {self.current_token().type}")
-
-        round_label = self.consume('ROUND_LABEL').value
-        round_num = int(round_label[1:-1])  # Extract number from R<N>:
-
-        # Parse operations
-        operations = self.parse_operations()
-
-        # Expect STITCH_COUNT
-        if not self.match('STITCH_COUNT'):
-            raise ParseError(f"Expected stitch count at end of round {round_num}")
-
-        stitch_count_token = self.consume('STITCH_COUNT')
-        stitch_count = int(stitch_count_token.value[1:-1])  # Extract number from (<N>)
-
-        return Round(
-            round=round_num,
-            stitches=stitch_count,
-            operations=operations
-        )
-
-    def parse_operations(self) -> List[Operation]:
-        """Parse comma-separated operations."""
-        operations = []
-
-        while not self.match('STITCH_COUNT'):
-            if self.match('LBRACKET'):
-                operations.extend(self.parse_repeat_group())
-            else:
-                operations.append(self.parse_operation())
-
-            # Check for comma
-            if self.match('COMMA'):
-                self.consume('COMMA')
-
-        return operations
-
-    def parse_repeat_group(self) -> List[Operation]:
-        """Parse [...] x<N> repeat group."""
-        self.consume('LBRACKET')
-
-        # Parse operations inside brackets
-        group_operations = []
-        while not self.match('RBRACKET'):
-            group_operations.append(self.parse_operation())
-            if self.match('COMMA'):
-                self.consume('COMMA')
-
-        self.consume('RBRACKET')
-
-        # Expect x<N>
-        if not self.match('REPEAT'):
-            raise ParseError(f"Expected repeat count after ']'")
-
-        repeat_token = self.consume('REPEAT')
-        repeat_count = int(repeat_token.value[1:])  # Extract number from x<N>
-
-        # Expand operations
-        expanded = []
-        for _ in range(repeat_count):
-            expanded.extend(group_operations)
-
-        return expanded
-
-    def parse_operation(self) -> Operation:
-        """Parse a single operation (stitch or special operation)."""
-        # Check for count prefix (e.g., "2 sc")
-        count = 1
-        if self.match('NUMBER'):
-            count = int(self.consume('NUMBER').value)
-
-        # Parse stitch type
-        if self.match('MAGIC_RING'):
-            self.consume('MAGIC_RING')
-            return Operation(type='magic_ring', count=count)
-        elif self.match('STITCH'):
-            stitch_type = self.consume('STITCH').value
-            return Operation(type='stitch', stitch=stitch_type, count=count)
-        elif self.match('OPERATION'):
-            op_type = self.consume('OPERATION').value
-            return Operation(type=op_type, count=count)
-        else:
-            raise ParseError(f"Expected operation, got {self.current_token().type}")
-
-    def match(self, token_type: str) -> bool:
-        """Check if current token matches type."""
-        return self.pos < len(self.tokens) and self.tokens[self.pos].type == token_type
-
-    def consume(self, token_type: str) -> Token:
-        """Consume and return current token if it matches type."""
-        if not self.match(token_type):
-            raise ParseError(f"Expected {token_type}, got {self.current_token().type}")
-        token = self.tokens[self.pos]
-        self.pos += 1
-        return token
-
-    def current_token(self) -> Optional[Token]:
-        """Return current token or None if at end."""
-        return self.tokens[self.pos] if self.pos < len(self.tokens) else None
-
-class ParseError(Exception):
-    """Custom exception for parsing errors."""
-    pass
-
-def parse_pattern_text(text: str) -> PatternDSL:
-    """
-    Parse crochet pattern text into PatternDSL.
-
-    Args:
-        text: Pattern text with limited grammar support
-
-    Returns:
-        PatternDSL object
-
-    Raises:
-        ParseError: If text contains unsupported syntax or errors
-
-    Example:
-        >>> text = '''
-        ... R1: MR 6 sc (6)
-        ... R2: inc x6 (12)
-        ... R3: [sc, inc] x6 (18)
-        ... '''
-        >>> dsl = parse_pattern_text(text)
-    """
-    try:
-        lexer = Lexer(text)
-        tokens = lexer.tokenize()
-
-        parser = Parser(tokens)
-        dsl = parser.parse()
-
-        # Validate stitch counts
-        for round_obj in dsl.rounds:
-            computed_count = sum(op.count for op in round_obj.operations)
-            if computed_count != round_obj.stitches:
-                raise ParseError(
-                    f"Round {round_obj.round}: stitch count mismatch. "
-                    f"Operations sum to {computed_count}, but round declares {round_obj.stitches}"
-                )
-
-        return dsl
-
-    except ParseError as e:
-        # Re-raise with user-friendly message
-        raise ParseError(
-            f"Parse error: {str(e)}\n\n"
-            f"Supported syntax:\n"
-            f"  R1: MR 6 sc (6)\n"
-            f"  R2: inc x6 (12)\n"
-            f"  R3: [sc, inc] x6 (18)\n"
-            f"  R4: [2 sc, inc] x6 (24)\n\n"
-            f"Unsupported features:\n"
-            f"  - Complex abbreviations (tr, dtr, bobbles, cables)\n"
-            f"  - Row-based patterns\n"
-            f"  - Color changes\n"
-            f"  - Tapestry and colorwork syntax"
-        )
-```
-
-**PDF Export Architecture:**
-
-PDF generation uses `reportlab` (Python) for backend rendering. The PDF includes:
-
-1. **Cover Page:** Title, shape, dimensions, yarn weight, hook size
-2. **Materials Page:** Yarn yardage, hook size, notions
-3. **Abbreviations Reference:** Full definitions of stitches used
-4. **Pattern Page:** Human-readable pattern text, organized by round
-5. **Visuals Page:** SVG diagrams (first 10 rounds, last 10 rounds, or key rounds)
-
-**PDF Template Structure:**
-
-```python
-# knit_wit_engine/export/pdf_exporter.py
-
-from reportlab.lib.pagesizes import letter, A4
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.units import inch
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
-from reportlab.lib import colors
-from io import BytesIO
-from knit_wit_engine.models.dsl import PatternDSL
-
-class PDFExporter:
-    """Export PatternDSL to PDF format."""
-
-    def __init__(self, page_size=letter):
-        self.page_size = page_size
-        self.styles = getSampleStyleSheet()
-
-        # Custom styles
-        self.styles.add(ParagraphStyle(
-            name='Title',
-            parent=self.styles['Heading1'],
-            fontSize=24,
-            textColor=colors.HexColor('#2C5F2D'),  # Knit-Wit brand color
-            spaceAfter=30,
-        ))
-
-        self.styles.add(ParagraphStyle(
-            name='SectionHeading',
-            parent=self.styles['Heading2'],
-            fontSize=16,
-            textColor=colors.HexColor('#2C5F2D'),
-            spaceBefore=20,
-            spaceAfter=12,
-        ))
-
-        self.styles.add(ParagraphStyle(
-            name='PatternText',
-            parent=self.styles['Normal'],
-            fontSize=12,
-            fontName='Courier',  # Monospace for pattern text
-            leftIndent=20,
-        ))
-
-    def export(self, dsl: PatternDSL, metadata: dict) -> bytes:
-        """
-        Export PatternDSL to PDF.
-
-        Args:
-            dsl: PatternDSL object
-            metadata: Additional metadata (shape, dimensions, gauge, etc.)
-
-        Returns:
-            PDF bytes
-        """
-        buffer = BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=self.page_size)
-        story = []
-
-        # Cover page
-        story.extend(self._build_cover_page(dsl, metadata))
-        story.append(self._page_break())
-
-        # Materials page
-        story.extend(self._build_materials_page(dsl, metadata))
-        story.append(self._page_break())
-
-        # Abbreviations reference
-        story.extend(self._build_abbreviations_page(dsl))
-        story.append(self._page_break())
-
-        # Pattern page
-        story.extend(self._build_pattern_page(dsl))
-
-        # Visuals page (if diagrams available)
-        if metadata.get('diagrams'):
-            story.append(self._page_break())
-            story.extend(self._build_visuals_page(dsl, metadata))
-
-        # Footer
-        story.extend(self._build_footer())
-
-        # Build PDF
-        doc.build(story)
-
-        pdf_bytes = buffer.getvalue()
-        buffer.close()
-
-        return pdf_bytes
-
-    def _build_cover_page(self, dsl: PatternDSL, metadata: dict):
-        """Build cover page elements."""
-        elements = []
-
-        # Title
-        title = metadata.get('name', 'Crochet Pattern')
-        elements.append(Paragraph(title, self.styles['Title']))
-        elements.append(Spacer(1, 0.5 * inch))
-
-        # Shape info
-        shape = metadata.get('shape', 'Unknown')
-        dimensions = metadata.get('dimensions', {})
-        elements.append(Paragraph(f"<b>Shape:</b> {shape.capitalize()}", self.styles['Normal']))
-
-        if dimensions:
-            dim_text = ', '.join([f"{k}: {v}" for k, v in dimensions.items()])
-            elements.append(Paragraph(f"<b>Dimensions:</b> {dim_text}", self.styles['Normal']))
-
-        elements.append(Spacer(1, 0.3 * inch))
-
-        # Gauge
-        gauge = metadata.get('gauge', {})
-        if gauge:
-            elements.append(Paragraph(
-                f"<b>Gauge:</b> {gauge.get('sts_per_10cm')} stitches × {gauge.get('rows_per_10cm')} rows per 10cm",
-                self.styles['Normal']
-            ))
-
-        # Hook size
-        hook_size = metadata.get('hook_size', 'Unknown')
-        elements.append(Paragraph(f"<b>Hook Size:</b> {hook_size}", self.styles['Normal']))
-
-        return elements
-
-    def _build_materials_page(self, dsl: PatternDSL, metadata: dict):
-        """Build materials page elements."""
-        elements = []
-        elements.append(Paragraph("Materials", self.styles['SectionHeading']))
-
-        # Yarn yardage
-        yardage = metadata.get('yardage', 'Unknown')
-        elements.append(Paragraph(f"<b>Yarn:</b> {yardage} meters", self.styles['Normal']))
-
-        # Hook size
-        hook_size = metadata.get('hook_size', 'Unknown')
-        elements.append(Paragraph(f"<b>Hook:</b> {hook_size}", self.styles['Normal']))
-
-        # Notions
-        notions = metadata.get('notions', [])
-        if notions:
-            notions_text = ', '.join(notions)
-            elements.append(Paragraph(f"<b>Notions:</b> {notions_text}", self.styles['Normal']))
-
-        return elements
-
-    def _build_abbreviations_page(self, dsl: PatternDSL):
-        """Build abbreviations reference page."""
-        elements = []
-        elements.append(Paragraph("Abbreviations", self.styles['SectionHeading']))
-
-        # Common abbreviations
-        abbreviations = {
-            'MR': 'Magic ring',
-            'sc': 'Single crochet',
-            'hdc': 'Half double crochet',
-            'dc': 'Double crochet',
-            'slst': 'Slip stitch',
-            'ch': 'Chain',
-            'inc': 'Increase (2 stitches in one stitch)',
-            'dec': 'Decrease (single crochet 2 together)',
-        }
-
-        # Build table
-        table_data = [['Abbreviation', 'Meaning']]
-        for abbr, meaning in abbreviations.items():
-            table_data.append([abbr, meaning])
-
-        table = Table(table_data, colWidths=[1.5 * inch, 4 * inch])
-        table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2C5F2D')),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 12),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black),
-        ]))
-
-        elements.append(table)
-
-        return elements
-
-    def _build_pattern_page(self, dsl: PatternDSL):
-        """Build pattern page with round-by-round instructions."""
-        elements = []
-        elements.append(Paragraph("Pattern", self.styles['SectionHeading']))
-
-        # Convert DSL rounds to human-readable text
-        for round_obj in dsl.rounds:
-            round_text = self._format_round(round_obj)
-            elements.append(Paragraph(round_text, self.styles['PatternText']))
-
-        return elements
-
-    def _format_round(self, round_obj) -> str:
-        """Convert Round object to human-readable text."""
-        # This would format the round operations into pattern text
-        # Example: "R1: MR 6 sc (6)"
-        # For MVP, we'll use a simplified approach
-        operations_text = ', '.join([self._format_operation(op) for op in round_obj.operations])
-        return f"<b>R{round_obj.round}:</b> {operations_text} ({round_obj.stitches})"
-
-    def _format_operation(self, operation) -> str:
-        """Format a single operation."""
-        if operation.type == 'magic_ring':
-            return f"MR {operation.count}"
-        elif operation.type == 'stitch':
-            count_prefix = f"{operation.count} " if operation.count > 1 else ""
-            return f"{count_prefix}{operation.stitch}"
-        elif operation.type in ['inc', 'dec']:
-            return f"{operation.type} x{operation.count}" if operation.count > 1 else operation.type
-        else:
-            return str(operation)
-
-    def _build_visuals_page(self, dsl: PatternDSL, metadata: dict):
-        """Build visuals page with diagrams."""
-        elements = []
-        elements.append(Paragraph("Diagrams", self.styles['SectionHeading']))
-
-        # Add diagram images (from metadata['diagrams'])
-        diagrams = metadata.get('diagrams', [])
-        for diagram in diagrams:
-            img = Image(diagram['path'], width=4*inch, height=4*inch)
-            elements.append(img)
-            elements.append(Paragraph(f"Round {diagram['round']}", self.styles['Normal']))
-            elements.append(Spacer(1, 0.2 * inch))
-
-        return elements
-
-    def _build_footer(self):
-        """Build footer with branding."""
-        elements = []
-        elements.append(Spacer(1, 1 * inch))
-        elements.append(Paragraph(
-            "Generated with Knit-Wit • https://knit-wit.app",
-            self.styles['Normal']
-        ))
-        return elements
-
-    def _page_break(self):
-        """Return page break element."""
-        from reportlab.platypus import PageBreak
-        return PageBreak()
-```
-
-**SVG/PNG Export Architecture:**
-
-SVG export generates individual SVG files for each round or a composite SVG with all rounds. PNG export renders SVG to raster format using `cairosvg` or `svglib`.
-
-```python
-# knit_wit_engine/export/svg_exporter.py
-
-from knit_wit_engine.models.dsl import PatternDSL
-from knit_wit_engine.visualization.visualizer import Visualizer
-from typing import List
-import io
-
-class SVGExporter:
-    """Export pattern diagrams to SVG format."""
-
-    def export_round(self, dsl: PatternDSL, round_num: int, options: dict = None) -> str:
-        """
-        Export a single round to SVG.
-
-        Args:
-            dsl: PatternDSL object
-            round_num: Round number to export (1-indexed)
-            options: Rendering options (scale, colors, etc.)
-
-        Returns:
-            SVG string
-        """
-        visualizer = Visualizer()
-        frames = visualizer.dsl_to_frames(dsl, options or {})
-
-        # Get frame for specified round
-        frame = frames[round_num - 1]  # 0-indexed
-
-        # Render frame to SVG
-        svg = self._render_frame_to_svg(frame, options or {})
-
-        return svg
-
-    def export_all_rounds(self, dsl: PatternDSL, options: dict = None) -> List[str]:
-        """
-        Export all rounds to individual SVG strings.
-
-        Args:
-            dsl: PatternDSL object
-            options: Rendering options
-
-        Returns:
-            List of SVG strings, one per round
-        """
-        visualizer = Visualizer()
-        frames = visualizer.dsl_to_frames(dsl, options or {})
-
-        svgs = []
-        for frame in frames:
-            svg = self._render_frame_to_svg(frame, options or {})
-            svgs.append(svg)
-
-        return svgs
-
-    def export_composite(self, dsl: PatternDSL, options: dict = None) -> str:
-        """
-        Export all rounds to a single composite SVG (grid layout).
-
-        Args:
-            dsl: PatternDSL object
-            options: Rendering options (grid_cols, spacing, etc.)
-
-        Returns:
-            Composite SVG string
-        """
-        visualizer = Visualizer()
-        frames = visualizer.dsl_to_frames(dsl, options or {})
-
-        grid_cols = options.get('grid_cols', 4)
-        spacing = options.get('spacing', 20)
-        frame_size = options.get('frame_size', 200)
-
-        # Calculate grid dimensions
-        num_rows = (len(frames) + grid_cols - 1) // grid_cols
-        canvas_width = grid_cols * (frame_size + spacing) + spacing
-        canvas_height = num_rows * (frame_size + spacing) + spacing
-
-        # Build composite SVG
-        svg_parts = [
-            f'<svg viewBox="0 0 {canvas_width} {canvas_height}" xmlns="http://www.w3.org/2000/svg">',
-            f'  <title>Pattern Diagram - All Rounds</title>',
-        ]
-
-        for idx, frame in enumerate(frames):
-            row = idx // grid_cols
-            col = idx % grid_cols
-            x = col * (frame_size + spacing) + spacing
-            y = row * (frame_size + spacing) + spacing
-
-            # Render frame as SVG group
-            frame_svg = self._render_frame_to_svg_group(frame, x, y, frame_size, options or {})
-            svg_parts.append(frame_svg)
-
-        svg_parts.append('</svg>')
-
-        return '\n'.join(svg_parts)
-
-    def _render_frame_to_svg(self, frame, options: dict) -> str:
-        """Render a single RenderFrame to SVG string."""
-        size = options.get('size', 200)
-
-        svg_parts = [
-            f'<svg viewBox="0 0 {size} {size}" xmlns="http://www.w3.org/2000/svg">',
-            f'  <title>Round {frame.round}</title>',
-            f'  <defs>',
-            f'    <style>',
-            f'      .stitch {{ fill: #3498db; stroke: #2c3e50; stroke-width: 1; }}',
-            f'      .inc {{ fill: #2ecc71; }}',
-            f'      .dec {{ fill: #e74c3c; }}',
-            f'      .edge {{ stroke: #95a5a6; stroke-width: 1; fill: none; }}',
-            f'    </style>',
-            f'  </defs>',
-        ]
-
-        # Render edges
-        for edge in frame.edges:
-            from_node = frame.nodes[edge.from_id]
-            to_node = frame.nodes[edge.to_id]
-            svg_parts.append(
-                f'  <line class="edge" x1="{from_node.x * size}" y1="{from_node.y * size}" '
-                f'x2="{to_node.x * size}" y2="{to_node.y * size}" />'
-            )
-
-        # Render nodes
-        for node in frame.nodes:
-            # Determine class based on highlights
-            node_class = 'stitch'
-            for highlight in frame.highlights:
-                if node.id in highlight.indices:
-                    node_class = highlight.type
-                    break
-
-            svg_parts.append(
-                f'  <circle class="{node_class}" cx="{node.x * size}" cy="{node.y * size}" r="8" />'
-            )
-
-            if node.label:
-                svg_parts.append(
-                    f'  <text x="{node.x * size}" y="{node.y * size + 4}" '
-                    f'text-anchor="middle" font-size="10" fill="#fff">{node.label}</text>'
-                )
-
-        svg_parts.append('</svg>')
-
-        return '\n'.join(svg_parts)
-
-    def _render_frame_to_svg_group(self, frame, x: float, y: float, size: float, options: dict) -> str:
-        """Render a single RenderFrame as an SVG group at specified position."""
-        # Similar to _render_frame_to_svg but wrapped in <g> with transform
-        svg = self._render_frame_to_svg(frame, {'size': size, **options})
-
-        # Extract SVG content (remove outer <svg> tags)
-        # Wrap in <g> with transform
-        group = f'  <g transform="translate({x}, {y})">\n{svg}\n  </g>'
-
-        return group
-```
-
-**JSON DSL Export:**
-
-JSON export serializes the PatternDSL object to JSON format, ensuring round-trip compatibility.
-
-```python
-# knit_wit_engine/export/json_exporter.py
-
-import json
-from knit_wit_engine.models.dsl import PatternDSL
-
-class JSONExporter:
-    """Export PatternDSL to JSON format."""
-
-    def export(self, dsl: PatternDSL) -> str:
-        """
-        Export PatternDSL to JSON string.
-
-        Args:
-            dsl: PatternDSL object
-
-        Returns:
-            JSON string
-        """
-        dsl_dict = dsl.to_dict()  # Assumes PatternDSL has to_dict() method
-        return json.dumps(dsl_dict, indent=2)
-
-    def export_bytes(self, dsl: PatternDSL) -> bytes:
-        """Export PatternDSL to JSON bytes (UTF-8)."""
-        return self.export(dsl).encode('utf-8')
-```
-
----
-
-### EPIC D: Pattern Generation Flow
-
-**Epic Owner:** Frontend Lead + Backend Engineer
-**Epic Duration:** Weeks 8-10 (Sprints 5-6)
-**Total Effort:** ~39 story points
-**Priority:** P0 (Critical Path)
-
-#### Epic Overview
-
-Implement the user-facing pattern generation workflow: shape selection, parameter input forms, gauge entry, API integration, and pattern preview. This epic connects the frontend UI to the backend pattern engine, enabling end-to-end pattern generation.
-
-#### Epic Goals
-
-- Users can generate patterns via intuitive form interface
-- Shape-specific parameter forms with validation
-- Visual gauge guide to help users confirm gauge
-- API integration with loading states and error handling
-- Pattern preview showing generated pattern text and yarn estimate
-
-#### Epic Stories Summary
-
-| Story ID | Title | Effort | Priority | Dependencies |
-|----------|-------|--------|----------|--------------|
-| GEN-1 | Shape selector screen | 5 pt | P0 | D1 (navigation) |
-| GEN-2 | Params form (shape-specific) | 8 pt | P0 | GEN-1 |
-| GEN-3 | Gauge input & confirmation | 8 pt | P0 | GEN-2 |
-| GEN-4 | Generate API integration | 5 pt | P0 | GEN-3, A2-A4 (compilers) |
-| GEN-5 | Pattern preview & review | 8 pt | P0 | GEN-4 |
-| GEN-6 | Error handling & retry | 5 pt | P0 | GEN-4 |
-
-**Total:** 39 story points
-
-#### Epic Acceptance Criteria
-
-- **AC-GEN-1:** User can select shape (sphere, cylinder, cone) via visual cards
-- **AC-GEN-2:** Parameter forms show only relevant fields for selected shape
-- **AC-GEN-3:** Gauge input validates ranges; visual guide helps users confirm gauge
-- **AC-GEN-4:** Clicking "Generate" calls API, shows loading spinner, displays pattern on success
-- **AC-GEN-5:** Pattern preview shows human-readable text, diagram thumbnail, yarn estimate
-- **AC-GEN-6:** Error messages are user-friendly; retry button works correctly
 
 ---
 
 ### EPIC E: Kid Mode & Accessibility
 
-**Epic Owner:** Frontend Lead + Accessibility Specialist
-**Epic Duration:** Weeks 9-11 (Sprints 5-7)
-**Total Effort:** ~55 story points
-**Priority:** P0 (Critical Path for Launch)
+**Owner:** Frontend Lead + QA
+**Duration:** Weeks 9-11 (Sprints 6-7)
+**Total Effort:** 55 story points
+**Priority:** P0 (Launch Blocker)
 
-#### Epic Overview
+**Epic Overview:**
+Implement WCAG AA compliance and Kid Mode for accessibility-first design. Includes screen reader support, keyboard navigation, colorblind palettes, dyslexia font, and simplified UI for young learners.
 
-Make the application approachable for children and ensure WCAG AA compliance. Implement Kid Mode toggle activating a simplified UI variant with beginner-friendly terminology, larger tap targets, and animated stitch explanations. Ensure all interactive elements are accessible via keyboard and screen reader.
+**Epic Goals:**
+- WCAG AA: 0 critical issues in axe-core audit
+- Screen reader announces round changes, stitch types
+- Colorblind-friendly palettes pass simulations
+- Kid Mode UI with 56×56 dp tap targets
+- Grade 4-5 reading level copy in Kid Mode
 
-#### Epic Goals
+#### Stories
 
-- Kid Mode toggle activates child-friendly UI
-- All interactive elements accessible via keyboard + screen reader
-- Color contrast meets WCAG AA standards (4.5:1 normal, 3:1 large)
-- Explanatory micro-animations help learners
-- High-contrast mode for visual accessibility
+| ID | Title | Effort | Priority | Dependencies | Owner |
+|----|-------|--------|----------|--------------|-------|
+| **E1** | Kid Mode toggle and theme | 8 pt | P0 | D4 (settings) | FE Lead |
+| **E2** | Simplified UI components | 8 pt | P0 | E1 | FE Eng |
+| **E3** | Beginner copy and animations | 5 pt | P1 | E2 | FE Eng |
+| **E4** | Screen reader labels (ARIA) | 8 pt | P0 | Phase 2 (screens) | FE Lead |
+| **E5** | Keyboard navigation | 8 pt | P0 | Phase 2 (screens) | FE Eng |
+| **E6** | Colorblind palettes | 5 pt | P0 | E1 (theme) | FE Eng |
+| **E7** | Dyslexia font option | 3 pt | P1 | D4 (settings) | FE Eng |
 
-#### Epic Stories Summary
-
-| Story ID | Title | Effort | Priority | Dependencies |
-|----------|-------|--------|----------|--------------|
-| E1 | Kid Mode toggle & theme | 3 pt | P0 | D4 (theme system) |
-| E2 | Copy rewrite (beginner-friendly) | 8 pt | P0 | E1 |
-| E3 | Larger tap targets (Kid Mode) | 5 pt | P0 | E1 |
-| E4 | Stitch explanation animations | 13 pt | P1 | B2 (SVG renderer) |
-| E5 | Accessibility settings screen | 8 pt | P0 | D3 (settings screen) |
-| E6 | Screen reader labels (full coverage) | 13 pt | P0 | E1, E5 |
-| E7 | Color palette verification (WCAG AA) | 5 pt | P0 | None |
-
-**Total:** 55 story points
-
-#### Epic Acceptance Criteria
-
-- **AC-E-1:** Kid Mode toggle in settings activates simplified UI
-- **AC-E-2:** All copy uses beginner-friendly terminology (e.g., "Add two in one stitch" instead of "inc")
-- **AC-E-3:** All tap targets in Kid Mode are at least 44x44pt
-- **AC-E-4:** Stitch explanation animations are smooth and under 3 seconds
-- **AC-E-5:** Keyboard navigation works on all screens (Tab, Shift+Tab, Enter, Arrow keys)
-- **AC-E-6:** Screen reader announces all interactive elements with meaningful labels
-- **AC-E-7:** Color contrast ratios verified: 4.5:1 (normal text), 3:1 (large text)
-
-**Kid Mode Copy Examples:**
-
-| Standard Term | Kid Mode Term |
-|--------------|---------------|
-| "inc" | "Add two in one stitch" |
-| "dec" | "Combine two stitches" |
-| "Magic ring" | "Start circle" |
-| "Gauge" | "Stitch size" |
-| "Hook size" | "Tool size" |
-| "Yardage" | "How much yarn" |
+**Total:** 45 story points
 
 ---
 
 ### EPIC F: Telemetry & Monitoring
 
-**Epic Owner:** Backend Engineer + Frontend Engineer
-**Epic Duration:** Weeks 9-10 (Sprint 6)
-**Total Effort:** ~20 story points
-**Priority:** P1 (Nice-to-Have for MVP)
+**Owner:** Backend Eng + Frontend Eng
+**Duration:** Weeks 10-11 (Sprint 7)
+**Total Effort:** 20 story points
+**Priority:** P1 (Post-Launch Data)
 
-#### Epic Overview
+**Epic Overview:**
+Implement privacy-respecting telemetry for data-driven improvements. Backend event pipeline logs anonymous usage data (generation, visualization, export). Frontend consent UI and opt-in/opt-out controls.
 
-Track user engagement (opt-in) and system health to enable data-driven improvements. Implement telemetry pipeline for key events (generation, visualization, export) and backend logging for monitoring.
+**Epic Goals:**
+- Opt-in consent prompt on first run
+- Event tracking: generation, visualization, export
+- Backend logging with no PII
+- Settings toggle for opt-in/opt-out
+- 90-day data retention policy
 
-#### Epic Goals
+#### Stories
 
-- Telemetry pipeline operational
-- Key events tracked (generation, visualization, export, parse)
-- Opt-in toggle respected across sessions
-- Backend logging and error tracking in place
-
-#### Epic Stories Summary
-
-| Story ID | Title | Effort | Priority | Dependencies |
-|----------|-------|--------|----------|--------------|
-| F1 | Telemetry service (frontend) | 5 pt | P1 | None |
-| F2 | Event emission: generation + visualization | 3 pt | P1 | F1 |
-| F3 | Event emission: export + parse | 3 pt | P1 | F1 |
-| F4 | Backend logging & structured logs | 5 pt | P0 | None |
-| F5 | Error tracking (Sentry or similar) | 4 pt | P1 | None |
+| ID | Title | Effort | Priority | Dependencies | Owner |
+|----|-------|--------|----------|--------------|-------|
+| **F1** | Backend event pipeline | 8 pt | P1 | Phase 1 (API) | BE Eng |
+| **F2** | Frontend telemetry client | 5 pt | P1 | F1 | FE Eng |
+| **F3** | Consent prompt UI | 3 pt | P1 | F2 | FE Eng |
+| **F4** | Settings telemetry toggle | 2 pt | P1 | D4 (settings), F2 | FE Eng |
+| **F5** | Backend logging infra | 2 pt | P1 | F1 | BE Eng |
 
 **Total:** 20 story points
 
-#### Epic Acceptance Criteria
+---
 
-- **AC-F-1:** Opt-in toggle works; telemetry respects opt-out on app restart
-- **AC-F-2:** Generation events logged with shape, gauge, success/failure status
-- **AC-F-3:** Visualization events track round steps, pause/resume engagement
-- **AC-F-4:** Export events track format (PDF, SVG, JSON) and success rate
-- **AC-F-5:** Errors captured with stack traces and request context
-- **AC-F-6:** Dashboards show top events and error rates
+### EPIC D: App Shell & Settings (Completion)
+
+**Owner:** Frontend Lead
+**Duration:** Weeks 8-10 (Sprints 5-6)
+**Total Effort:** 18 story points
+**Priority:** P0 (Dependency for E, F)
+
+**Epic Overview:**
+Complete settings screen with persistence (AsyncStorage), terminology/units toggles, and theme system. Foundation for Kid Mode, accessibility, and telemetry features.
+
+**Epic Goals:**
+- Settings persisted across sessions
+- Terminology (US/UK) and units (cm/in) toggles functional
+- Theme system supports Kid Mode and accessibility variants
+- All preferences applied consistently
+
+#### Stories (Remaining)
+
+| ID | Title | Effort | Priority | Dependencies | Owner |
+|----|-------|--------|----------|--------------|-------|
+| **D7** | Settings persistence (AsyncStorage) | 8 pt | P0 | D4 (Phase 2) | FE Lead |
+| **D8** | Terminology/units toggles | 5 pt | P0 | D7 | FE Eng |
+| **D9** | Theme system refactor | 5 pt | P0 | D7 | FE Eng |
+
+**Total:** 18 story points
 
 ---
 
 ## Sprint Plans
 
-### Sprint 5: Parsing & Generation (Weeks 8-9)
+### Sprint 5 (Weeks 8-9)
 
-**Sprint Goal:** Text parser working; pattern generation flow end-to-end
+**Sprint Goal:** Parser functional + PDF export + Settings persistence
 
-**Duration:** 2 weeks
-**Capacity:** ~75 story points
-**Team:** Full team
+**Total Capacity:** 65-75 story points
+**Team Focus:**
+- Backend: Text parser + PDF export
+- Frontend: Export screen + settings persistence
 
-#### Sprint Stories
+**Stories Planned:**
 
-| Story ID | Title | Effort | Owner | Priority |
-|----------|-------|--------|-------|----------|
-| C1 | Text parser (backend) | 13 pt | Backend Engineer | P0 |
-| C2 | Parser test suite | 8 pt | Backend Engineer | P0 |
-| C3 | PDF export endpoint (backend) | 13 pt | Backend Engineer | P0 |
-| GEN-1 | Shape selector screen | 5 pt | Frontend Engineer | P0 |
-| GEN-2 | Params form (shape-specific) | 8 pt | Frontend Engineer | P0 |
-| GEN-3 | Gauge input & confirmation | 8 pt | Frontend Engineer | P0 |
-| GEN-4 | Generate API integration | 5 pt | Frontend Engineer | P0 |
-| GEN-5 | Pattern preview & review | 8 pt | Frontend Engineer | P0 |
-| GEN-6 | Error handling & retry | 5 pt | Frontend Engineer | P0 |
-| E1 | Kid Mode toggle & theme | 3 pt | Frontend Lead | P0 |
+| Story | Title | Effort | Owner | Status |
+|-------|-------|--------|-------|--------|
+| C1 | Text parser (backend) | 13 pt | BE Lead | Planned |
+| C2 | Parser error handling | 5 pt | BE Lead | Planned |
+| C3 | PDF export endpoint | 13 pt | BE Eng | Planned |
+| C5 | JSON DSL export | 3 pt | BE Eng | Planned |
+| C6 | Export screen UI | 8 pt | FE Eng | Planned |
+| D7 | Settings persistence | 8 pt | FE Lead | Planned |
+| D8 | Terminology/units toggles | 5 pt | FE Eng | Planned |
+| D9 | Theme system refactor | 5 pt | FE Eng | Planned |
 
-**Total:** 76 points
+**Total Committed:** 60 story points
 
-#### Sprint Objectives
+**Daily Breakdown:**
 
-1. **Text parser functional:** Parse canonical patterns with 90%+ accuracy
-2. **PDF export working:** Backend endpoint generates valid PDFs
-3. **Generation flow complete:** User can generate sphere via form → visualize → see preview
-4. **Kid Mode toggle ready:** Infrastructure in place for Kid Mode UI
+**Week 8:**
+- **Day 1-2:** C1 start (BE Lead), C3 start (BE Eng), D7 start (FE Lead), D8 start (FE Eng)
+- **Day 3-4:** C1 core parsing complete, C3 PDF template, D7 AsyncStorage integration, D9 start (FE Eng)
+- **Day 5:** C2 error handling (BE Lead), C3 PDF generation, D7 complete, D8 complete
 
-#### Demo Goals
+**Week 9:**
+- **Day 1-2:** C1 complete + tests, C3 complete + tests, C5 (BE Eng), D9 complete
+- **Day 3-4:** C6 export screen (FE Eng), integration testing (BE → FE)
+- **Day 5:** C6 complete, sprint review prep
 
-- Demo parsing a simple pattern: `R1: MR 6 sc (6)\nR2: inc x6 (12)\nR3: [sc, inc] x6 (18)`
-- Demo generating a sphere via form → visualizing → exporting to PDF
-- Demo Kid Mode toggle (even if copy not fully rewritten)
+**Sprint Demo:**
+- Backend: Live parse demo: `R3: [2 sc, inc] x6` → PatternDSL JSON
+- Backend: Generate sphere → PDF export with diagrams
+- Frontend: Export screen with PDF/SVG/JSON download
+- Frontend: Settings screen with terminology toggle (US ↔ UK live update)
+- Frontend: Settings persisted across app restart
 
-#### Risks
-
-| Risk | Mitigation |
-|------|-----------|
-| Parser complexity exceeds estimates | Time-box to 16 hours; defer advanced grammar to v1.1 |
-| PDF library issues | Test `reportlab` in week 1; have print-to-PDF fallback |
-| Form validation complexity | Use standard validation libraries; defer edge cases |
-
----
-
-### Sprint 6: Export & Accessibility (Weeks 10-11)
-
-**Sprint Goal:** All export formats working; WCAG AA compliance achieved
-
-**Duration:** 2 weeks
-**Capacity:** ~80 story points
-**Team:** Full team
-
-#### Sprint Stories
-
-| Story ID | Title | Effort | Owner | Priority |
-|----------|-------|--------|-------|----------|
-| C4 | SVG/PNG export endpoint (backend) | 8 pt | Backend Engineer | P1 |
-| C5 | Export screen UI (frontend) | 8 pt | Frontend Engineer | P0 |
-| C6 | Parse input screen UI (frontend) | 8 pt | Frontend Engineer | P1 |
-| E2 | Copy rewrite (beginner-friendly) | 8 pt | Frontend Lead | P0 |
-| E3 | Larger tap targets (Kid Mode) | 5 pt | Frontend Engineer | P0 |
-| E5 | Accessibility settings screen | 8 pt | Frontend Lead | P0 |
-| E6 | Screen reader labels (full coverage) | 13 pt | Frontend Lead | P0 |
-| E7 | Color palette verification (WCAG AA) | 5 pt | Frontend Engineer | P0 |
-| F1 | Telemetry service (frontend) | 5 pt | Frontend Engineer | P1 |
-| F2 | Event emission: generation + visualization | 3 pt | Frontend Engineer | P1 |
-| F3 | Event emission: export + parse | 3 pt | Frontend Engineer | P1 |
-| F4 | Backend logging & structured logs | 5 pt | Backend Engineer | P0 |
-| F5 | Error tracking (Sentry) | 4 pt | Backend Engineer | P1 |
-
-**Total:** 83 points
-
-#### Sprint Objectives
-
-1. **All export formats functional:** PDF, SVG, PNG, JSON exports working
-2. **WCAG AA compliance:** Screen reader labels, keyboard navigation, color contrast verified
-3. **Kid Mode UI complete:** Beginner-friendly copy, larger tap targets, simplified UI
-4. **Telemetry operational:** Events logged; opt-in toggle works
-
-#### Demo Goals
-
-- Demo exporting pattern to PDF, SVG, and JSON
-- Demo Kid Mode UI with simplified terminology and larger buttons
-- Demo keyboard navigation through entire app (Tab, Shift+Tab, Enter)
-- Demo screen reader announcements (VoiceOver on iOS, TalkBack on Android)
-
-#### Risks
-
-| Risk | Mitigation |
-|------|-----------|
-| WCAG AA audit finds critical issues | Integrate automated audits (axe-core) early; fix incrementally |
-| Kid Mode copy rewrite takes longer than expected | Time-box to 8 hours; deprioritize animated explanations to v1.1 |
-| Telemetry integration complexity | Use simple event emitter; defer advanced analytics to v1.1 |
+**Definition of Done (Sprint 5):**
+- [ ] Parser handles canonical bracket/repeat patterns
+- [ ] PDF exports with cover, materials, pattern, diagrams
+- [ ] Export screen functional with format selection
+- [ ] Settings persist across sessions (AsyncStorage)
+- [ ] Unit tests pass (BE: 80%+, FE: 60%+)
+- [ ] Code reviewed and merged to main
 
 ---
 
-### Sprint 7: Polish & Integration (Week 11, partial)
+### Sprint 6 (Week 10)
 
-**Sprint Goal:** Final integration; all features working end-to-end; ready for QA
+**Sprint Goal:** Kid Mode + Accessibility baseline + SVG export
 
-**Duration:** 1 week (overlap with Sprint 6 end)
-**Capacity:** ~40 story points
-**Team:** Full team
+**Total Capacity:** 65-75 story points
+**Team Focus:**
+- Frontend: Kid Mode UI + accessibility features
+- Backend: SVG export + telemetry foundation
+- QA: Accessibility audit start
 
-#### Sprint Stories
+**Stories Planned:**
 
-| Story ID | Title | Effort | Owner | Priority |
-|----------|-------|--------|-------|----------|
-| E4 | Stitch explanation animations | 13 pt | Frontend Engineer | P1 |
-| D6 | HTTP client + error handling | 3 pt | Frontend Engineer | P0 |
-| D7 | Local storage for preferences | 3 pt | Frontend Engineer | P0 |
-| D8 | Accessibility options (text size, contrast) | 8 pt | Frontend Lead | P0 |
-| BUG-1 | Triage open issues | 3 pt | QA Engineer | P0 |
-| BUG-2 | Critical bugs (Phase 3) | 13 pt | Full team | P0 |
+| Story | Title | Effort | Owner | Status |
+|-------|-------|--------|-------|--------|
+| C4 | SVG/PNG export endpoint | 8 pt | BE Eng | Planned |
+| C7 | Parse screen UI | 8 pt | FE Eng | Planned |
+| E1 | Kid Mode toggle and theme | 8 pt | FE Lead | Planned |
+| E2 | Simplified UI components | 8 pt | FE Eng | Planned |
+| E3 | Beginner copy and animations | 5 pt | FE Eng | Planned |
+| E4 | Screen reader labels (ARIA) | 8 pt | FE Lead | Planned |
+| E6 | Colorblind palettes | 5 pt | FE Eng | Planned |
+| F1 | Backend event pipeline | 8 pt | BE Eng | Planned |
 
-**Total:** 43 points
+**Total Committed:** 58 story points
 
-#### Sprint Objectives
+**Daily Breakdown:**
 
-1. **Stitch animations complete:** Visual explanations for inc/dec (if time permits)
-2. **All settings persist:** Preferences saved to local storage
-3. **Accessibility options functional:** Text size, high-contrast mode working
-4. **Critical bugs fixed:** No blockers for QA phase
+**Week 10:**
+- **Day 1-2:** C4 (BE Eng), E1 start (FE Lead), E2 start (FE Eng), E4 start (FE Lead), F1 start (BE Eng)
+- **Day 3:** C4 complete, C7 start (FE Eng), E1 theme complete, E2 components halfway
+- **Day 4:** E1 complete, E2 complete, E3 start (FE Eng), E6 start (FE Eng), F1 pipeline functional
+- **Day 5:** C7 complete, E3 animations, E4 ARIA labels, E6 palettes, F1 complete
 
-#### Demo Goals
+**Sprint Demo:**
+- Backend: SVG export per-round and composite
+- Frontend: Kid Mode toggle (simplified UI, larger buttons, friendly copy)
+- Frontend: Parse screen with error validation
+- Frontend: Colorblind palette toggle (green/red → patterns/symbols)
+- Frontend: Screen reader demo (round navigation announcements)
+- Backend: Telemetry events logged (generation, export)
 
-- Demo full end-to-end flow: Generate → Visualize → Export → Parse
-- Demo all settings persisting across app restarts
-- Demo stitch explanation animations (if complete)
-- Demo bug fixes
+**Definition of Done (Sprint 6):**
+- [ ] SVG export functional (per-round, composite)
+- [ ] Kid Mode toggle activates simplified UI
+- [ ] Beginner animations present (increase, decrease)
+- [ ] ARIA labels on all interactive elements
+- [ ] Colorblind palettes functional
+- [ ] Telemetry backend pipeline operational
+- [ ] axe-core audit shows < 5 issues
+- [ ] Unit tests pass (BE: 80%+, FE: 60%+)
 
-#### Risks
+---
 
-| Risk | Mitigation |
-|------|-----------|
-| Animations take longer than estimated | Defer to v1.1 if not complete by end of Sprint 7 |
-| Integration issues between features | Daily integration testing; fix issues as they arise |
+### Sprint 7 (Week 11)
+
+**Sprint Goal:** Accessibility completion + Telemetry frontend + QA hardening
+
+**Total Capacity:** 50-60 story points
+**Team Focus:**
+- Frontend: Keyboard nav + telemetry client + dyslexia font
+- QA: Full accessibility audit + remediation
+- Backend: Telemetry logging infrastructure
+
+**Stories Planned:**
+
+| Story | Title | Effort | Owner | Status |
+|-------|-------|--------|-------|--------|
+| E5 | Keyboard navigation | 8 pt | FE Eng | Planned |
+| E7 | Dyslexia font option | 3 pt | FE Eng | Planned |
+| F2 | Frontend telemetry client | 5 pt | FE Eng | Planned |
+| F3 | Consent prompt UI | 3 pt | FE Eng | Planned |
+| F4 | Settings telemetry toggle | 2 pt | FE Eng | Planned |
+| F5 | Backend logging infra | 2 pt | BE Eng | Planned |
+
+**Total Committed:** 23 story points
+
+**Additional QA Work:**
+- Full axe-core audit (all screens)
+- Screen reader testing (NVDA, JAWS, VoiceOver)
+- Keyboard navigation testing (external keyboard)
+- Colorblind simulation verification
+- Manual accessibility remediation (10-15 pt equivalent)
+
+**Daily Breakdown:**
+
+**Week 11:**
+- **Day 1-2:** E5 keyboard nav (FE Eng), F2 telemetry client (FE Eng), F5 logging (BE Eng)
+- **Day 3:** E5 complete, E7 dyslexia font (FE Eng), F2 complete, F3 consent UI
+- **Day 4:** E7 complete, F3 complete, F4 settings toggle, axe-core audit (QA)
+- **Day 5:** F4 complete, F5 complete, accessibility remediation, integration testing
+
+**Sprint Demo:**
+- Frontend: Full keyboard navigation (tab order, no traps)
+- Frontend: Dyslexia font toggle (OpenDyslexic)
+- Frontend: Telemetry consent prompt on first run
+- Frontend: Settings telemetry toggle (opt-in/opt-out)
+- QA: Accessibility audit report (WCAG AA compliance)
+- Backend: Telemetry logging with 90-day retention
+
+**Definition of Done (Sprint 7):**
+- [ ] Keyboard navigation complete (all features accessible)
+- [ ] Dyslexia font option functional
+- [ ] Telemetry consent prompt on first run
+- [ ] Telemetry opt-out in settings
+- [ ] Backend telemetry logging operational
+- [ ] axe-core audit: 0 critical issues
+- [ ] Screen reader testing passed
+- [ ] Colorblind verification passed
+- [ ] Unit tests pass (BE: 80%+, FE: 60%+)
 
 ---
 
 ## Technical Implementation
 
-### Text Parser Grammar Specification
+### Backend: Text Pattern Parser
 
-**Formal Grammar (EBNF):**
-
-```ebnf
-pattern       ::= round+
-round         ::= round_label operations stitch_count
-round_label   ::= "R" digit+ ":"
-operations    ::= operation ("," operation)*
-operation     ::= simple_op | repeat_group
-simple_op     ::= (digit+ WS)? stitch_type
-stitch_type   ::= "MR" | "sc" | "hdc" | "dc" | "slst" | "ch" | "inc" | "dec"
-repeat_group  ::= "[" operations "]" "x" digit+
-stitch_count  ::= "(" digit+ ")"
-digit         ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
-WS            ::= " " | "\t"
-```
-
-**Parsing Algorithm:**
-
-1. **Lexical Analysis:** Tokenize input text into tokens (ROUND_LABEL, STITCH, LBRACKET, etc.)
-2. **Syntax Analysis:** Parse tokens into AST (Abstract Syntax Tree)
-3. **Semantic Analysis:** Validate stitch counts, detect unsupported syntax
-4. **DSL Generation:** Convert AST to PatternDSL structure
-5. **Validation:** Verify stitch count correctness, round numbering
-
-**Error Handling:**
-
-- **Unsupported Tokens:** Display warning: "Token 'tr' not supported. Use sc, hdc, or dc."
-- **Stitch Count Mismatch:** Error: "Round 3: Operations sum to 17 stitches, but round declares 18. Check pattern."
-- **Missing Stitch Count:** Error: "Round 4: Missing stitch count. Expected (N) at end of round."
-- **Invalid Bracket Matching:** Error: "Round 5: Unmatched bracket. Expected ']'."
-
-**Test Cases:**
+**Algorithm: Text → PatternDSL**
 
 ```python
-# tests/unit/test_text_parser.py
+# app/services/parser_service.py
+import re
+from typing import List, Optional
+from knit_wit_engine.dsl import PatternDSL, RoundDSL, OpDSL, MetaDSL, ObjectDSL
+from pydantic import ValidationError
 
-def test_parse_simple_pattern():
-    """Test parsing simple canonical pattern."""
-    text = """
-    R1: MR 6 sc (6)
-    R2: inc x6 (12)
-    R3: [sc, inc] x6 (18)
+class PatternParserService:
+    """Parse limited crochet pattern syntax to PatternDSL."""
+
+    # Supported tokens
+    ROUND_PATTERN = r"R(\d+):\s*(.+)\s*\((\d+)\)"
+    OP_PATTERN = r"(\w+)(?:\s+x(\d+))?"
+    BRACKET_PATTERN = r"\[([^\]]+)\]\s*x(\d+)"
+
+    def parse(self, text: str) -> PatternDSL:
+        """Parse pattern text to DSL."""
+        lines = text.strip().split("\n")
+        rounds = []
+
+        for line in lines:
+            round_match = re.match(self.ROUND_PATTERN, line)
+            if not round_match:
+                continue  # Skip non-round lines
+
+            round_num = int(round_match.group(1))
+            ops_text = round_match.group(2).strip()
+            expected_stitches = int(round_match.group(3))
+
+            # Parse operations
+            ops = self._parse_operations(ops_text)
+
+            # Create RoundDSL
+            round_dsl = RoundDSL(
+                r=round_num,
+                ops=ops,
+                stitches=expected_stitches
+            )
+            rounds.append(round_dsl)
+
+        # Build PatternDSL
+        return PatternDSL(
+            meta=MetaDSL(
+                version="0.1",
+                units="cm",
+                terms="US",
+                stitch="sc",
+                round_mode="spiral",
+                gauge={"sts_per_10cm": 14, "rows_per_10cm": 16}
+            ),
+            object=ObjectDSL(type="unknown", params={}),
+            rounds=rounds,
+            materials={},
+            notes=[]
+        )
+
+    def _parse_operations(self, ops_text: str) -> List[OpDSL]:
+        """Parse operations from round text."""
+        ops = []
+
+        # Handle brackets first: [2 sc, inc] x6
+        bracket_matches = list(re.finditer(self.BRACKET_PATTERN, ops_text))
+        for match in bracket_matches:
+            inner_ops = match.group(1).strip()
+            repeat = int(match.group(2))
+
+            # Parse inner operations
+            inner_op_list = self._parse_simple_ops(inner_ops)
+
+            # Create sequence operation
+            ops.append(OpDSL(
+                op="seq",
+                ops=inner_op_list,
+                repeat=repeat,
+                count=sum(op.count for op in inner_op_list) * repeat
+            ))
+
+            # Remove from text
+            ops_text = ops_text.replace(match.group(0), "")
+
+        # Parse remaining simple operations
+        simple_ops = self._parse_simple_ops(ops_text)
+        ops.extend(simple_ops)
+
+        return ops
+
+    def _parse_simple_ops(self, text: str) -> List[OpDSL]:
+        """Parse simple operations (no brackets)."""
+        ops = []
+        tokens = text.split(",")
+
+        for token in tokens:
+            token = token.strip()
+            if not token:
+                continue
+
+            # Match: "inc x6" or "sc" or "MR 6 sc"
+            if "x" in token:
+                parts = token.split("x")
+                stitch = parts[0].strip()
+                count = int(parts[1].strip())
+                ops.append(OpDSL(op=stitch, count=count))
+            elif token.upper() == "MR":
+                ops.append(OpDSL(op="MR", count=1))
+            else:
+                # Simple stitch with optional count
+                match = re.match(r"(\d+)?\s*(\w+)", token)
+                if match:
+                    count = int(match.group(1)) if match.group(1) else 1
+                    stitch = match.group(2)
+                    ops.append(OpDSL(op=stitch, count=count))
+
+        return ops
+
+    def validate_parse(self, dsl: PatternDSL) -> dict:
+        """Validate parsed DSL."""
+        errors = []
+
+        # Check stitch count consistency
+        for round_dsl in dsl.rounds:
+            computed = sum(op.count for op in round_dsl.ops)
+            if computed != round_dsl.stitches:
+                errors.append(f"R{round_dsl.r}: Expected {round_dsl.stitches}, got {computed}")
+
+        return {"valid": len(errors) == 0, "errors": errors}
+```
+
+**API Endpoint:**
+
+```python
+# app/api/routes/parser.py
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+from app.services.parser_service import PatternParserService
+
+router = APIRouter(prefix="/api/v1/parser", tags=["parser"])
+parser_service = PatternParserService()
+
+class ParseRequest(BaseModel):
+    text: str
+
+class ParseResponse(BaseModel):
+    dsl: dict
+    validation: dict
+
+@router.post("/parse", response_model=ParseResponse)
+async def parse_pattern(request: ParseRequest):
     """
-    dsl = parse_pattern_text(text)
+    Parse crochet pattern text to PatternDSL.
 
-    assert len(dsl.rounds) == 3
-    assert dsl.rounds[0].stitches == 6
-    assert dsl.rounds[1].stitches == 12
-    assert dsl.rounds[2].stitches == 18
+    **Supported syntax:**
+    - R1: MR 6 sc (6)
+    - R2: inc x6 (12)
+    - R3: [2 sc, inc] x6 (18)
+    """
+    try:
+        dsl = parser_service.parse(request.text)
+        validation = parser_service.validate_parse(dsl)
 
-def test_parse_complex_pattern():
-    """Test parsing pattern with multiple repeat groups."""
-    text = "R4: [2 sc, inc] x6 (24)"
-    dsl = parse_pattern_text(text)
-
-    assert len(dsl.rounds) == 1
-    assert dsl.rounds[0].stitches == 24
-    assert len(dsl.rounds[0].operations) == 18  # 6 repeats of [2 sc, inc]
-
-def test_parse_error_unsupported_stitch():
-    """Test error handling for unsupported stitch."""
-    text = "R1: tr x6 (6)"
-
-    with pytest.raises(ParseError) as exc:
-        parse_pattern_text(text)
-
-    assert "not supported" in str(exc.value).lower()
-
-def test_parse_error_stitch_count_mismatch():
-    """Test error handling for stitch count mismatch."""
-    text = "R2: inc x5 (12)"  # Should be 10 stitches, not 12
-
-    with pytest.raises(ParseError) as exc:
-        parse_pattern_text(text)
-
-    assert "mismatch" in str(exc.value).lower()
+        return ParseResponse(
+            dsl=dsl.model_dump(),
+            validation=validation
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Parse error: {str(e)}"
+        )
 ```
 
-### PDF Generation Implementation
+---
 
-**Dependencies:**
+### Backend: PDF Export
 
-- `reportlab` (Python): PDF generation library
-- `Pillow` (Python): Image processing for diagrams
+**PDF Generation with ReportLab:**
 
-**PDF Template Structure:**
+```python
+# app/services/export_service.py
+from reportlab.lib.pagesizes import A4, letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Image
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
+from reportlab.lib import colors
+from io import BytesIO
+from knit_wit_engine.dsl import PatternDSL
 
+class ExportService:
+    """Generate exports in multiple formats."""
+
+    def generate_pdf(self, dsl: PatternDSL, paper_size: str = "A4") -> bytes:
+        """Generate PDF export."""
+        buffer = BytesIO()
+        page_size = A4 if paper_size == "A4" else letter
+
+        doc = SimpleDocTemplate(
+            buffer,
+            pagesize=page_size,
+            topMargin=0.75*inch,
+            bottomMargin=0.75*inch
+        )
+
+        # Build PDF content
+        styles = getSampleStyleSheet()
+        story = []
+
+        # Cover page
+        story.append(Paragraph("Knit-Wit Pattern", styles['Title']))
+        story.append(Spacer(1, 0.2*inch))
+        story.append(Paragraph(f"Shape: {dsl.object.type.title()}", styles['Normal']))
+        story.append(Paragraph(f"Dimensions: {dsl.object.params}", styles['Normal']))
+        story.append(Spacer(1, 0.5*inch))
+
+        # Materials section
+        story.append(Paragraph("Materials", styles['Heading1']))
+        story.append(Spacer(1, 0.1*inch))
+
+        materials_data = [
+            ["Yarn Weight:", dsl.materials.get("yarn_weight", "Worsted")],
+            ["Hook Size:", f"{dsl.materials.get('hook_size_mm', 4.0)} mm"],
+            ["Yardage:", f"{dsl.materials.get('yardage_estimate', 0)} yards"],
+            ["Gauge:", f"{dsl.meta.gauge['sts_per_10cm']} sts / {dsl.meta.gauge['rows_per_10cm']} rows per 10cm"]
+        ]
+
+        materials_table = Table(materials_data, colWidths=[2*inch, 3*inch])
+        materials_table.setStyle([
+            ('FONT', (0, 0), (0, -1), 'Helvetica-Bold'),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ])
+        story.append(materials_table)
+        story.append(Spacer(1, 0.5*inch))
+
+        # Pattern section
+        story.append(Paragraph("Pattern Instructions", styles['Heading1']))
+        story.append(Spacer(1, 0.1*inch))
+
+        for round_dsl in dsl.rounds:
+            round_text = self._format_round(round_dsl, dsl.meta.terms)
+            story.append(Paragraph(round_text, styles['Normal']))
+            story.append(Spacer(1, 0.05*inch))
+
+        # Build PDF
+        doc.build(story)
+        buffer.seek(0)
+        return buffer.getvalue()
+
+    def _format_round(self, round_dsl, terms: str) -> str:
+        """Format round as human-readable text."""
+        ops_text = ", ".join([
+            f"{op.op} x{op.count}" if op.count > 1 else op.op
+            for op in round_dsl.ops
+        ])
+        return f"<b>R{round_dsl.r}:</b> {ops_text} ({round_dsl.stitches})"
+
+    def generate_svg(self, frames: List[dict]) -> str:
+        """Generate SVG export (per-round or composite)."""
+        # Implementation similar to visualization rendering
+        # Export SVG as string
+        pass
+
+    def generate_json(self, dsl: PatternDSL) -> str:
+        """Generate JSON DSL export."""
+        return dsl.model_dump_json(indent=2)
 ```
-┌─────────────────────────────────────┐
-│         Cover Page                  │
-│  - Title                            │
-│  - Shape & Dimensions               │
-│  - Gauge & Hook Size                │
-└─────────────────────────────────────┘
-┌─────────────────────────────────────┐
-│         Materials Page              │
-│  - Yarn Yardage                     │
-│  - Hook Size                        │
-│  - Notions                          │
-└─────────────────────────────────────┘
-┌─────────────────────────────────────┐
-│         Abbreviations Page          │
-│  - Table of Abbreviations           │
-└─────────────────────────────────────┘
-┌─────────────────────────────────────┐
-│         Pattern Page                │
-│  - Round-by-Round Instructions      │
-│  - Formatted Pattern Text           │
-└─────────────────────────────────────┘
-┌─────────────────────────────────────┐
-│         Visuals Page                │
-│  - Diagram Images                   │
-│  - First 10 rounds, Last 10 rounds  │
-└─────────────────────────────────────┘
-┌─────────────────────────────────────┐
-│         Footer                      │
-│  - "Generated with Knit-Wit"        │
-└─────────────────────────────────────┘
+
+**API Endpoint:**
+
+```python
+# app/api/routes/export.py
+from fastapi import APIRouter, HTTPException
+from fastapi.responses import Response
+from app.services.export_service import ExportService
+from knit_wit_engine.dsl import PatternDSL
+
+router = APIRouter(prefix="/api/v1/export", tags=["export"])
+export_service = ExportService()
+
+@router.post("/pdf")
+async def export_pdf(dsl: PatternDSL, paper_size: str = "A4"):
+    """Export pattern to PDF."""
+    try:
+        pdf_bytes = export_service.generate_pdf(dsl, paper_size)
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={"Content-Disposition": "attachment; filename=pattern.pdf"}
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"PDF export error: {str(e)}")
+
+@router.post("/json")
+async def export_json(dsl: PatternDSL):
+    """Export pattern DSL as JSON."""
+    json_str = export_service.generate_json(dsl)
+    return Response(
+        content=json_str,
+        media_type="application/json",
+        headers={"Content-Disposition": "attachment; filename=pattern.json"}
+    )
 ```
 
-**Page Size Support:**
+---
 
-- **Letter (8.5" × 11"):** Default for US users
-- **A4 (210mm × 297mm):** Default for international users
-- Auto-detect based on locale or user preference
+### Frontend: Kid Mode Theme
 
-**Branding:**
+**Theme System:**
 
-- Knit-Wit logo in header (if available)
-- Brand color (#2C5F2D) for headings
-- Footer: "Generated with Knit-Wit • https://knit-wit.app"
+```typescript
+// src/theme/kidModeTheme.ts
+import { Theme } from './types';
 
-### SVG Export Format Specification
-
-**SVG Structure:**
-
-```xml
-<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-  <title>Round 1</title>
-  <defs>
-    <style>
-      .stitch { fill: #3498db; stroke: #2c3e50; stroke-width: 1; }
-      .inc { fill: #2ecc71; }
-      .dec { fill: #e74c3c; }
-      .edge { stroke: #95a5a6; stroke-width: 1; fill: none; }
-    </style>
-  </defs>
-
-  <!-- Edges (connections between stitches) -->
-  <line class="edge" x1="100" y1="100" x2="120" y2="80" />
-  <!-- ... more edges ... -->
-
-  <!-- Nodes (stitches) -->
-  <circle class="stitch" cx="100" cy="100" r="8" />
-  <circle class="inc" cx="120" cy="80" r="8" />
-  <!-- ... more nodes ... -->
-
-  <!-- Labels -->
-  <text x="100" y="104" text-anchor="middle" font-size="10" fill="#fff">1</text>
-  <!-- ... more labels ... -->
-</svg>
-```
-
-**Color Palette:**
-
-- **Normal Stitch:** `#3498db` (blue)
-- **Increase:** `#2ecc71` (green)
-- **Decrease:** `#e74c3c` (red)
-- **Edge:** `#95a5a6` (gray)
-- **Background:** `#ffffff` (white)
-
-**Export Options:**
-
-- **Individual SVGs:** One SVG file per round (ZIP archive)
-- **Composite SVG:** Grid layout with all rounds on single page
-- **PNG Rendering:** Convert SVG to PNG (72 DPI screen, 300 DPI print)
-
-### JSON DSL Export Format
-
-**Format:** Standard Pattern DSL JSON (see §11 in PRD)
-
-**Example:**
-
-```json
-{
-  "meta": {
-    "version": "1.0",
-    "generated_by": "knit-wit-mvp",
-    "shape": "sphere",
-    "dimensions": {
-      "diameter": 10
+export const kidModeTheme: Theme = {
+  colors: {
+    primary: '#FF6B9D',      // Bright pink
+    secondary: '#FFC837',    // Sunny yellow
+    background: '#FFF8E1',   // Warm cream
+    surface: '#FFFFFF',
+    text: {
+      primary: '#2D3748',    // High contrast dark gray
+      secondary: '#4A5568',
+      hint: '#718096',
     },
-    "gauge": {
-      "sts_per_10cm": 14,
-      "rows_per_10cm": 16
-    },
-    "hook_size": "3.5mm",
-    "yarn_weight": "DK",
-    "yardage": 45,
-    "terms": "US",
-    "units": "cm",
-    "round_mode": "spiral"
+    success: '#4CAF50',      // Green (keep)
+    error: '#F44336',        // Red (keep)
+    warning: '#FF9800',      // Orange
+    info: '#2196F3',         // Blue
   },
-  "rounds": [
-    {
-      "round": 1,
-      "stitches": 6,
-      "operations": [
-        { "type": "magic_ring" },
-        { "type": "stitch", "stitch": "sc", "count": 6 }
-      ]
+  typography: {
+    fontFamily: {
+      regular: 'Comic Sans MS, sans-serif',  // Friendly, rounded
+      heading: 'Comic Sans MS, bold',
     },
-    {
-      "round": 2,
-      "stitches": 12,
-      "operations": [
-        { "type": "inc", "count": 6 }
-      ]
-    }
-    // ... more rounds ...
-  ]
-}
+    fontSize: {
+      small: 16,      // Increased from 12
+      medium: 20,     // Increased from 14
+      large: 24,      // Increased from 16
+      xlarge: 32,     // Increased from 20
+    },
+    lineHeight: 1.6,  // Increased spacing
+  },
+  spacing: {
+    xs: 8,
+    sm: 16,
+    md: 24,
+    lg: 32,
+    xl: 48,
+  },
+  touchTargets: {
+    minimum: 56,  // Increased from 48
+    recommended: 64,
+  },
+};
 ```
 
-**Validation:**
+**Kid Mode Components:**
 
-- JSON schema validation on export
-- Round-trip test: Export → Import → Export produces identical JSON
+```typescript
+// src/components/kidmode/SimplifiedUI.tsx
+import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useTheme } from '../../theme/ThemeProvider';
+
+interface SimplifiedButtonProps {
+  onPress: () => void;
+  label: string;
+  icon?: string;
+}
+
+export const SimplifiedButton: React.FC<SimplifiedButtonProps> = ({
+  onPress,
+  label,
+  icon
+}) => {
+  const theme = useTheme();
+
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      style={[
+        styles.button,
+        {
+          backgroundColor: theme.colors.primary,
+          minWidth: theme.touchTargets.recommended,
+          minHeight: theme.touchTargets.recommended,
+        }
+      ]}
+      accessibilityLabel={label}
+      accessibilityRole="button"
+    >
+      {icon && <Text style={styles.icon}>{icon}</Text>}
+      <Text style={[styles.label, { fontSize: theme.typography.fontSize.large }]}>
+        {label}
+      </Text>
+    </TouchableOpacity>
+  );
+};
+
+const styles = StyleSheet.create({
+  button: {
+    borderRadius: 16,
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  icon: {
+    fontSize: 32,
+    marginBottom: 8,
+  },
+  label: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+});
+```
+
+---
+
+### Frontend: Accessibility Features
+
+**Screen Reader Labels:**
+
+```typescript
+// src/components/visualization/SVGRenderer.tsx (updated)
+import React from 'react';
+import { Svg, Circle, Line, G } from 'react-native-svg';
+import { AccessibilityInfo, View } from 'react-native';
+
+export const SVGRenderer: React.FC<SVGRendererProps> = ({
+  frame,
+  width,
+  height,
+  onStitchTap
+}) => {
+  // Accessibility description
+  const accessibilityLabel = `Round ${frame.round_number}, ${frame.stitch_count} stitches. ${frame.highlights.length} increases or decreases.`;
+
+  return (
+    <View
+      accessible={true}
+      accessibilityLabel={accessibilityLabel}
+      accessibilityRole="image"
+      accessibilityHint="Double tap a stitch to hear its details"
+    >
+      <Svg width={width} height={height}>
+        {/* SVG content */}
+        {frame.nodes.map((node) => (
+          <Circle
+            key={node.id}
+            cx={node.position[0]}
+            cy={node.position[1]}
+            r={8}
+            fill={getStitchColor(node.highlight)}
+            onPress={() => {
+              onStitchTap(node.id);
+              AccessibilityInfo.announceForAccessibility(
+                `${node.stitch_type}, ${node.highlight}`
+              );
+            }}
+            accessible={true}
+            accessibilityLabel={`Stitch ${node.stitch_type}, ${node.highlight}`}
+          />
+        ))}
+      </Svg>
+    </View>
+  );
+};
+```
+
+**Keyboard Navigation:**
+
+```typescript
+// src/components/visualization/RoundScrubber.tsx (updated)
+import React, { useEffect } from 'react';
+import { View, TouchableOpacity } from 'react-native';
+
+export const RoundScrubber: React.FC = () => {
+  const { currentRound, totalRounds, prevRound, nextRound } = useVisualizationStore();
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      switch (event.key) {
+        case 'ArrowLeft':
+          prevRound();
+          break;
+        case 'ArrowRight':
+          nextRound();
+          break;
+      }
+    };
+
+    // Web only - keyboard events
+    if (Platform.OS === 'web') {
+      window.addEventListener('keydown', handleKeyPress);
+      return () => window.removeEventListener('keydown', handleKeyPress);
+    }
+  }, [prevRound, nextRound]);
+
+  return (
+    <View style={styles.container}>
+      <TouchableOpacity
+        onPress={prevRound}
+        disabled={currentRound === 1}
+        accessibilityLabel="Previous round"
+        accessibilityRole="button"
+        accessible={true}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        style={[styles.button, focused && styles.focused]}
+      >
+        {/* Button content */}
+      </TouchableOpacity>
+
+      {/* Additional controls */}
+    </View>
+  );
+};
+```
+
+**Colorblind Palettes:**
+
+```typescript
+// src/theme/accessibilityTheme.ts
+export const colorblindPalettes = {
+  protanopia: {
+    increase: '#0072B2',   // Blue (distinguishable)
+    decrease: '#D55E00',   // Orange (distinguishable)
+    normal: '#999999',     // Gray
+  },
+  deuteranopia: {
+    increase: '#0072B2',   // Blue
+    decrease: '#D55E00',   // Orange
+    normal: '#999999',
+  },
+  tritanopia: {
+    increase: '#E69F00',   // Orange
+    decrease: '#56B4E9',   // Sky blue
+    normal: '#999999',
+  },
+  highContrast: {
+    increase: '#00FF00',   // Bright green
+    decrease: '#FF0000',   // Bright red
+    normal: '#FFFFFF',     // White
+  },
+};
+
+// Apply patterns for additional distinction
+export const stitchPatterns = {
+  increase: 'url(#diagonal-stripes)',
+  decrease: 'url(#hash-pattern)',
+  normal: 'none',
+};
+```
+
+---
+
+### Frontend: Telemetry Client
+
+**Event Tracking:**
+
+```typescript
+// src/services/telemetryClient.ts
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+
+interface TelemetryEvent {
+  event: string;
+  properties?: Record<string, any>;
+  timestamp: string;
+}
+
+class TelemetryClient {
+  private enabled: boolean = false;
+  private apiUrl: string;
+
+  constructor(apiUrl: string) {
+    this.apiUrl = apiUrl;
+    this.loadConsent();
+  }
+
+  async loadConsent() {
+    const consent = await AsyncStorage.getItem('telemetry_consent');
+    this.enabled = consent === 'true';
+  }
+
+  async setConsent(enabled: boolean) {
+    this.enabled = enabled;
+    await AsyncStorage.setItem('telemetry_consent', enabled.toString());
+  }
+
+  track(event: string, properties?: Record<string, any>) {
+    if (!this.enabled) return;
+
+    const telemetryEvent: TelemetryEvent = {
+      event,
+      properties: {
+        ...properties,
+        platform: Platform.OS,
+        version: Constants.expoConfig?.version,
+      },
+      timestamp: new Date().toISOString(),
+    };
+
+    // Send to backend
+    this.sendEvent(telemetryEvent);
+  }
+
+  private async sendEvent(event: TelemetryEvent) {
+    try {
+      await axios.post(`${this.apiUrl}/telemetry/events`, event);
+    } catch (error) {
+      // Silent fail - don't block user experience
+      console.warn('Telemetry error:', error);
+    }
+  }
+
+  // Convenience methods
+  trackGeneration(shape: string, stitch: string) {
+    this.track('pattern_generated', { shape, stitch });
+  }
+
+  trackVisualization(roundCount: number, duration: number) {
+    this.track('pattern_visualized', { round_count: roundCount, duration_ms: duration });
+  }
+
+  trackExport(format: string) {
+    this.track('pattern_exported', { format });
+  }
+}
+
+export const telemetryClient = new TelemetryClient(API_BASE_URL);
+```
+
+**Consent Prompt:**
+
+```typescript
+// src/components/telemetry/ConsentPrompt.tsx
+import React, { useState, useEffect } from 'react';
+import { View, Text, Modal, TouchableOpacity, StyleSheet } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { telemetryClient } from '../../services/telemetryClient';
+
+export const ConsentPrompt: React.FC = () => {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    checkConsent();
+  }, []);
+
+  const checkConsent = async () => {
+    const consent = await AsyncStorage.getItem('telemetry_consent');
+    if (consent === null) {
+      setVisible(true);
+    }
+  };
+
+  const handleAccept = async () => {
+    await telemetryClient.setConsent(true);
+    setVisible(false);
+  };
+
+  const handleDecline = async () => {
+    await telemetryClient.setConsent(false);
+    setVisible(false);
+  };
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={handleDecline}
+    >
+      <View style={styles.overlay}>
+        <View style={styles.modal}>
+          <Text style={styles.title}>Help Us Improve Knit-Wit</Text>
+          <Text style={styles.body}>
+            We'd like to collect anonymous usage data to improve the app.
+            This includes which features you use and how patterns are generated.
+          </Text>
+          <Text style={styles.body}>
+            No personal information is collected. You can change this in Settings.
+          </Text>
+
+          <View style={styles.buttons}>
+            <TouchableOpacity
+              onPress={handleDecline}
+              style={[styles.button, styles.declineButton]}
+              accessibilityLabel="Decline telemetry"
+            >
+              <Text style={styles.declineText}>No Thanks</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={handleAccept}
+              style={[styles.button, styles.acceptButton]}
+              accessibilityLabel="Accept telemetry"
+            >
+              <Text style={styles.acceptText}>Accept</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
+const styles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  modal: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 24,
+    maxWidth: 400,
+    width: '100%',
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    color: '#111827',
+  },
+  body: {
+    fontSize: 14,
+    color: '#4B5563',
+    marginBottom: 12,
+    lineHeight: 20,
+  },
+  buttons: {
+    flexDirection: 'row',
+    marginTop: 24,
+    gap: 12,
+  },
+  button: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  declineButton: {
+    backgroundColor: '#F3F4F6',
+  },
+  acceptButton: {
+    backgroundColor: '#3B82F6',
+  },
+  declineText: {
+    color: '#6B7280',
+    fontWeight: '600',
+  },
+  acceptText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+});
+```
 
 ---
 
@@ -1436,345 +1194,146 @@ def test_parse_error_stitch_count_mismatch():
 
 ### Phase Exit Criteria
 
-Phase 3 is **COMPLETE** when ALL of the following are true:
+**Backend:**
+- [ ] Parser handles canonical patterns (90%+ accuracy)
+- [ ] PDF export generates < 5 MB files with professional layout
+- [ ] SVG export produces valid, editable files
+- [ ] JSON export round-trip compatible with DSL
+- [ ] Telemetry pipeline logs events (no PII)
+- [ ] Unit test coverage > 80%
+- [ ] Integration tests pass (parser, export APIs)
 
-- [ ] **End-to-End Generation Flow:** User can generate sphere via form → visualize → export to PDF without errors
-- [ ] **Text Parser Functional:** Parser handles canonical bracket/repeat syntax with 90%+ accuracy
-- [ ] **All Export Formats Working:** PDF, SVG, and JSON exports are valid and functional
-- [ ] **Kid Mode Operational:** Toggle activates simplified UI; copy is beginner-friendly
-- [ ] **WCAG AA Compliance:** Screen reader labels, keyboard navigation, color contrast meet WCAG AA standards
-- [ ] **Telemetry Pipeline Operational:** Opt-in toggle works; key events logged correctly
-- [ ] **All Phase 3 Stories Complete:** 100% of committed stories in "Done" state
-- [ ] **No Critical Bugs:** Zero P0 bugs; all high-priority bugs triaged
-- [ ] **Sprint Demos Successful:** All sprint demos completed with stakeholder sign-off
-- [ ] **Documentation Updated:** API docs, user guides, and developer docs reflect Phase 3 features
+**Frontend:**
+- [ ] Export screen functional (PDF/SVG/JSON downloads)
+- [ ] Parse screen validates input with clear errors
+- [ ] Kid Mode toggle activates simplified UI
+- [ ] Beginner animations present (increase, decrease)
+- [ ] Settings persist across sessions (AsyncStorage)
+- [ ] Terminology/units toggles functional
+- [ ] Component test coverage > 60%
 
-### Feature Acceptance Criteria
+**Accessibility:**
+- [ ] axe-core audit: 0 critical issues
+- [ ] WCAG AA compliance verified (color contrast 4.5:1+, 3:1+ UI)
+- [ ] ARIA labels on 100% interactive elements
+- [ ] Keyboard navigation functional (tab order, no traps)
+- [ ] Screen reader testing passed (NVDA, JAWS, VoiceOver)
+- [ ] Focus indicators visible (2px, 3:1 contrast)
+- [ ] Colorblind palettes verified (simulations pass)
+- [ ] Dyslexia font option functional
 
-#### Pattern Generation
+**Telemetry:**
+- [ ] Consent prompt on first run
+- [ ] Opt-in/opt-out toggle in settings
+- [ ] Events tracked: generation, visualization, export
+- [ ] Backend logging with 90-day retention
+- [ ] Privacy policy updated
 
-- [ ] Shape selector displays sphere, cylinder, cone options with visual cards
-- [ ] Parameter forms show only relevant fields for selected shape
-- [ ] Gauge input validates ranges (sts: 8-30, rows: 8-30 per 10cm)
-- [ ] Visual gauge guide helps users confirm gauge (optional but recommended)
-- [ ] Clicking "Generate" calls `/api/v1/patterns/generate` endpoint
-- [ ] Loading spinner displays during API call
-- [ ] Pattern preview shows human-readable text, diagram thumbnail, yarn estimate
-- [ ] Error messages are user-friendly (e.g., "Invalid gauge. Please enter 8-30 stitches per 10cm.")
-- [ ] Retry button re-attempts generation after error
-
-#### Text Parsing
-
-- [ ] Parser successfully parses: `R1: MR 6 sc (6)`
-- [ ] Parser successfully parses: `R2: inc x6 (12)`
-- [ ] Parser successfully parses: `R3: [sc, inc] x6 (18)`
-- [ ] Parser successfully parses: `R4: [2 sc, inc] x6 (24)`
-- [ ] Parser rejects unsupported syntax with clear warning (e.g., "Token 'tr' not supported")
-- [ ] Stitch count mismatches produce error: "Round 3: Operations sum to 17, but round declares 18"
-- [ ] Parse errors indicate line and token that failed
-- [ ] Parsed patterns visualize identically to generated patterns
-
-#### Export Functionality
-
-- [ ] PDF export generates without error for any valid pattern
-- [ ] PDF prints correctly on A4 and Letter paper (both orientations)
-- [ ] PDF includes all sections: cover, materials, abbreviations, pattern, visuals, footer
-- [ ] PDF file size < 5 MB for typical pattern
-- [ ] SVG export produces valid SVG files (validate against SVG schema)
-- [ ] SVG files open in Illustrator and Inkscape without warnings
-- [ ] PNG export renders clearly at 72 DPI (screen) and 300 DPI (print)
-- [ ] JSON export is valid JSON (passes schema validation)
-- [ ] JSON round-trip works: Export → Import → Visualize produces identical pattern
-
-#### Kid Mode
-
-- [ ] Kid Mode toggle in settings activates simplified UI
-- [ ] All copy uses beginner-friendly terminology (see Kid Mode table above)
-- [ ] All tap targets in Kid Mode are at least 44×44pt
-- [ ] Stitch explanation animations are smooth and under 3 seconds (if implemented)
-- [ ] Kid Mode theme applies consistently across all screens
-- [ ] Toggling Kid Mode off restores standard UI
-
-#### Accessibility
-
-- [ ] Keyboard navigation works: Tab, Shift+Tab navigate all controls
-- [ ] Enter activates buttons; Arrow keys navigate lists
-- [ ] Screen reader announces all interactive elements with meaningful labels
-- [ ] All images have alt text; decorative images use empty alt=""
-- [ ] Color contrast ratios meet WCAG AA: 4.5:1 (normal), 3:1 (large)
-- [ ] High-contrast mode toggles successfully
-- [ ] Text size option works (small, medium, large, extra-large)
-- [ ] Focus indicators are visible on all interactive elements
-
-#### Telemetry
-
-- [ ] Opt-in toggle in settings works
-- [ ] Telemetry respects opt-out; no events logged if opted out
-- [ ] Preference persists across app restarts
-- [ ] Generation events logged with shape, gauge, success/failure
-- [ ] Visualization events track round steps, pause/resume
-- [ ] Export events track format (PDF, SVG, JSON) and success rate
-- [ ] Parse events track success rate and error types
-- [ ] Dashboards show event counts and error rates (backend)
-
-### Performance Benchmarks
-
-- [ ] Pattern generation API response time: < 200ms (sphere, 10cm diameter, gauge 14/16)
-- [ ] PDF export generation time: < 2 seconds (typical 30-round pattern)
-- [ ] SVG export generation time: < 1 second (per round)
-- [ ] Parsing time: < 100ms (typical 20-round pattern)
-- [ ] App startup time: < 2 seconds (cold start on iPhone 12)
-- [ ] Navigation between screens: < 300ms (perceived latency)
-
-### Quality Standards
-
-- [ ] Unit test coverage: 80%+ for backend, 70%+ for frontend
-- [ ] Integration tests pass for all critical flows
-- [ ] E2E tests pass: Generate → Visualize → Export
-- [ ] Code review completed for all stories (2+ approvals)
-- [ ] No linting errors or warnings in CI
-- [ ] All TypeScript types defined (no `any` except approved exceptions)
+**Integration:**
+- [ ] End-to-end flow: generate → visualize → export
+- [ ] Parse → visualize flow functional
+- [ ] Settings changes applied consistently
+- [ ] Error handling graceful (network, validation)
 
 ---
 
-## Dependencies & Blockers
+## Dependencies & Risks
 
-### Internal Dependencies
+### Dependencies from Phase 2
 
-**Critical Path:**
+**Met Dependencies:**
+- ✅ RN/Expo app shell operational (Phase 2)
+- ✅ Navigation stack functional (Phase 2)
+- ✅ SVG rendering engine (Phase 2)
+- ✅ Zustand state management (Phase 2)
+- ✅ HTTP client configured (Phase 2)
+- ✅ Visualization frames API (Phase 2)
 
-```
-Phase 2 Complete (Visualization Foundation)
-    ↓
-EPIC C (Parsing & I/O) + EPIC D (Generation Flow)
-    ↓
-EPIC E (Kid Mode & Accessibility) + EPIC F (Telemetry)
-    ↓
-Phase 3 Complete → Phase 4 (QA & Polish)
-```
-
-**Story-Level Dependencies:**
-
-- **C1 (Text parser)** → C2 (Parser tests), C6 (Parse UI)
-- **C3 (PDF export)** → C5 (Export UI)
-- **C4 (SVG export)** → C5 (Export UI)
-- **GEN-1 (Shape selector)** → GEN-2 (Params form) → GEN-3 (Gauge input) → GEN-4 (API integration) → GEN-5 (Preview)
-- **E1 (Kid Mode toggle)** → E2 (Copy rewrite), E3 (Tap targets), E6 (Screen reader labels)
-- **F1 (Telemetry service)** → F2 (Event emission: gen/viz), F3 (Event emission: export/parse)
+**Required for Phase 3:**
+- PatternDSL schema (Phase 1)
+- Settings screen foundation (Phase 2, D4)
+- Theme system basics (Phase 2, D5)
 
 ### External Dependencies
 
-| Dependency | Version | Purpose | Risk | Mitigation |
-|-----------|---------|---------|------|-----------|
-| `reportlab` | 3.6+ | PDF generation | Medium | Test early; have print-to-PDF fallback |
-| `Pillow` | 10.0+ | Image processing | Low | Widely used; stable |
-| `cairosvg` | 2.7+ | SVG to PNG conversion | Medium | Test early; use `svglib` as fallback |
-| `react-native-svg` | Latest | SVG rendering | Low | Already used in Phase 2 |
-| `@react-native-async-storage/async-storage` | Latest | Local storage | Low | Mature library |
-| `react-native-fs` | Latest | File system access for exports | Medium | Test on iOS and Android |
+**Backend:**
+- reportlab or weasyprint (PDF generation)
+- pyparsing (text parser)
+- Pillow (PNG export)
 
-### Potential Blockers
+**Installation:**
+```bash
+pnpm --filter api add reportlab pyparsing Pillow
+```
 
-| Blocker | Likelihood | Impact | Workaround |
-|---------|-----------|--------|-----------|
-| **PDF library incompatibility with Python 3.11+** | Low | High | Pin Python version to 3.10; test early |
-| **SVG to PNG conversion fails on Android** | Medium | Medium | Use web service (e.g., Cloudinary) as fallback |
-| **Parsing complexity exceeds estimates** | Medium | Medium | Limit grammar scope; defer advanced syntax to v1.1 |
-| **WCAG AA audit finds critical issues** | Medium | High | Integrate automated audits early; fix incrementally |
-| **Kid Mode scope creep (animations)** | High | Medium | Time-box to 13 hours; defer to v1.1 if needed |
-| **File export permissions on iOS/Android** | Low | High | Test early; request permissions correctly |
+**Frontend:**
+- @react-native-async-storage/async-storage (settings persistence)
+- react-native-fs (file downloads)
+- @expo/vector-icons (icons)
 
-### Blocker Resolution Process
+**Installation:**
+```bash
+pnpm --filter mobile add @react-native-async-storage/async-storage react-native-fs @expo/vector-icons
+```
 
-1. **Identify blocker** in daily standup or retro
-2. **Assign owner** to investigate workaround (max 2 hours)
-3. **Escalate to project lead** if no workaround found
-4. **Update timeline/scope** if blocker is critical
-5. **Document in risk register** for future sprints
+### Risks & Mitigation
 
----
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| **Parser complexity exceeds scope** | Medium | High | Limit to bracket/repeat syntax; clear error messages for unsupported |
+| **PDF generation slow (>5s)** | Medium | Medium | Optimize template; cache diagrams; consider async generation |
+| **Accessibility audit fails** | Low | High | Early QA involvement; continuous axe-core checks; manual testing |
+| **Kid Mode readability unclear** | Medium | Low | User testing with target age group; readability tool validation |
+| **Telemetry consent friction** | Low | Low | Clear, non-dark-pattern UI; easy opt-out; privacy policy transparency |
+| **Settings persistence bugs** | Medium | Medium | Comprehensive AsyncStorage testing; migration strategy for schema changes |
+| **Colorblind palette insufficient** | Low | Medium | Combine color + patterns/symbols; verify with simulation tools |
+| **Screen reader incompatibility** | Medium | High | Test on NVDA, JAWS, VoiceOver; early remediation; expert consultation |
 
-## Risks
+**Critical Path Items:**
+1. Parser accuracy (blocks external pattern workflows)
+2. PDF export quality (blocks sharing/printing)
+3. Accessibility compliance (blocks launch)
+4. Settings persistence (blocks user preferences)
 
-### Technical Risks
-
-| Risk | Probability | Impact | Mitigation | Owner |
-|------|-------------|--------|-----------|-------|
-| **PDF generation library produces invalid PDFs** | Medium | High | Test `reportlab` in Sprint 5; validate PDFs with multiple viewers (Adobe, Preview, Chrome) | Backend Engineer |
-| **Text parser fails on real-world patterns** | High | Medium | Limit grammar to canonical syntax; show clear error messages; defer complex patterns to v1.1 | Backend Engineer |
-| **SVG export file size too large** | Low | Medium | Optimize SVG (remove redundant nodes); compress with gzip | Backend Engineer |
-| **Kid Mode animations cause performance issues** | Medium | Medium | Profile animations early; use CSS transforms; defer to v1.1 if needed | Frontend Engineer |
-| **Screen reader compatibility issues on Android** | Medium | High | Test TalkBack early and often; follow Android accessibility guidelines | Frontend Lead |
-| **File export permissions fail on iOS** | Low | High | Request permissions correctly; test on iOS 14, 15, 16 | Frontend Engineer |
-
-### Schedule Risks
-
-| Risk | Probability | Impact | Mitigation | Owner |
-|------|-------------|--------|-----------|-------|
-| **Scope creep on Kid Mode features** | High | Medium | Define Kid Mode MVP clearly; time-box animations to 13 hours | Product Owner |
-| **Parsing complexity exceeds Sprint 5 capacity** | Medium | High | Limit grammar scope; defer complex patterns to v1.1; communicate early | Backend Engineer |
-| **Accessibility audit finds critical issues late** | Medium | High | Integrate automated audits (axe-core) from Sprint 5; fix incrementally | QA Lead |
-| **Export UI takes longer than estimated** | Low | Medium | Use standard components; defer advanced features (preview) to v1.1 | Frontend Engineer |
-| **Team velocity lower than estimated** | Medium | Medium | Adjust sprint scope; deprioritize P1 stories (animations, telemetry) | Scrum Master |
-
-### Resource Risks
-
-| Risk | Probability | Impact | Mitigation | Owner |
-|------|-------------|--------|-----------|-------|
-| **Backend engineer unavailable during Sprint 5** | Low | High | Cross-train frontend engineer on backend; pair program on parsing | Engineering Lead |
-| **Accessibility specialist unavailable** | Low | High | Use automated audits; engage external consultant if needed | Project Lead |
-| **Design changes to Kid Mode late in phase** | Medium | Medium | Finalize Kid Mode designs by end of Sprint 5; limit iterations | Product Owner |
-
-### Mitigation Strategy
-
-**Risk Monitoring:**
-- Review risks weekly in sprint planning
-- Update risk register after each sprint
-- Escalate to project lead if probability or impact increases
-
-**Escalation Process:**
-1. If risk becomes imminent (probability > 70%), discuss in standup
-2. Assign owner to develop mitigation plan (max 2 hours)
-3. Implement mitigation or escalate to project lead
-4. Update timeline/scope if needed
-5. Document decision and communicate to team
-
----
-
-## Phase Exit Criteria
-
-Phase 3 is **READY TO EXIT** when ALL of the following are verified:
-
-### Feature Completeness
-
-- [ ] All EPIC C stories complete (Parsing & I/O)
-- [ ] All EPIC D stories complete (Pattern Generation Flow)
-- [ ] All EPIC E stories complete (Kid Mode & Accessibility)
-- [ ] All EPIC F stories complete (Telemetry & Monitoring)
-- [ ] All Sprint 5, 6, 7 stories marked "Done"
-
-### Quality Gates
-
-- [ ] All unit tests pass (80%+ coverage for backend, 70%+ for frontend)
-- [ ] All integration tests pass
-- [ ] E2E tests pass for critical flows (Generate → Visualize → Export)
-- [ ] Code review completed for all stories (2+ approvals)
-- [ ] No linting errors or warnings
-- [ ] Performance benchmarks met (< 200ms generation, < 2s PDF export)
-
-### Functional Verification
-
-- [ ] End-to-end flow works: Generate → Visualize → Export to PDF
-- [ ] Text parser handles canonical patterns with 90%+ accuracy
-- [ ] All export formats produce valid files (PDF, SVG, JSON)
-- [ ] Kid Mode toggle activates simplified UI
-- [ ] WCAG AA compliance verified (0 critical issues)
-- [ ] Telemetry opt-in works; events logged correctly
-
-### Documentation
-
-- [ ] API documentation updated (Swagger/OpenAPI)
-- [ ] User guide updated with parsing and export instructions
-- [ ] Developer documentation updated (README, CONTRIBUTING)
-- [ ] Release notes drafted for Phase 3 features
-
-### Stakeholder Sign-Off
-
-- [ ] Sprint demos completed and approved
-- [ ] Product owner sign-off on feature completeness
-- [ ] Engineering lead sign-off on technical quality
-- [ ] QA lead sign-off on test coverage
-
-### Handoff to Phase 4
-
-- [ ] Known issues triaged and documented
-- [ ] Phase 4 backlog prepared (QA & Polish stories)
-- [ ] Team retro completed; action items documented
-- [ ] Phase 3 metrics recorded (velocity, burndown, bugs)
+**Mitigation Actions:**
+- Daily standups to surface blockers early
+- QA embedded in sprint (not end-of-phase)
+- Accessibility expert consultation (if audit fails)
+- Parser scope reduction if complexity escalates
 
 ---
 
 ## Next Phase Preview
 
-### Phase 4: QA & Polish (Weeks 12-15)
+**Phase 4: QA & Polish (Weeks 12-15, Sprints 8-10)**
 
-**Focus:** Cross-device testing, accessibility audits, performance optimization, bug fixes, documentation
+**Focus Areas:**
+- Cross-device testing (iOS 14+, Android 9+, tablets)
+- Performance optimization (60 FPS, < 200ms generation)
+- Bug fixes and edge case handling
+- User acceptance testing (UAT)
+- Documentation finalization (API docs, user guides)
+- Regression testing
+- Launch readiness review
 
-**Key Activities:**
-
-1. **Cross-Device Testing:** iOS 14+, Android 10+, tablets, landscape/portrait
-2. **Accessibility Audit:** WCAG AA audit report with zero critical issues
-3. **Performance Optimization:** Profile and optimize hot paths; reduce bundle size
-4. **Bug Triage & Fixes:** Fix all P0 bugs; triage P1/P2 bugs
-5. **Documentation:** Complete API docs, user guides, developer docs
-
-**Deliverables:**
-
-- [ ] Cross-device smoke tests complete (iOS, Android, tablets)
-- [ ] Accessibility audit report with 0 critical, < 5 warnings
-- [ ] Performance benchmarks met (< 200ms generation, > 50 fps visualization)
-- [ ] All P0 bugs fixed; P1 bugs triaged
-- [ ] Documentation complete and reviewed
+**Key Deliverables:**
+- Comprehensive test suite (unit, integration, E2E)
+- Performance benchmarks met
+- Accessibility audit remediation complete
+- Bug backlog triaged and resolved
+- User documentation complete
+- Deployment runbook
+- Monitoring and alerting configured
 
 **Success Criteria:**
+- 0 P0/P1 bugs in backlog
+- Performance targets met (all)
+- WCAG AA audit passed (all screens)
+- Cross-device testing complete (iOS/Android/tablets)
+- Documentation reviewed and approved
 
-- [ ] Zero critical bugs
-- [ ] Automated E2E tests pass on iOS and Android
-- [ ] WCAG AA audit: 0 critical, < 5 warnings
-- [ ] Performance benchmarks met
-- [ ] Bundle size within limits (APK < 50MB, IPA < 100MB)
-- [ ] Documentation complete
-
-**Timeline:**
-- **Week 12:** Cross-device testing, accessibility audit
-- **Week 13:** Performance optimization, bug fixes
-- **Week 14:** Documentation, regression testing
-- **Week 15:** Final polish, release preparation
-
----
-
-## Appendix
-
-### Story Point Reference
-
-| Points | Complexity | Effort | Examples |
-|--------|-----------|--------|----------|
-| 1 pt | Trivial | < 1 hour | Config change, typo fix |
-| 3 pt | Simple | 2-4 hours | Simple UI component, basic endpoint |
-| 5 pt | Medium | 1 day | Form with validation, API integration |
-| 8 pt | Complex | 1.5-2 days | Complex UI flow, parser implementation |
-| 13 pt | Very Complex | 2-3 days | Full feature (e.g., PDF export) |
-| 21 pt | Epic-level | 4-5 days | Too large; should be split |
-
-### Definition of Done Checklist
-
-A story is **DONE** only when:
-
-- [ ] Code written per acceptance criteria
-- [ ] All unit tests pass (100% green CI)
-- [ ] Code reviewed (2+ approvals)
-- [ ] Test coverage > 80% (backend) or 70% (frontend)
-- [ ] Documentation updated (docstrings, comments, external docs)
-- [ ] Performance benchmarks met (if applicable)
-- [ ] Accessibility compliance verified (if applicable)
-- [ ] No regressions (existing tests still pass)
-- [ ] Code merged to main
-- [ ] Demo-ready (works end-to-end, no UX issues)
-
-### Key Contacts
-
-| Role | Name | Responsibilities |
-|------|------|-----------------|
-| **Product Owner** | TBD | Feature prioritization, sprint planning, stakeholder communication |
-| **Engineering Lead** | TBD | Architecture decisions, code reviews, technical escalation |
-| **Backend Engineer** | TBD | Pattern engine, parsing, export endpoints |
-| **Frontend Lead** | TBD | UI implementation, Kid Mode, accessibility |
-| **Frontend Engineer** | TBD | Generation UI, export UI, telemetry |
-| **QA Engineer** | TBD | Test planning, manual testing, bug triage |
-| **Scrum Master** | TBD | Sprint facilitation, retrospectives, blocker resolution |
-
----
-
-**Document Version:** 1.0
-**Last Updated:** 2025-11-05
-**Next Review:** End of Sprint 5 (Week 9)
+**Transition Criteria from Phase 3:**
+- All Phase 3 exit criteria met
+- Integration testing complete
+- Manual exploratory testing passed
+- Known issues documented and triaged
