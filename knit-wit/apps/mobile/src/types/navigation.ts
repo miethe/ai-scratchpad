@@ -1,12 +1,14 @@
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { CompositeScreenProps, NavigatorScreenParams } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { PatternDSL } from './pattern';
 
 /**
  * Root Stack Navigator params
  */
 export type RootStackParamList = {
   Main: NavigatorScreenParams<MainTabParamList>;
+  Visualization: { pattern: PatternDSL };
   // Future screens like onboarding, pattern detail, etc.
   // PatternDetail: { patternId: string };
   // Onboarding: undefined;
