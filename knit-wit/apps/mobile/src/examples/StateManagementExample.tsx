@@ -109,17 +109,19 @@ export function AsyncExample() {
 export function VisualizationControlsExample() {
   const {
     currentRound,
+    totalRounds,
     zoomLevel,
     nextRound,
-    previousRound,
+    prevRound,
     zoomIn,
     zoomOut,
     resetVisualization,
   } = useVisualizationStore((state) => ({
     currentRound: state.currentRound,
+    totalRounds: state.totalRounds,
     zoomLevel: state.zoomLevel,
     nextRound: state.nextRound,
-    previousRound: state.previousRound,
+    prevRound: state.prevRound,
     zoomIn: state.zoomIn,
     zoomOut: state.zoomOut,
     resetVisualization: state.resetVisualization,
@@ -128,9 +130,9 @@ export function VisualizationControlsExample() {
   return (
     <View style={styles.container}>
       <View style={styles.row}>
-        <Button title="Previous" onPress={previousRound} disabled={currentRound === 0} />
-        <Text>Round {currentRound + 1}</Text>
-        <Button title="Next" onPress={nextRound} />
+        <Button title="Previous" onPress={prevRound} disabled={currentRound === 1} />
+        <Text>Round {currentRound}</Text>
+        <Button title="Next" onPress={nextRound} disabled={currentRound === totalRounds} />
       </View>
 
       <View style={styles.row}>
@@ -254,7 +256,7 @@ export function BatchUpdateExample() {
     });
 
     useVisualizationStore.setState({
-      currentRound: 0,
+      currentRound: 1,
       zoomLevel: 1.0,
       panOffset: { x: 0, y: 0 },
     });

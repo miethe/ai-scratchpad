@@ -1,5 +1,6 @@
 import axios from 'axios';
 import type { PatternRequest, PatternDSL } from '../types';
+import type { VisualizationResponse } from '../types/visualization';
 
 // API configuration
 // In production, this would come from environment variables
@@ -15,8 +16,7 @@ const apiClient = axios.create({
 
 /**
  * Pattern API service
- * Placeholder implementations for MVP Phase 0
- * These will be fully implemented when backend integration happens
+ * Handles communication with the FastAPI backend
  */
 export const patternApi = {
   /**
@@ -28,10 +28,10 @@ export const patternApi = {
   },
 
   /**
-   * Visualize a pattern
+   * Visualize a pattern - convert DSL to frames
    */
-  async visualize(dsl: PatternDSL): Promise<{ frames: unknown[] }> {
-    const response = await apiClient.post('/patterns/visualize', { dsl });
+  async visualize(dsl: PatternDSL): Promise<VisualizationResponse> {
+    const response = await apiClient.post('/visualization/frames', dsl);
     return response.data;
   },
 

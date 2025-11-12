@@ -1,13 +1,15 @@
 module.exports = {
-  preset: 'react-native',
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
+  rootDir: '.',
+  testMatch: ['**/__tests__/**/*.[jt]s?(x)', '**/?(*.)+(spec|test).[jt]s?(x)'],
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   setupFiles: ['<rootDir>/jest-setup.js'],
   setupFilesAfterEnv: ['@testing-library/jest-native/extend-expect'],
+  testEnvironment: 'node',
   transform: {
-    '^.+\\.(js|ts|tsx)$': ['babel-jest', { configFile: './babel.config.js' }],
+    '^.+\\.(js|jsx|ts|tsx)$': ['babel-jest', { configFile: './babel.config.js' }],
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(react-native|@react-native|@react-navigation|react-native-.*)/)',
+    'node_modules/(?!((jest-)?react-native|@react-native(-community)?|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|zustand))',
   ],
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',
@@ -23,5 +25,4 @@ module.exports = {
       statements: 60,
     },
   },
-  testEnvironment: 'node',
 };
