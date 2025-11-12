@@ -44,6 +44,11 @@ app = FastAPI(
     openapi_url="/openapi.json",
     debug=settings.debug,
     lifespan=lifespan,
+    openapi_tags=[
+        {"name": "health", "description": "Health check endpoints"},
+        {"name": "root", "description": "Root API information"},
+        {"name": "visualization", "description": "Pattern visualization endpoints"},
+    ],
 )
 
 

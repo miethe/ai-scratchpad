@@ -118,6 +118,16 @@ export const typography = {
     lineHeight: 16,
     fontWeight: '500' as const,
   },
+
+  // Font sizes (for direct fontSize usage)
+  sizes: {
+    xs: 11,
+    sm: 12,
+    md: 14,
+    lg: 16,
+    xl: 22,
+    xxl: 28,
+  },
 } as const;
 
 export type TypographyStyle = keyof typeof typography;

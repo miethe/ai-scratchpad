@@ -3,12 +3,12 @@
 from fastapi import APIRouter
 
 from app.core import settings
+from app.api.v1.endpoints import visualization
 
 # Create main v1 router
 api_router = APIRouter()
 
-# Import and include endpoint routers here
-# Example: from app.api.v1.endpoints import health
-# api_router.include_router(health.router, tags=["health"])
+# Include endpoint routers
+api_router.include_router(visualization.router)
 
 __all__ = ["api_router"]
