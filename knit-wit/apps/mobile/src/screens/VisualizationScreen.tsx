@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import { SVGRenderer } from '../components/visualization/SVGRenderer';
+import { RoundScrubber } from '../components/visualization/RoundScrubber';
+import { StitchTooltip } from '../components/visualization/StitchTooltip';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { NetworkError } from '../components/common/NetworkError';
 import { useVisualizationStore } from '../stores/useVisualizationStore';
@@ -32,6 +34,7 @@ export const VisualizationScreen: React.FC<VisualizationScreenProps> = ({ route 
   } = useVisualizationStore();
 
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [tooltipVisible, setTooltipVisible] = useState(false);
 
   useEffect(() => {
     loadVisualization();
@@ -54,7 +57,12 @@ export const VisualizationScreen: React.FC<VisualizationScreenProps> = ({ route 
 
   const handleStitchTap = (nodeId: string) => {
     setSelectedNodeId(nodeId);
-    // TODO: Show tooltip in B6
+    setTooltipVisible(true);
+  };
+
+  const handleCloseTooltip = () => {
+    setTooltipVisible(false);
+    setSelectedNodeId(null);
   };
 
   if (loading) {
@@ -75,6 +83,10 @@ export const VisualizationScreen: React.FC<VisualizationScreenProps> = ({ route 
 
   const currentFrame = frames[currentRound - 1]; // Convert 1-indexed to 0-indexed
 
+  const selectedNode = selectedNodeId
+    ? currentFrame?.nodes.find(n => n.id === selectedNodeId) || null
+    : null;
+
   if (!currentFrame) {
     return (
       <View style={styles.centerContainer}>
@@ -92,9 +104,15 @@ export const VisualizationScreen: React.FC<VisualizationScreenProps> = ({ route 
         />
       </View>
 
-      {/* RoundScrubber will be added in B4 */}
+      <RoundScrubber />
+
       {/* Legend will be added in B7 */}
-      {/* StitchTooltip will be added in B6 */}
+
+      <StitchTooltip
+        visible={tooltipVisible}
+        node={selectedNode}
+        onClose={handleCloseTooltip}
+      />
     </View>
   );
 };
