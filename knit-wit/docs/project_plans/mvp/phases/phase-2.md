@@ -1,7 +1,5 @@
 # Phase 2: Visualization Foundation
 
-
-
 **Duration:** Weeks 5-7 (Sprints 3-4)
 
 **Team:** 2 BE, 2 FE, 1 QA
@@ -10,19 +8,11 @@
 
 **Status:** Planned
 
-
-
 ---
-
-
 
 ## Phase Overview
 
-
-
 Phase 2 establishes the visualization foundation for interactive pattern rendering. This phase bridges the pattern engine (Phase 1) with the user interface, enabling step-by-step visual guidance through crochet patterns.
-
-
 
 **Core Deliverables:**
 
@@ -38,8 +28,6 @@ Phase 2 establishes the visualization foundation for interactive pattern renderi
 
 - Frontend: WCAG AA accessibility baseline
 
-
-
 **Key Technologies:**
 
 - Backend: Pattern DSL → RenderPrimitive models
@@ -48,41 +36,25 @@ Phase 2 establishes the visualization foundation for interactive pattern renderi
 
 - Testing: Jest (FE), pytest (BE), accessibility audits
 
-
-
 ### Phase Context
-
-
 
 **Preceding Phase:**
 
 - Phase 1: Core Pattern Engine complete (sphere, cylinder, cone compilers functional, 93% coverage, sub-millisecond generation)
 
-
-
 **Following Phase:**
 
 - Phase 3: Advanced visualization features (animations, Kid Mode, advanced tooltips)
-
-
 
 **Critical Path:**
 
 Yes. Visualization foundation blocks all downstream UI features. Frontend app shell is required for Phase 3-4 feature development.
 
-
-
 ---
-
-
 
 ## Goals & Deliverables
 
-
-
 ### Primary Goals
-
-
 
 1. **Backend Visualization Engine**
 
@@ -94,8 +66,6 @@ Yes. Visualization foundation blocks all downstream UI features. Frontend app sh
 
    - API endpoint: `POST /api/v1/patterns/visualize`
 
-
-
 2. **Frontend App Shell**
 
    - RN/Expo navigation stack operational
@@ -105,8 +75,6 @@ Yes. Visualization foundation blocks all downstream UI features. Frontend app sh
    - Screen structure: Home, Generate, Visualize, Settings
 
    - HTTP client with error handling
-
-
 
 3. **SVG Rendering Engine**
 
@@ -118,8 +86,6 @@ Yes. Visualization foundation blocks all downstream UI features. Frontend app sh
 
    - Smooth 60 FPS rendering on mid-range devices
 
-
-
 4. **Navigation Controls**
 
    - Round scrubber (horizontal slider)
@@ -130,8 +96,6 @@ Yes. Visualization foundation blocks all downstream UI features. Frontend app sh
 
    - Current round indicator
 
-
-
 5. **Basic Interactivity**
 
    - Tap stitch → show tooltip (stitch type, name)
@@ -139,8 +103,6 @@ Yes. Visualization foundation blocks all downstream UI features. Frontend app sh
    - Legend overlay (color key)
 
    - Basic accessibility labels (WCAG AA)
-
-
 
 6. **Performance**
 
@@ -150,11 +112,7 @@ Yes. Visualization foundation blocks all downstream UI features. Frontend app sh
 
    - Pattern load: < 500ms end-to-end
 
-
-
 ### Key Deliverables
-
-
 
 **Backend:**
 
@@ -167,8 +125,6 @@ Yes. Visualization foundation blocks all downstream UI features. Frontend app sh
 - [ ] `tests/unit/test_visualization_service.py` - Unit tests
 
 - [ ] `tests/integration/test_visualization_api.py` - API contract tests
-
-
 
 **Frontend:**
 
@@ -190,11 +146,7 @@ Yes. Visualization foundation blocks all downstream UI features. Frontend app sh
 
 - [ ] `__tests__/components/SVGRenderer.test.tsx` - Component tests
 
-
-
 ### Success Metrics
-
-
 
 | Metric | Target | Measurement |
 
@@ -214,19 +166,11 @@ Yes. Visualization foundation blocks all downstream UI features. Frontend app sh
 
 | Test coverage (FE) | > 60% | Jest coverage |
 
-
-
 ---
-
-
 
 ## Epic Breakdown
 
-
-
 ### EPIC B: Visualization (Backend + Frontend)
-
-
 
 **Owner:** Backend Lead + Frontend Lead
 
@@ -236,13 +180,9 @@ Yes. Visualization foundation blocks all downstream UI features. Frontend app sh
 
 **Priority:** P0 (Critical Path)
 
-
-
 **Epic Overview:**
 
 Implement the visualization pipeline from pattern DSL to interactive SVG rendering. Backend converts DSL to frame-by-frame render primitives; frontend renders these as interactive diagrams with navigation controls.
-
-
 
 **Epic Goals:**
 
@@ -254,11 +194,7 @@ Implement the visualization pipeline from pattern DSL to interactive SVG renderi
 
 - Stitch highlighting visually clear (colorblind-friendly)
 
-
-
 #### Stories
-
-
 
 | ID | Title | Effort | Priority | Dependencies | Owner |
 
@@ -280,19 +216,11 @@ Implement the visualization pipeline from pattern DSL to interactive SVG renderi
 
 | **B8** | Accessibility labels (FE) | 8 pt | P0 | B3 | FE Lead + QA |
 
-
-
 **Total:** 66 story points
-
-
 
 ---
 
-
-
 ### EPIC D: App Shell & Settings (Foundation)
-
-
 
 **Owner:** Frontend Lead
 
@@ -302,13 +230,9 @@ Implement the visualization pipeline from pattern DSL to interactive SVG renderi
 
 **Priority:** P0 (Critical Path)
 
-
-
 **Epic Overview:**
 
 Establish the React Native/Expo application structure with navigation, global state management, and HTTP client configuration. This epic provides the foundation for all frontend feature development.
-
-
 
 **Epic Goals:**
 
@@ -322,11 +246,7 @@ Establish the React Native/Expo application structure with navigation, global st
 
 - Basic settings screen functional
 
-
-
 #### Stories
-
-
 
 | ID | Title | Effort | Priority | Dependencies | Owner |
 
@@ -344,27 +264,15 @@ Establish the React Native/Expo application structure with navigation, global st
 
 | **D6** | Loading states & error UI | 3 pt | P1 | D3 | FE Eng |
 
-
-
 **Total:** 32 story points
-
-
 
 ---
 
-
-
 ## Sprint Plans
-
-
 
 ### Sprint 3 (Weeks 5-6)
 
-
-
 **Sprint Goal:** Backend visualization pipeline + Frontend app shell operational
-
-
 
 **Total Capacity:** 60-70 story points
 
@@ -374,11 +282,7 @@ Establish the React Native/Expo application structure with navigation, global st
 
 - Frontend: Navigation + HTTP client + basic screens
 
-
-
 **Stories Planned:**
-
-
 
 | Story | Title | Effort | Owner | Status |
 
@@ -400,15 +304,9 @@ Establish the React Native/Expo application structure with navigation, global st
 
 | D6 | Loading states & error UI | 3 pt | FE Eng | Planned |
 
-
-
 **Total Committed:** 53 story points
 
-
-
 **Daily Breakdown:**
-
-
 
 **Week 5:**
 
@@ -418,8 +316,6 @@ Establish the React Native/Expo application structure with navigation, global st
 
 - **Day 5:** B2 completion, D4 start (FE Eng), D5 start (FE Eng)
 
-
-
 **Week 6:**
 
 - **Day 1-2:** D4 completion, D5 completion, D6 (FE Eng)
@@ -427,8 +323,6 @@ Establish the React Native/Expo application structure with navigation, global st
 - **Day 3-4:** Integration testing, bug fixes
 
 - **Day 5:** Sprint review prep, demo walkthrough
-
-
 
 **Sprint Demo:**
 
@@ -439,8 +333,6 @@ Establish the React Native/Expo application structure with navigation, global st
 - Frontend: Settings screen with theme toggle
 
 - Frontend: HTTP client calling backend /visualize endpoint
-
-
 
 **Definition of Done (Sprint 3):**
 
@@ -456,19 +348,11 @@ Establish the React Native/Expo application structure with navigation, global st
 
 - [ ] Code reviewed and merged to main
 
-
-
 ---
-
-
 
 ### Sprint 4 (Week 7)
 
-
-
 **Sprint Goal:** Interactive SVG rendering with navigation controls
-
-
 
 **Total Capacity:** 65-75 story points
 
@@ -480,11 +364,7 @@ Establish the React Native/Expo application structure with navigation, global st
 
 - QA: Accessibility baseline audit
 
-
-
 **Stories Planned:**
-
-
 
 | Story | Title | Effort | Owner | Status |
 
@@ -502,15 +382,9 @@ Establish the React Native/Expo application structure with navigation, global st
 
 | B8 | Accessibility labels | 8 pt | FE Lead + QA | Planned |
 
-
-
 **Total Committed:** 45 story points
 
-
-
 **Daily Breakdown:**
-
-
 
 **Week 7:**
 
@@ -523,8 +397,6 @@ Establish the React Native/Expo application structure with navigation, global st
 - **Day 5:** B6 complete, B7 complete, B8 accessibility audit
 
 - **Day 6-7 (weekend buffer):** B8 fixes, integration testing
-
-
 
 **Sprint Demo:**
 
@@ -539,8 +411,6 @@ Establish the React Native/Expo application structure with navigation, global st
 - Legend overlay explains color coding
 
 - Screen reader demo (basic accessibility)
-
-
 
 **Definition of Done (Sprint 4):**
 
@@ -562,23 +432,13 @@ Establish the React Native/Expo application structure with navigation, global st
 
 - [ ] Code reviewed and merged to main
 
-
-
 ---
-
-
 
 ## Technical Implementation
 
-
-
 ### Backend: DSL to Visualization Frames
 
-
-
 **Algorithm: PatternDSL → VisualizationFrame[]**
-
-
 
 ```python
 
@@ -642,11 +502,7 @@ class VisualizationResponse(BaseModel):
 
 ```
 
-
-
 **Conversion Algorithm:**
-
-
 
 ```python
 
@@ -774,11 +630,7 @@ class VisualizationService:
 
 ```
 
-
-
 **API Endpoint:**
-
-
 
 ```python
 
@@ -834,11 +686,7 @@ async def generate_frames(pattern: PatternDSL):
 
 ```
 
-
-
 **Unit Test Example:**
-
-
 
 ```python
 
@@ -920,19 +768,11 @@ def test_increase_highlighting():
 
 ```
 
-
-
 ---
-
-
 
 ### Frontend: SVG Rendering Engine
 
-
-
 **Component Architecture:**
-
-
 
 ```typescript
 
@@ -1100,11 +940,7 @@ const styles = StyleSheet.create({
 
 ```
 
-
-
 **Zustand Store:**
-
-
 
 ```typescript
 
@@ -1236,11 +1072,7 @@ export const useVisualizationStore = create<VisualizationState>((set, get) => ({
 
 ```
 
-
-
 **Round Scrubber Component:**
-
-
 
 ```typescript
 
@@ -1440,11 +1272,7 @@ const styles = StyleSheet.create({
 
 ```
 
-
-
 **Tooltip Component:**
-
-
 
 ```typescript
 
@@ -1604,19 +1432,11 @@ const styles = StyleSheet.create({
 
 ```
 
-
-
 ---
-
-
 
 ### Navigation Controls
 
-
-
 **Screen Integration:**
-
-
 
 ```typescript
 
@@ -1806,19 +1626,11 @@ const styles = StyleSheet.create({
 
 ```
 
-
-
 ---
-
-
 
 ## Success Criteria
 
-
-
 ### Phase Exit Criteria
-
-
 
 **Backend:**
 
@@ -1831,8 +1643,6 @@ const styles = StyleSheet.create({
 - [ ] Unit test coverage > 80%
 
 - [ ] Integration tests pass (API contract validation)
-
-
 
 **Frontend:**
 
@@ -1854,8 +1664,6 @@ const styles = StyleSheet.create({
 
 - [ ] Component test coverage > 60%
 
-
-
 **Accessibility:**
 
 - [ ] All interactive elements have accessibility labels
@@ -1868,8 +1676,6 @@ const styles = StyleSheet.create({
 
 - [ ] axe-core audit passes with 0 critical issues
 
-
-
 **Performance:**
 
 - [ ] End-to-end pattern load < 500ms (manual testing)
@@ -1880,8 +1686,6 @@ const styles = StyleSheet.create({
 
 - [ ] No memory leaks during round navigation (500+ round changes)
 
-
-
 **Integration:**
 
 - [ ] Backend → Frontend API integration functional
@@ -1890,19 +1694,11 @@ const styles = StyleSheet.create({
 
 - [ ] Loading states displayed during async operations
 
-
-
 ---
-
-
 
 ## Dependencies & Risks
 
-
-
 ### Dependencies from Phase 1
-
-
 
 **Met Dependencies:**
 
@@ -1914,8 +1710,6 @@ const styles = StyleSheet.create({
 
 - ✅ Test patterns available (sphere 10cm, cylinder 8×12cm, cone 6→2cm)
 
-
-
 **Required for Phase 2:**
 
 - PatternDSL JSON serialization (available via `.to_json()`)
@@ -1924,11 +1718,7 @@ const styles = StyleSheet.create({
 
 - Stitch operation types (`sc`, `inc`, `dec`)
 
-
-
 ### External Dependencies
-
-
 
 **Backend:**
 
@@ -1937,8 +1727,6 @@ const styles = StyleSheet.create({
 - Pydantic v2 (already used in Phase 1)
 
 - Python 3.11+ (already configured)
-
-
 
 **Frontend:**
 
@@ -1951,8 +1739,6 @@ const styles = StyleSheet.create({
 - zustand (needs installation)
 
 - @react-native-community/slider (needs installation)
-
-
 
 **Installation Required:**
 
@@ -1970,11 +1756,7 @@ pnpm --filter mobile add @react-native-community/slider
 
 ```
 
-
-
 ### Risks & Mitigation
-
-
 
 | Risk | Probability | Impact | Mitigation |
 
@@ -1992,17 +1774,11 @@ pnpm --filter mobile add @react-native-community/slider
 
 | **Frontend state management complexity** | Low | Low | Zustand keeps it simple, avoid Redux overhead |
 
-
-
 ### Blockers
-
-
 
 **Current Blockers:**
 
 - None (Phase 1 complete, all dependencies met)
-
-
 
 **Potential Blockers:**
 
@@ -2012,19 +1788,11 @@ pnpm --filter mobile add @react-native-community/slider
 
 - Backend deployment delays (mitigation: test locally with docker-compose)
 
-
-
 ---
-
-
 
 ## Testing Requirements
 
-
-
 ### Backend Testing
-
-
 
 **Unit Tests:**
 
@@ -2044,8 +1812,6 @@ pnpm --filter mobile add @react-native-community/slider
 
   - Test invalid inputs rejected
 
-
-
 **Integration Tests:**
 
 - `test_visualization_api.py` - API endpoint contracts
@@ -2058,15 +1824,9 @@ pnpm --filter mobile add @react-native-community/slider
 
   - Test performance (< 100ms for 50-round pattern)
 
-
-
 **Coverage Target:** > 80%
 
-
-
 ### Frontend Testing
-
-
 
 **Component Tests:**
 
@@ -2100,8 +1860,6 @@ pnpm --filter mobile add @react-native-community/slider
 
   - Color mapping correct
 
-
-
 **Integration Tests:**
 
 - `VisualizationScreen.test.tsx` - Full screen integration
@@ -2114,15 +1872,9 @@ pnpm --filter mobile add @react-native-community/slider
 
   - Displays error state on API failure
 
-
-
 **Coverage Target:** > 60%
 
-
-
 ### Accessibility Testing
-
-
 
 **Automated:**
 
@@ -2134,8 +1886,6 @@ pnpm --filter mobile add @react-native-community/slider
 
   - Document minor/moderate issues for Phase 3
 
-
-
 **Manual:**
 
 - VoiceOver (iOS) announces round changes
@@ -2146,19 +1896,11 @@ pnpm --filter mobile add @react-native-community/slider
 
 - Color contrast verified with contrast checker
 
-
-
 ---
-
-
 
 ## Next Phase Preview
 
-
-
 ### Phase 3: Advanced Visualization (Weeks 8-10)
-
-
 
 **Primary Goals:**
 
@@ -2174,8 +1916,6 @@ pnpm --filter mobile add @react-native-community/slider
 
 - US ↔ UK terminology toggle (live update)
 
-
-
 **Epics:**
 
 - EPIC B: Visualization (advanced features)
@@ -2183,8 +1923,6 @@ pnpm --filter mobile add @react-native-community/slider
 - EPIC C: Parsing & I/O
 
 - EPIC E: Kid Mode & Accessibility (full implementation)
-
-
 
 **Dependencies from Phase 2:**
 
@@ -2196,19 +1934,11 @@ pnpm --filter mobile add @react-native-community/slider
 
 - Accessibility baseline (will extend to full WCAG AA)
 
-
-
 **Estimated Effort:** 80-90 story points
-
-
 
 ---
 
-
-
 ## Phase 2 Summary
-
-
 
 **Total Story Points:** 98 points
 
@@ -2217,8 +1947,6 @@ pnpm --filter mobile add @react-native-community/slider
 **Team:** 2 BE, 2 FE, 1 QA (5 people)
 
 **Velocity:** 49 points/week (sustainable pace)
-
-
 
 **Critical Path Stories:**
 
@@ -2230,8 +1958,6 @@ pnpm --filter mobile add @react-native-community/slider
 
 - B3: SVG rendering engine (blocks B4, B5, B6, B7, B8)
 
-
-
 **Parallel Workstreams:**
 
 - Backend: B1 → B2 (sequential, 2 weeks)
@@ -2239,8 +1965,6 @@ pnpm --filter mobile add @react-native-community/slider
 - Frontend App Shell: D1 → D2, D3, D4, D5, D6 (parallel, Week 5-6)
 
 - Frontend Visualization: B3 → B4, B5, B6, B7, B8 (mixed, Week 7)
-
-
 
 **Risk Level:** Low-Medium
 
@@ -2250,8 +1974,6 @@ pnpm --filter mobile add @react-native-community/slider
 
 - Phase 1 provides solid foundation
 
-
-
 **Confidence:** High
 
 - Algorithm complexity contained (circular layout is straightforward)
@@ -2260,11 +1982,7 @@ pnpm --filter mobile add @react-native-community/slider
 
 - Team experienced with React Native and Python
 
-
-
 ---
-
-
 
 **Document Status:** FINAL
 
