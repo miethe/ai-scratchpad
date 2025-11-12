@@ -1,1051 +1,835 @@
-# Phase 4: Kid Mode & Accessibility
+# Phase 4: QA, Polish & Optimization
 
-**Duration:** Weeks 12–13 (Sprint 8)
-**Team:** Frontend Lead + Accessibility Specialist + 1 Frontend Engineer + QA Lead
-**Capacity:** ~70-80 story points
-**Status:** Planned
+**Knit-Wit MVP Implementation Plan**
+
+**Phase Duration:** 4 weeks (Weeks 12-15)
+**Sprints:** Sprint 8, Sprint 9, Sprint 10
+**Capacity:** ~160-180 story points
+**Team:** QA Lead + 2 engineers (backend + frontend) for fixes
+**Priority:** P0 (Launch Blocker)
 
 ---
 
 ## Phase Overview
 
-Phase 4 focuses on making Knit-Wit accessible, inclusive, and child-friendly. This phase implements comprehensive accessibility features to meet WCAG AA compliance standards, along with a specialized Kid Mode that simplifies the interface for young learners and beginners.
+### Purpose
 
-Accessibility is a core value of Knit-Wit, ensuring that makers of all abilities can use the app comfortably. This includes users with visual impairments, motor difficulties, dyslexia, and other accessibility needs, as well as children learning to crochet.
+Phase 4 validates production readiness through comprehensive testing, accessibility compliance, performance optimization, and monitoring infrastructure. Success criteria: zero critical bugs, WCAG AA compliance, performance targets met, monitoring operational.
 
-### Phase Context
+### Context
 
-**Preceding Phase:**
-- Phase 3 (Weeks 8-11): Full Feature Implementation complete with generation, visualization, export, and parsing features functional
+**Input:** Phase 3 complete (all MVP features implemented: pattern generation, visualization, export, Kid Mode, accessibility foundation, telemetry)
+**Output:** Production-ready application meeting all non-functional requirements
+**Next:** Phase 5 (Launch Preparation, Week 16)
 
-**Following Phase:**
-- Phase 5 (Weeks 14-15): QA & Polish begins with comprehensive accessibility audits and cross-device testing
+### Goals
 
-**Critical Path:**
-This phase is NOT on the critical path but is essential for MVP launch. Accessibility compliance and Kid Mode are core product differentiators and regulatory requirements.
+1. **Cross-Device Validation:** iOS 14+, Android 10+, tablets, web browsers - all critical flows pass
+2. **Accessibility Compliance:** WCAG AA audit passes with 0 critical issues, < 5 warnings
+3. **Performance Targets:** < 200ms generation, 60 FPS visualization, responsive UI
+4. **Bug Resolution:** 0 critical bugs, all P1 bugs fixed or deferred with justification
+5. **E2E Automation:** Critical paths automated (generate → visualize → export)
+6. **Monitoring:** Production dashboards, logging, error tracking operational
+7. **Documentation:** API docs, user guides, developer setup complete
 
----
+### Non-Goals
 
-## Goals & Deliverables
-
-### Primary Goals
-
-1. **WCAG AA Compliance:** Meet Web Content Accessibility Guidelines 2.1 Level AA across all app features
-2. **Kid Mode Implementation:** Simplified UI variant with child-friendly language and larger interactive elements
-3. **Screen Reader Support:** Full coverage of all interactive elements with appropriate ARIA labels and announcements
-4. **Visual Accessibility:** High-contrast mode, dyslexia-friendly font options, and verified color contrast ratios
-5. **Motor Accessibility:** Left-handed support, larger tap targets, and keyboard navigation
-
-### Key Deliverables
-
-- [ ] Kid Mode toggle in settings with theme override system
-- [ ] Beginner-friendly copy rewrite for all stitch terminology
-- [ ] Larger tap targets (minimum 44x44pt) in Kid Mode
-- [ ] Animated stitch explanations (2-3 second micro-animations)
-- [ ] Accessibility settings screen (text size, contrast, fonts, handedness)
-- [ ] Screen reader labels and announcements for all interactive elements
-- [ ] Color palette verification with WCAG AA contrast ratios
-- [ ] High-contrast mode implementation
-- [ ] Left-handed layout support
-- [ ] Dyslexia-friendly font option (OpenDyslexic or Lexend)
-- [ ] Keyboard navigation support (all screens)
-- [ ] Accessibility documentation and testing guidelines
-
-### Success Metrics
-
-| Metric | Target | Measurement Method |
-|--------|--------|-------------------|
-| WCAG AA Compliance | 0 critical issues | axe DevTools + Lighthouse |
-| Color Contrast (Normal Text) | ≥ 4.5:1 | WebAIM Contrast Checker |
-| Color Contrast (Large Text) | ≥ 3:1 | WebAIM Contrast Checker |
-| Screen Reader Coverage | 100% of interactive elements | Manual testing on iOS/Android |
-| Tap Target Size (Kid Mode) | ≥ 44x44pt | UI component measurement |
-| Animation Duration | 2-3 seconds | Performance profiling |
-| Keyboard Navigation | 100% of screens accessible | Manual testing |
+- Production deployment (Phase 5)
+- Marketing materials
+- App store submissions
+- v1.1+ features
+- Multi-language support
 
 ---
 
-## Epic Breakdown
+## Testing Strategy
 
-### EPIC E: Kid Mode & Accessibility
+### Cross-Device Testing Matrix
 
-**Owner:** Frontend Lead + Accessibility Specialist
-**Duration:** Weeks 12–13 (Sprint 8)
-**Total Effort:** ~75 story points
-**Priority:** P0 (MVP Requirement)
+| Platform | Devices | OS Versions | Orientations | Priority |
+|----------|---------|-------------|--------------|----------|
+| **iOS** | iPhone 12, 14, SE | iOS 14, 16, 17 | Portrait, Landscape | P0 |
+| **iPad** | iPad Air 4th gen | iPadOS 17 | Both | P0 |
+| **Android Phone** | Pixel 5a, Samsung A10, OnePlus Nord | Android 10-13 | Portrait, Landscape | P0 |
+| **Android Tablet** | Samsung Galaxy Tab S7 | Android 11 | Both | P0 |
+| **Web** | Chrome 120+, Safari 17+, Firefox 120+ | macOS, Windows | Desktop | P1 |
 
-**Epic Overview:**
+**Test Approach:**
+- Manual smoke tests on all devices (critical flows)
+- Automated E2E tests verify consistency
+- Visual regression testing for layout issues
+- Performance profiling on lowest-spec devices (iPhone SE, Samsung A10)
 
-Make Knit-Wit approachable for children and ensure WCAG AA compliance for all users. Implement a simplified UI variant, animated explanations, large buttons, comprehensive screen reader support, and visual accessibility features including high-contrast mode and dyslexia-friendly fonts.
+**Critical Flows:**
+1. Generate sphere pattern (default gauge)
+2. Navigate visualization (first → last round)
+3. Export to PDF
+4. Toggle Kid Mode
+5. Settings: US ↔ UK terminology, high contrast mode
 
-**Epic Goals:**
+### Accessibility Testing
 
-- Kid Mode toggle in settings activates child-friendly UI with simplified language
-- All interactive elements accessible via keyboard and screen reader
-- Color contrast meets or exceeds WCAG AA requirements (4.5:1 normal, 3:1 large)
-- Explanatory micro-animations help visual learners understand stitches
-- High-contrast mode and dyslexia font options available
-- Left-handed layout support for improved usability
+#### Automated Audits
 
-**Stories:**
+**Tools:** axe DevTools, Lighthouse, React Native Accessibility Inspector
 
-| ID | Title | Effort | Priority | Dependencies | Assignee |
-|----|-------|--------|----------|--------------|----------|
-| E1 | Kid Mode toggle & theme system | 3 pt | P0 | None | Frontend Eng 1 |
-| E2 | Beginner-friendly copy rewrite | 8 pt | P0 | E1 | Content + Frontend Lead |
-| E3 | Larger tap targets (Kid Mode) | 5 pt | P0 | E1 | Frontend Eng 1 |
-| E4 | Animated stitch explanations | 13 pt | P1 | E1 | Frontend Eng 2 |
-| E5 | Accessibility settings screen | 8 pt | P0 | None | Frontend Lead |
-| E6 | Screen reader labels (full coverage) | 13 pt | P0 | E5 | Frontend Lead |
-| E7 | Color palette verification (WCAG AA) | 5 pt | P0 | None | Frontend + QA |
-| E8 | High-contrast mode implementation | 8 pt | P0 | E5, E7 | Frontend Eng 1 |
-| E9 | Left-handed layout support | 5 pt | P1 | E5 | Frontend Eng 2 |
-| E10 | Dyslexia-friendly font option | 5 pt | P1 | E5 | Frontend Eng 1 |
-| E11 | Keyboard navigation (all screens) | 8 pt | P0 | E6 | Frontend Lead |
+**Targets:**
+- axe: 0 critical issues, < 5 warnings
+- Lighthouse: Accessibility score ≥ 95
+- Color contrast: All text meets WCAG AA (4.5:1 normal, 3:1 large/UI)
 
-**Total Story Points:** 81 points
+**Automated Checks:**
+- ARIA labels on interactive elements
+- Semantic HTML/RN components
+- Focus order logical
+- Color contrast ratios
+- Alt text on images
 
-**Acceptance Criteria:**
+#### Manual Testing
 
-- **AC-E-1:** Kid Mode activates from settings; UI shows larger buttons, simplified language, and bright colors
-- **AC-E-2:** Keyboard navigation works on all screens; focus indicators are visible; tab order is logical
-- **AC-E-3:** Screen reader announces all interactive elements with descriptive labels
-- **AC-E-4:** Color contrast ratios verified: 4.5:1 for normal text, 3:1 for large text (18pt+)
-- **AC-E-5:** High-contrast mode increases contrast to 7:1 minimum
-- **AC-E-6:** Stitch explanation animations complete in 2-3 seconds; loop smoothly
-- **AC-E-7:** Left-handed mode mirrors layout appropriately
-- **AC-E-8:** Dyslexia font applies to all body text when enabled
-- **AC-E-9:** All tap targets in Kid Mode are ≥ 44x44pt (Apple HIG minimum)
-- **AC-E-10:** Settings persist across app restarts
+**Keyboard Navigation:**
+- [ ] All controls reachable via Tab
+- [ ] Focus indicators visible (minimum 2px outline, 3:1 contrast)
+- [ ] Tab order follows visual layout
+- [ ] Enter/Space activate buttons
+- [ ] Escape dismisses modals
 
----
+**Screen Readers:**
 
-## Sprint Plan
+*iOS VoiceOver:*
+- [ ] Buttons announce role + label
+- [ ] Form inputs have descriptive labels
+- [ ] Navigation announces screen changes
+- [ ] Visualization provides round descriptions
+- [ ] Swipe gestures work (next/previous round)
 
-### Sprint 8: Kid Mode & Accessibility (Weeks 12–13)
+*Android TalkBack:*
+- [ ] All controls have accessible names
+- [ ] Focus order logical
+- [ ] Announcements clear and concise
+- [ ] Touch exploration functional
 
-**Sprint Goal:** WCAG AA compliant app with functional Kid Mode
+**Testing Scenarios:**
+1. Generate pattern using only keyboard/screen reader
+2. Navigate visualization without visual feedback
+3. Export PDF and verify file name announced
+4. Toggle settings and confirm state changes announced
 
-**Sprint Duration:** 2 weeks (10 working days)
+#### Color Contrast Verification
 
-**Team Capacity:**
-- Frontend Lead: 40 pts (accessibility architecture + screen readers)
-- Frontend Engineer 1: 35 pts (Kid Mode + visual accessibility)
-- Frontend Engineer 2: 30 pts (animations + left-handed support)
-- QA Lead: 15 pts (accessibility audits + testing)
-- **Total Capacity:** ~120 pts (includes buffer for iteration)
+**Minimum Ratios (WCAG AA):**
+- Body text (< 18pt): 4.5:1
+- Large text (≥ 18pt or 14pt bold): 3:1
+- UI components (buttons, form borders): 3:1
+- Focus indicators: 3:1
 
-**Planned Stories:**
+**Palette Validation:**
 
-#### Week 12 (Days 1-5)
+| Element | Foreground | Background | Ratio | Pass |
+|---------|-----------|-----------|-------|------|
+| Body text | #1a1a1a | #ffffff | 15.6:1 | ✓ |
+| Button text | #ffffff | #0066cc | 7.2:1 | ✓ |
+| Link text | #0066cc | #ffffff | 7.2:1 | ✓ |
+| Disabled | #999999 | #ffffff | 3.2:1 | ✓ |
+| Error | #cc0000 | #ffffff | 11.1:1 | ✓ |
+| Success | #00aa00 | #ffffff | 4.1:1 | ✓ |
 
-**Day 1-2: Foundation & Settings**
-- E1 (3pt): Kid Mode toggle & theme system
-- E5 (8pt): Accessibility settings screen
-- E7 (5pt): Color palette verification
+**Colorblind Simulation:**
+- Test with protanopia, deuteranopia, tritanopia filters
+- Verify increases/decreases distinguishable without color (use icons + text)
 
-**Day 3-5: Core Accessibility Features**
-- E6 (13pt): Screen reader labels (full coverage)
-- E8 (8pt): High-contrast mode implementation
-- E10 (5pt): Dyslexia-friendly font option
+### Performance Benchmarking
 
-**Week 12 Total:** ~42 pts
+#### Backend Profiling
 
-#### Week 13 (Days 6-10)
+**Tool:** Python cProfile + snakeviz
 
-**Day 6-7: Kid Mode Implementation**
-- E2 (8pt): Beginner-friendly copy rewrite
-- E3 (5pt): Larger tap targets (Kid Mode)
+**Metrics:**
+- Pattern generation time (p50, p95, p99)
+- Hot spots in compilation (function call frequency, cumulative time)
+- Memory allocation patterns
 
-**Day 8-10: Polish & Advanced Features**
-- E4 (13pt): Animated stitch explanations
-- E9 (5pt): Left-handed layout support
-- E11 (8pt): Keyboard navigation (all screens)
+**Targets:**
+- Sphere (10cm, gauge 14/16): < 150ms
+- Cylinder (5cm dia, 10cm height): < 180ms
+- Cone (6cm → 2cm, 8cm height): < 200ms
+- Memory: < 50MB per request
 
-**Week 13 Total:** ~39 pts
+**Optimization Strategies:**
+1. Cache compiler instances (singleton pattern)
+2. Memoize gauge calculations (lru_cache)
+3. Optimize even_distribution() (called frequently)
+4. Profile DSL construction (reduce object creation overhead)
 
-**Demo Objectives:**
-- Kid Mode toggle works; UI is noticeably simplified and child-friendly
-- Screen reader navigation demonstrated on iOS and Android
-- High-contrast mode increases readability significantly
-- WCAG AA checklist reviewed with 0 critical issues
-- Keyboard navigation demonstrated on all screens
+**Profiling Script:**
 
----
+```python
+import cProfile
+import pstats
+from knit_wit_engine import SphereCompiler, GenerateRequest, Gauge
 
-## Technical Implementation
+def profile_generation():
+    profiler = cProfile.Profile()
+    profiler.enable()
 
-### Accessibility Architecture
+    compiler = SphereCompiler()
+    request = GenerateRequest(
+        shape='sphere', diameter=10,
+        gauge=Gauge(sts_per_10cm=14, rows_per_10cm=16),
+        stitch='sc', terms='US'
+    )
+    dsl = compiler.generate(request)
 
-**1. Theme System Enhancement**
-
-Extend the existing theme system to support multiple accessibility variants:
-
-```typescript
-// theme/AccessibilityTheme.ts
-interface AccessibilityConfig {
-  kidMode: boolean;
-  highContrast: boolean;
-  dyslexiaFont: boolean;
-  textSize: 'default' | 'large' | 'xlarge';
-  leftHanded: boolean;
-}
-
-interface ThemeColors {
-  // Standard colors (WCAG AA compliant)
-  primary: string;           // 4.5:1 contrast
-  secondary: string;
-  background: string;
-  text: string;
-
-  // High contrast overrides (WCAG AAA)
-  highContrast: {
-    primary: string;         // 7:1 contrast
-    secondary: string;
-    background: string;
-    text: string;
-  };
-
-  // Kid Mode overrides (bright, friendly)
-  kidMode: {
-    primary: string;
-    secondary: string;
-    accent: string;
-  };
-}
+    profiler.disable()
+    stats = pstats.Stats(profiler)
+    stats.sort_stats('cumulative')
+    stats.print_stats(20)  # Top 20 functions
 ```
 
-**2. Kid Mode Implementation**
+#### Frontend Profiling
 
-Create a context provider for Kid Mode settings:
+**Tools:** React DevTools Profiler, Flipper (React Native)
+
+**Metrics:**
+- Component render times (mount, update)
+- Frame rates during visualization (FPS)
+- Bundle sizes (APK, IPA)
+- Memory usage during navigation
+
+**Targets:**
+- Visualization frame rate: ≥ 60 FPS on iPhone 12, Pixel 5a
+- Round navigation: < 50ms render time
+- APK size: < 50MB
+- IPA size: < 100MB
+- Memory: < 100MB during typical session
+
+**Optimization Strategies:**
+1. Virtualize SVG rendering (only render visible round)
+2. Memoize expensive components (React.memo)
+3. Code-split heavy modules (PDF export, parser)
+4. Compress assets (images, fonts)
+5. Tree-shake unused dependencies
+
+**Profiling Approach:**
 
 ```typescript
-// context/KidModeContext.tsx
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Profiler } from 'react';
 
-interface KidModeContextValue {
-  kidMode: boolean;
-  setKidMode: (enabled: boolean) => Promise<void>;
-  getKidFriendlyText: (key: string) => string;
+function onRenderCallback(
+  id: string, phase: "mount" | "update",
+  actualDuration: number
+) {
+  console.log(`${id} (${phase}): ${actualDuration}ms`);
 }
 
-const KidModeContext = createContext<KidModeContextValue | undefined>(undefined);
-
-export const KidModeProvider: React.FC = ({ children }) => {
-  const [kidMode, setKidModeState] = useState(false);
-
-  // Load Kid Mode preference on mount
-  useEffect(() => {
-    AsyncStorage.getItem('kidMode').then(value => {
-      if (value === 'true') setKidModeState(true);
-    });
-  }, []);
-
-  const setKidMode = async (enabled: boolean) => {
-    setKidModeState(enabled);
-    await AsyncStorage.setItem('kidMode', String(enabled));
-  };
-
-  const getKidFriendlyText = (key: string) => {
-    if (!kidMode) return standardText[key];
-    return kidFriendlyText[key] || standardText[key];
-  };
-
+export function VisualizationScreen() {
   return (
-    <KidModeContext.Provider value={{ kidMode, setKidMode, getKidFriendlyText }}>
-      {children}
-    </KidModeContext.Provider>
+    <Profiler id="VisualizationScreen" onRender={onRenderCallback}>
+      {/* Screen content */}
+    </Profiler>
   );
-};
-
-export const useKidMode = () => {
-  const context = useContext(KidModeContext);
-  if (!context) throw new Error('useKidMode must be used within KidModeProvider');
-  return context;
-};
+}
 ```
 
-**3. Copy Rewrite Strategy**
+#### Performance Benchmarks
 
-Map standard crochet terminology to kid-friendly language:
+**Test Cases:**
+
+1. **Small Pattern (Sphere 5cm):**
+   - Generation: < 100ms
+   - Visualization: < 30ms per round
+   - Export PDF: < 2s
+
+2. **Medium Pattern (Sphere 10cm):**
+   - Generation: < 150ms
+   - Visualization: < 50ms per round
+   - Export PDF: < 3s
+
+3. **Large Pattern (Cylinder 20cm height):**
+   - Generation: < 200ms
+   - Visualization: < 100ms per round
+   - Export PDF: < 5s
+
+4. **Edge Case (100+ rounds):**
+   - Generation: < 500ms
+   - Visualization: Smooth scrolling (no jank)
+   - Export PDF: < 10s
+
+### E2E Automation
+
+#### Framework Selection
+
+**Options:**
+- **Detox** (React Native native) - Recommended
+- **Playwright** (Web fallback)
+
+**Detox Advantages:**
+- Native RN support (iOS, Android)
+- Fast execution (runs on device/simulator)
+- Less flaky than WebDriver-based tools
+- Simulates real user interactions (tap, swipe, scroll)
+
+#### Critical Flows to Automate
+
+**Flow 1: Generate → Visualize**
 
 ```typescript
-// constants/terminology.ts
-export const standardText = {
-  'stitch.inc': 'increase (inc)',
-  'stitch.inc.description': 'Work 2 stitches in same stitch',
-  'stitch.dec': 'decrease (dec)',
-  'stitch.dec.description': 'Combine 2 stitches into 1 stitch',
-  'stitch.sc': 'single crochet (sc)',
-  'stitch.ch': 'chain (ch)',
-  'round.label': 'Round',
-  'gauge.stitches': 'Stitches per 10cm',
-};
+describe('Generate and Visualize Flow', () => {
+  beforeAll(async () => {
+    await device.launchApp();
+  });
 
-export const kidFriendlyText = {
-  'stitch.inc': 'Add two stitches in one spot',
-  'stitch.inc.description': 'Put your hook in one stitch and make two stitches!',
-  'stitch.dec': 'Combine two into one',
-  'stitch.dec.description': 'Take two stitches and turn them into one stitch',
-  'stitch.sc': 'Single crochet',
-  'stitch.ch': 'Chain',
-  'round.label': 'Step',
-  'gauge.stitches': 'How many stitches fit in 10cm',
-};
-```
+  it('should generate a sphere and visualize', async () => {
+    await element(by.id('generateButton')).tap();
+    await element(by.id('shapeSelect')).tap();
+    await element(by.text('Sphere')).tap();
+    await element(by.id('diameterInput')).typeText('10');
+    await element(by.id('gaugeInput')).typeText('14/16');
+    await element(by.id('submitButton')).tap();
 
-**4. Larger Tap Targets (Kid Mode)**
+    await waitFor(element(by.id('visualizationScreen')))
+      .toBeVisible()
+      .withTimeout(3000);
 
-Apply size overrides when Kid Mode is active:
-
-```typescript
-// components/shared/Button.tsx
-import { useKidMode } from '../../context/KidModeContext';
-
-export const Button: React.FC<ButtonProps> = ({ children, onPress, style, ...props }) => {
-  const { kidMode } = useKidMode();
-
-  const buttonStyle = [
-    styles.button,
-    kidMode && styles.kidModeButton,  // Increased padding and size
-    style,
-  ];
-
-  return (
-    <TouchableOpacity
-      style={buttonStyle}
-      onPress={onPress}
-      accessibilityRole="button"
-      {...props}
-    >
-      <Text style={[styles.buttonText, kidMode && styles.kidModeText]}>
-        {children}
-      </Text>
-    </TouchableOpacity>
-  );
-};
-
-const styles = StyleSheet.create({
-  button: {
-    minHeight: 40,
-    minWidth: 60,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  kidModeButton: {
-    minHeight: 56,      // Increased from 40
-    minWidth: 88,       // Increased from 60
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    borderRadius: 12,   // Larger, friendlier rounded corners
-  },
-  buttonText: {
-    fontSize: 16,
-  },
-  kidModeText: {
-    fontSize: 20,       // Larger, more readable
-    fontWeight: '600',  // Slightly bolder
-  },
+    await expect(element(by.text('Round 1'))).toBeVisible();
+    await expect(element(by.id('patternFrame'))).toBeVisible();
+  });
 });
 ```
 
-**5. Animated Stitch Explanations**
-
-Create micro-animations showing how stitches work:
+**Flow 2: Navigation**
 
 ```typescript
-// components/education/StitchAnimation.tsx
-import React, { useEffect, useRef } from 'react';
-import { Animated, View } from 'react-native';
-import Svg, { Circle, Path } from 'react-native-svg';
+describe('Visualization Navigation', () => {
+  it('should navigate rounds forward and back', async () => {
+    // Assumes pattern already generated
+    await element(by.id('nextRoundButton')).tap();
+    await expect(element(by.text('Round 2'))).toBeVisible();
 
-interface StitchAnimationProps {
-  stitchType: 'inc' | 'dec' | 'sc' | 'ch';
-  duration?: number;  // milliseconds, default 2500
-}
+    await element(by.id('nextRoundButton')).tap();
+    await expect(element(by.text('Round 3'))).toBeVisible();
 
-export const StitchAnimation: React.FC<StitchAnimationProps> = ({
-  stitchType,
-  duration = 2500
-}) => {
-  const animationProgress = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    // Loop animation
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(animationProgress, {
-          toValue: 1,
-          duration: duration,
-          useNativeDriver: true,
-        }),
-        Animated.delay(500),  // Pause before loop
-      ])
-    ).start();
-  }, [duration]);
-
-  const renderAnimation = () => {
-    switch (stitchType) {
-      case 'inc':
-        return <IncreaseAnimation progress={animationProgress} />;
-      case 'dec':
-        return <DecreaseAnimation progress={animationProgress} />;
-      case 'sc':
-        return <SingleCrochetAnimation progress={animationProgress} />;
-      case 'ch':
-        return <ChainAnimation progress={animationProgress} />;
-    }
-  };
-
-  return (
-    <View style={styles.container}>
-      {renderAnimation()}
-    </View>
-  );
-};
-
-// Example: Increase animation showing one stitch becoming two
-const IncreaseAnimation: React.FC<{ progress: Animated.Value }> = ({ progress }) => {
-  const splitProgress = progress.interpolate({
-    inputRange: [0, 0.5, 1],
-    outputRange: [0, 1, 1],
+    await element(by.id('prevRoundButton')).tap();
+    await expect(element(by.text('Round 2'))).toBeVisible();
   });
 
-  return (
-    <Svg width={200} height={200} viewBox="0 0 200 200">
-      {/* Base stitch */}
-      <Circle cx={100} cy={100} r={20} fill="#6366f1" />
-
-      {/* First new stitch */}
-      <AnimatedCircle
-        cx={progress.interpolate({
-          inputRange: [0, 0.5, 1],
-          outputRange: [100, 80, 80],
-        })}
-        cy={70}
-        r={16}
-        fill="#22c55e"
-        opacity={splitProgress}
-      />
-
-      {/* Second new stitch */}
-      <AnimatedCircle
-        cx={progress.interpolate({
-          inputRange: [0, 0.5, 1],
-          outputRange: [100, 120, 120],
-        })}
-        cy={70}
-        r={16}
-        fill="#22c55e"
-        opacity={splitProgress}
-      />
-    </Svg>
-  );
-};
+  it('should jump to specific round via scrubber', async () => {
+    await element(by.id('roundScrubber')).swipe('right', 'fast', 0.5);
+    // Verify round number updated (specific assertion depends on implementation)
+  });
+});
 ```
 
-**6. Screen Reader Support**
-
-Comprehensive accessibility labels:
+**Flow 3: Export**
 
 ```typescript
-// components/visualization/PatternViewer.tsx
-import { AccessibilityInfo } from 'react-native';
+describe('Export Flow', () => {
+  it('should export pattern as PDF', async () => {
+    await element(by.id('exportButton')).tap();
+    await element(by.text('PDF')).tap();
+    await element(by.id('downloadButton')).tap();
 
-export const PatternViewer: React.FC<PatternViewerProps> = ({ pattern, currentRound }) => {
-  const announceRoundChange = (roundNumber: number) => {
-    const roundData = pattern.rounds[roundNumber - 1];
-    const announcement = `Round ${roundNumber}. ${roundData.stitches.length} stitches. ${roundData.description}`;
-    AccessibilityInfo.announceForAccessibility(announcement);
-  };
+    await waitFor(element(by.text('PDF exported successfully')))
+      .toBeVisible()
+      .withTimeout(5000);
+  });
 
-  return (
-    <View accessible accessibilityLabel="Pattern visualization">
-      <View
-        accessible
-        accessibilityRole="adjustable"
-        accessibilityLabel={`Round ${currentRound} of ${pattern.rounds.length}`}
-        accessibilityHint="Swipe up or down to change rounds"
-        accessibilityValue={{ text: `Round ${currentRound}`, min: 1, max: pattern.rounds.length }}
-      >
-        {/* Round display */}
-      </View>
+  it('should export as SVG', async () => {
+    await element(by.id('exportButton')).tap();
+    await element(by.text('SVG')).tap();
+    await element(by.id('downloadButton')).tap();
 
-      <View accessibilityRole="group" accessibilityLabel="Playback controls">
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessibilityLabel="Previous round"
-          accessibilityHint="Go to previous round"
-          onPress={handlePrevious}
-        >
-          <Icon name="chevron-left" />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessibilityLabel={isPlaying ? "Pause" : "Play"}
-          accessibilityHint={isPlaying ? "Pause automatic progression" : "Start automatic progression"}
-          onPress={togglePlayback}
-        >
-          <Icon name={isPlaying ? "pause" : "play"} />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessibilityLabel="Next round"
-          accessibilityHint="Go to next round"
-          onPress={handleNext}
-        >
-          <Icon name="chevron-right" />
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-};
+    await expect(element(by.text('SVG exported successfully'))).toBeVisible();
+  });
+});
 ```
 
-**7. High-Contrast Mode**
-
-Implement high-contrast color overrides:
+**Flow 4: Settings & Accessibility**
 
 ```typescript
-// theme/colors.ts
-export const colors = {
-  // Standard theme (WCAG AA: 4.5:1)
-  standard: {
-    background: '#ffffff',
-    surface: '#f5f5f5',
-    text: '#1f2937',        // 4.5:1 on white
-    textSecondary: '#6b7280', // 4.5:1 on white
-    primary: '#6366f1',
-    primaryText: '#ffffff',
-    border: '#d1d5db',
-  },
+describe('Settings Flow', () => {
+  it('should toggle Kid Mode', async () => {
+    await element(by.id('settingsButton')).tap();
+    await element(by.id('kidModeToggle')).tap();
 
-  // High-contrast theme (WCAG AAA: 7:1)
-  highContrast: {
-    background: '#000000',
-    surface: '#1a1a1a',
-    text: '#ffffff',        // 21:1 on black
-    textSecondary: '#e5e5e5', // 15:1 on black
-    primary: '#ffff00',     // 19:1 on black
-    primaryText: '#000000',
-    border: '#ffffff',
-  },
+    await device.pressBack();  // Android
+    // or: await element(by.id('backButton')).tap();
 
-  // Kid Mode theme (bright, friendly)
-  kidMode: {
-    background: '#fef3c7',  // Warm yellow
-    surface: '#ffffff',
-    text: '#1f2937',
-    primary: '#f59e0b',     // Bright orange
-    secondary: '#8b5cf6',   // Purple
-    accent: '#10b981',      // Green
-  },
-};
+    // Verify Kid Mode UI changes (larger text, simplified copy)
+    await expect(element(by.id('kidModeIndicator'))).toBeVisible();
+  });
+
+  it('should toggle high contrast mode', async () => {
+    await element(by.id('settingsButton')).tap();
+    await element(by.id('highContrastToggle')).tap();
+
+    await device.pressBack();
+
+    // Verify contrast changes applied
+    await expect(element(by.id('highContrastIndicator'))).toBeVisible();
+  });
+
+  it('should switch US ↔ UK terminology', async () => {
+    await element(by.id('settingsButton')).tap();
+    await element(by.id('terminologyToggle')).tap();
+
+    await device.pressBack();
+
+    // Verify terminology updated in pattern
+    await expect(element(by.text('dc'))).toBeVisible();  // UK term for US sc
+  });
+});
 ```
 
-**8. Accessibility Settings Screen**
+#### Regression Test Suite
 
-Comprehensive settings for all accessibility options:
+**Coverage:**
+- All previously working features from Phases 1-3
+- Edge cases discovered during development
+- Bug fixes (verify no regressions)
 
-```typescript
-// screens/SettingsScreen.tsx
-export const AccessibilitySettingsScreen: React.FC = () => {
-  const { kidMode, setKidMode } = useKidMode();
-  const { highContrast, setHighContrast } = useAccessibility();
-  const { dyslexiaFont, setDyslexiaFont } = useAccessibility();
-  const { textSize, setTextSize } = useAccessibility();
-  const { leftHanded, setLeftHanded } = useAccessibility();
-
-  return (
-    <ScrollView accessibilityRole="list">
-      <SettingSection title="Display">
-        <SettingToggle
-          label="Kid Mode"
-          description="Simplified language and larger buttons"
-          value={kidMode}
-          onValueChange={setKidMode}
-          accessibilityLabel="Toggle Kid Mode"
-        />
-
-        <SettingToggle
-          label="High Contrast"
-          description="Increased contrast for better visibility"
-          value={highContrast}
-          onValueChange={setHighContrast}
-          accessibilityLabel="Toggle High Contrast Mode"
-        />
-
-        <SettingToggle
-          label="Dyslexia-Friendly Font"
-          description="Use OpenDyslexic font for easier reading"
-          value={dyslexiaFont}
-          onValueChange={setDyslexiaFont}
-          accessibilityLabel="Toggle Dyslexia Font"
-        />
-
-        <SettingPicker
-          label="Text Size"
-          description="Adjust text size for readability"
-          value={textSize}
-          options={[
-            { label: 'Default', value: 'default' },
-            { label: 'Large', value: 'large' },
-            { label: 'Extra Large', value: 'xlarge' },
-          ]}
-          onValueChange={setTextSize}
-          accessibilityLabel="Select text size"
-        />
-      </SettingSection>
-
-      <SettingSection title="Layout">
-        <SettingToggle
-          label="Left-Handed Mode"
-          description="Mirror layout for left-handed users"
-          value={leftHanded}
-          onValueChange={setLeftHanded}
-          accessibilityLabel="Toggle Left-Handed Mode"
-        />
-      </SettingSection>
-    </ScrollView>
-  );
-};
-```
-
-**9. Left-Handed Layout Support**
-
-Apply layout mirroring when left-handed mode is enabled:
-
-```typescript
-// utils/layoutUtils.ts
-import { I18nManager } from 'react-native';
-
-export const applyLeftHandedLayout = (leftHanded: boolean) => {
-  // Force RTL layout for left-handed mode
-  I18nManager.forceRTL(leftHanded);
-  I18nManager.allowRTL(leftHanded);
-};
-
-// components/visualization/StitchDiagram.tsx
-export const StitchDiagram: React.FC = ({ pattern }) => {
-  const { leftHanded } = useAccessibility();
-
-  // Mirror x-coordinates for left-handed layout
-  const mirrorX = (x: number, width: number) => {
-    return leftHanded ? width - x : x;
-  };
-
-  return (
-    <Svg width={width} height={height}>
-      {pattern.stitches.map((stitch, idx) => (
-        <Circle
-          key={idx}
-          cx={mirrorX(stitch.x, width)}
-          cy={stitch.y}
-          r={stitchRadius}
-          fill={getStitchColor(stitch.type)}
-        />
-      ))}
-    </Svg>
-  );
-};
-```
-
-**10. Keyboard Navigation**
-
-Ensure full keyboard accessibility on all screens:
-
-```typescript
-// hooks/useKeyboardNavigation.ts
-import { useEffect } from 'react';
-import { Keyboard } from 'react-native';
-
-export const useKeyboardNavigation = (
-  onNext: () => void,
-  onPrevious: () => void,
-  onActivate: () => void
-) => {
-  useEffect(() => {
-    const subscription = Keyboard.addListener('keyPress', (e) => {
-      switch (e.key) {
-        case 'ArrowRight':
-        case 'Tab':
-          onNext();
-          break;
-        case 'ArrowLeft':
-        case 'Shift+Tab':
-          onPrevious();
-          break;
-        case 'Enter':
-        case ' ':
-          onActivate();
-          break;
-      }
-    });
-
-    return () => subscription.remove();
-  }, [onNext, onPrevious, onActivate]);
-};
-
-// Usage in PatternViewer
-export const PatternViewer: React.FC = () => {
-  useKeyboardNavigation(
-    () => nextRound(),
-    () => previousRound(),
-    () => togglePlayback()
-  );
-
-  // ... component implementation
-};
-```
-
-### WCAG AA Compliance Checklist
-
-**Perceivable:**
-- [ ] **1.1.1 Non-text Content:** All images have alt text; SVG diagrams have descriptions
-- [ ] **1.3.1 Info and Relationships:** Semantic HTML/RN components; proper heading hierarchy
-- [ ] **1.3.2 Meaningful Sequence:** Logical reading order; navigation flow makes sense
-- [ ] **1.3.3 Sensory Characteristics:** Instructions don't rely solely on shape/color/position
-- [ ] **1.4.1 Use of Color:** Color is not the only means of conveying information
-- [ ] **1.4.3 Contrast (Minimum):** 4.5:1 for normal text, 3:1 for large text (18pt+)
-- [ ] **1.4.4 Resize Text:** Text can be resized up to 200% without loss of functionality
-- [ ] **1.4.5 Images of Text:** Avoid images of text (use actual text)
-
-**Operable:**
-- [ ] **2.1.1 Keyboard:** All functionality available via keyboard
-- [ ] **2.1.2 No Keyboard Trap:** Focus can move away from all components
-- [ ] **2.1.4 Character Key Shortcuts:** Single-key shortcuts can be turned off/remapped
-- [ ] **2.2.1 Timing Adjustable:** Time limits can be extended or disabled
-- [ ] **2.2.2 Pause, Stop, Hide:** Auto-playing content can be paused/stopped
-- [ ] **2.3.1 Three Flashes:** Nothing flashes more than 3 times per second
-- [ ] **2.4.1 Bypass Blocks:** Skip navigation links or landmarks present
-- [ ] **2.4.2 Page Titled:** Each screen has descriptive title
-- [ ] **2.4.3 Focus Order:** Tab order is logical and intuitive
-- [ ] **2.4.4 Link Purpose:** Purpose of each link clear from context
-- [ ] **2.4.5 Multiple Ways:** Multiple ways to navigate (tabs, search, menu)
-- [ ] **2.4.6 Headings and Labels:** Headings and labels are descriptive
-- [ ] **2.4.7 Focus Visible:** Keyboard focus is clearly visible
-- [ ] **2.5.1 Pointer Gestures:** All multi-point/path-based gestures have single-pointer alternative
-- [ ] **2.5.2 Pointer Cancellation:** Functions triggered on up-event or can be aborted
-- [ ] **2.5.3 Label in Name:** Accessible name includes visible label text
-- [ ] **2.5.4 Motion Actuation:** Motion-triggered actions can be disabled or alternative exists
-
-**Understandable:**
-- [ ] **3.1.1 Language of Page:** Primary language declared
-- [ ] **3.1.2 Language of Parts:** Language changes are marked
-- [ ] **3.2.1 On Focus:** Focus doesn't trigger unexpected context changes
-- [ ] **3.2.2 On Input:** Input doesn't cause unexpected context changes
-- [ ] **3.2.3 Consistent Navigation:** Navigation is consistent across screens
-- [ ] **3.2.4 Consistent Identification:** Components with same function labeled consistently
-- [ ] **3.3.1 Error Identification:** Errors are clearly identified and described
-- [ ] **3.3.2 Labels or Instructions:** Labels/instructions provided for user input
-- [ ] **3.3.3 Error Suggestion:** Suggestions provided for input errors
-- [ ] **3.3.4 Error Prevention:** Submissions are reversible, checked, or confirmed
-
-**Robust:**
-- [ ] **4.1.1 Parsing:** No major HTML/markup errors
-- [ ] **4.1.2 Name, Role, Value:** All UI components have accessible names and roles
-- [ ] **4.1.3 Status Messages:** Status messages communicated to screen readers
-
-### Testing Tools & Process
-
-**Automated Testing:**
-```bash
-# Install accessibility testing tools
-pnpm add -D @testing-library/react-native @testing-library/jest-native
-
-# Run accessibility audits
-pnpm test:a11y
-
-# Use axe-core for web testing
-pnpm add -D @axe-core/react
-
-# Use Lighthouse CI for automated audits
-pnpm add -D @lhci/cli
-```
-
-**Manual Testing:**
-
-1. **iOS VoiceOver Testing:**
-   - Enable VoiceOver: Settings > Accessibility > VoiceOver
-   - Navigate entire app using gestures
-   - Verify all elements are announced correctly
-   - Check focus order and navigation
-
-2. **Android TalkBack Testing:**
-   - Enable TalkBack: Settings > Accessibility > TalkBack
-   - Navigate entire app using gestures
-   - Verify announcements and focus
-   - Test with various Android versions
-
-3. **Keyboard Navigation Testing:**
-   - Connect external keyboard to device
-   - Navigate using Tab, Shift+Tab, Arrow keys
-   - Verify focus indicators are visible
-   - Test activation with Enter/Space
-
-4. **Color Contrast Testing:**
-   - Use WebAIM Contrast Checker: https://webaim.org/resources/contrastchecker/
-   - Verify all text meets 4.5:1 (normal) or 3:1 (large)
-   - Test in high-contrast mode for 7:1 compliance
-
-5. **Text Scaling Testing:**
-   - Increase device text size to maximum
-   - Verify no text is clipped or overlaps
-   - Ensure layout adapts appropriately
+**Automation Strategy:**
+- Run E2E suite on every PR (smoke tests)
+- Full regression suite nightly
+- Manual verification for visual changes
 
 ---
 
-## Success Criteria
+## Sprint Plans
 
-### Phase 4 Success Criteria (Exit Gates)
+### Sprint 8: Cross-Device Testing + Accessibility Audit (Weeks 12-13)
 
-**Functional Requirements:**
-- [ ] Kid Mode toggle works; activating shows noticeably simplified UI
-- [ ] All stitch terminology has kid-friendly alternatives
-- [ ] Tap targets in Kid Mode are ≥ 44x44pt (measured)
-- [ ] At least 3 animated stitch explanations implemented (inc, dec, sc)
-- [ ] Accessibility settings screen functional with all options
-- [ ] Screen reader announces all interactive elements correctly
-- [ ] High-contrast mode implemented with 7:1+ contrast ratios
-- [ ] Left-handed mode mirrors layout appropriately
-- [ ] Dyslexia-friendly font option applies to all text
-- [ ] Keyboard navigation works on all screens
+**Duration:** 2 weeks
+**Capacity:** ~85-95 story points
+**Goal:** All devices tested; accessibility audit complete; performance baseline established
 
-**Accessibility Compliance:**
-- [ ] WCAG AA automated audit: 0 critical issues, < 5 warnings
-- [ ] Color contrast verified: all text meets 4.5:1 (normal) or 3:1 (large)
-- [ ] Screen reader testing passed on both iOS (VoiceOver) and Android (TalkBack)
-- [ ] Keyboard navigation tested: all screens accessible, focus visible
-- [ ] Text scaling tested: content readable at 200% text size
-- [ ] No auto-playing content without pause/stop controls
+#### Stories
+
+| ID | Title | Effort | Owner | Dependencies |
+|----|-------|--------|-------|--------------|
+| QA-1 | iOS smoke tests (iPhone 12, 14, SE) | 8 | QA Lead | Phase 3 complete |
+| QA-2 | Android smoke tests (Pixel, Samsung, OnePlus) | 8 | QA Lead | Phase 3 complete |
+| QA-3 | Tablet testing (iPad, Galaxy Tab) | 5 | QA Engineer | Phase 3 complete |
+| QA-4 | Web browser testing (Chrome, Safari, Firefox) | 5 | QA Engineer | Phase 3 complete |
+| A11Y-1 | WCAG AA automated audit (axe, Lighthouse) | 5 | Frontend Lead | Phase 3 complete |
+| A11Y-2 | Manual accessibility review (keyboard, screen reader) | 8 | Frontend Engineer | A11Y-1 |
+| A11Y-3 | Color contrast verification | 5 | Frontend Engineer | A11Y-1 |
+| PERF-1 | Backend profiling (cProfile) | 5 | Backend Lead | Phase 3 complete |
+| PERF-2 | Frontend profiling (React DevTools, Flipper) | 5 | Frontend Lead | Phase 3 complete |
+| BUG-1 | Triage all open issues | 3 | QA Lead | QA-1, QA-2, QA-3 |
+| MON-1 | Backend structured logging | 5 | Backend Engineer | None |
+| DOC-1 | API documentation (OpenAPI/Swagger) | 5 | Backend Engineer | Phase 3 complete |
+
+**Total:** 67 story points
+
+#### Acceptance Criteria
+
+- [ ] All devices tested; results documented in cross-device test report
+- [ ] Accessibility audit identifies all issues (automated + manual)
+- [ ] Performance profiling identifies hot spots
+- [ ] Bug backlog triaged with priority labels (P0, P1, P2)
+- [ ] Structured logging emits JSON logs with request IDs
+- [ ] API docs auto-generated and published
+
+#### Demo Objectives
+
+- Show test results from iOS, Android, tablet, web
+- Present accessibility findings (critical issues, warnings)
+- Demonstrate profiling results (hot spots, optimization opportunities)
+- Review bug triage (priorities, severity)
+- Show structured logging in action
+
+---
+
+### Sprint 9: Optimization + Bug Fixes (Week 13-14)
+
+**Duration:** 1 week
+**Capacity:** ~50 story points
+**Goal:** Performance targets met; critical bugs fixed; accessibility issues resolved
+
+#### Stories
+
+| ID | Title | Effort | Owner | Dependencies |
+|----|-------|--------|-------|--------------|
+| PERF-3 | SVG optimization (virtualization, LOD) | 8 | Frontend Lead | PERF-2 |
+| PERF-4 | Backend caching (compiler instances, gauge) | 5 | Backend Engineer | PERF-1 |
+| PERF-5 | Bundle size optimization (code-split, tree-shake) | 5 | Frontend Engineer | PERF-2 |
+| BUG-2 | Fix all critical bugs (P0) | 21 | Full Team | BUG-1 |
+| A11Y-4 | Fix accessibility issues | 8 | Frontend Engineer | A11Y-2, A11Y-3 |
+| A11Y-5 | Dyslexia-friendly font testing | 3 | Frontend Engineer | A11Y-4 |
+| MON-2 | Error tracking (Sentry) | 4 | Backend Engineer | None |
+
+**Total:** 54 story points
+
+#### Acceptance Criteria
+
+- [ ] Backend generation < 200ms (p95)
+- [ ] Frontend frame rate ≥ 60 FPS on mid-range devices
+- [ ] Bundle sizes: APK < 50MB, IPA < 100MB
+- [ ] Zero critical bugs (P0) remaining
+- [ ] All accessibility critical issues fixed
+- [ ] Error tracking captures exceptions with stack traces
+
+#### Demo Objectives
+
+- Demonstrate improved performance (generation time, FPS, bundle size)
+- Show critical bug fixes with before/after
+- Present accessibility remediation (audit re-run shows 0 critical)
+- Demonstrate error tracking capturing and reporting failures
+
+---
+
+### Sprint 10: E2E Automation + Final Polish (Week 14-15)
+
+**Duration:** 1 week
+**Capacity:** ~45 story points
+**Goal:** E2E tests automated; documentation complete; production-ready
+
+#### Stories
+
+| ID | Title | Effort | Owner | Dependencies |
+|----|-------|--------|-------|--------------|
+| QA-5 | E2E automation (Detox: generate → visualize → export) | 13 | QA Lead | QA-1, QA-2 |
+| QA-6 | Regression test suite | 8 | QA Engineer | QA-5 |
+| QA-7 | Cross-device test report | 5 | QA Lead | QA-1, QA-2, QA-3, QA-4 |
+| BUG-3 | Minor polish (animations, spacing, copy) | 8 | Frontend Engineer | BUG-2 |
+| BUG-4 | Regression testing (verify bug fixes) | 5 | QA Engineer | BUG-2, BUG-3 |
+| MON-3 | Telemetry pipeline (opt-in, event tracking) | 8 | Full Stack Engineer | None |
+| DOC-2 | User guide + FAQ | 8 | Tech Writer | Phase 3 complete |
+| DOC-3 | Developer README updates | 5 | Backend Lead | Phase 3 complete |
+| DOC-4 | Release notes | 3 | Product Lead | All stories |
+
+**Total:** 63 story points
+
+#### Acceptance Criteria
+
+- [ ] E2E tests cover critical flows (generate, visualize, export, settings)
+- [ ] Regression suite runs successfully (all tests pass)
+- [ ] Cross-device test report documents all findings
+- [ ] Minor polish applied (smooth animations, consistent spacing, clear copy)
+- [ ] Telemetry opt-in functional; events tracked
+- [ ] User guide covers pattern generation, visualization, export
+- [ ] Developer README includes setup, architecture, contribution guide
+- [ ] Release notes document MVP features, known issues
+
+#### Demo Objectives
+
+- Demonstrate E2E tests running (live execution)
+- Show regression suite coverage
+- Present telemetry dashboard with event tracking
+- Review user guide and FAQ (content preview)
+- Confirm Phase 4 exit criteria met (production-ready)
+
+---
+
+## Quality Gates & Launch Criteria
+
+### Phase 4 Exit Criteria
+
+**Testing:**
+- [ ] Cross-device testing complete (iOS, Android, tablets, web)
+- [ ] E2E automation covers critical flows (generate, visualize, export)
+- [ ] Regression suite passes (100% of tests)
+- [ ] Zero critical bugs (P0)
+- [ ] All high-priority bugs (P1) fixed or explicitly deferred
+
+**Accessibility:**
+- [ ] WCAG AA compliance: 0 critical issues, < 5 warnings
+- [ ] Manual keyboard navigation passes
+- [ ] Screen reader testing complete (VoiceOver, TalkBack)
+- [ ] Color contrast meets all WCAG AA ratios
+- [ ] Dyslexia-friendly font option verified
 
 **Performance:**
-- [ ] Stitch animations run at 60fps without dropped frames
-- [ ] Theme switching (Kid Mode, high-contrast) is instant (< 100ms)
-- [ ] Settings changes persist across app restarts
-- [ ] No performance regression from accessibility features
+- [ ] Pattern generation < 200ms (p95)
+- [ ] Visualization ≥ 60 FPS on mid-range devices
+- [ ] Bundle sizes within limits (APK < 50MB, IPA < 100MB)
+- [ ] Large patterns (100+ rounds) render smoothly
+
+**Monitoring:**
+- [ ] Structured logging operational (JSON, request IDs)
+- [ ] Error tracking captures exceptions (Sentry or equivalent)
+- [ ] Telemetry pipeline tracks key events (opt-in)
+- [ ] Dashboards show API health, error rates, event volume
 
 **Documentation:**
-- [ ] Accessibility features documented in user guide
-- [ ] WCAG AA compliance report generated
-- [ ] Accessibility testing checklist completed
-- [ ] Known accessibility issues logged with workarounds
+- [ ] API documentation auto-generated (OpenAPI/Swagger)
+- [ ] User guide and FAQ complete
+- [ ] Developer README updated (setup, architecture, contribution)
+- [ ] Release notes finalized
+
+### Bug Severity Levels
+
+| Level | Description | SLA | Examples |
+|-------|-------------|-----|----------|
+| **P0 (Critical)** | App crashes, data loss, major UX broken | Fix immediately | Pattern generation crashes; visualization doesn't render |
+| **P1 (High)** | Feature broken, workaround exists | Fix before launch | Export fails on specific devices; scrubber jumps incorrectly |
+| **P2 (Medium)** | Minor issue, doesn't block usage | Fix post-launch | Visual glitch in Kid Mode; tooltip text truncated |
+| **P3 (Low)** | Cosmetic, edge case | Backlog | Button hover color inconsistent |
+
+**Launch Blockers:** Any P0 bug blocks launch. All P1 bugs must be fixed or explicitly deferred with Product Lead approval.
+
+### Performance Thresholds
+
+| Metric | Target | Measurement | Tool |
+|--------|--------|-------------|------|
+| Pattern generation | < 200ms (p95) | Server-side elapsed time | cProfile, logs |
+| Visualization FPS | ≥ 60 FPS | Frame time during round navigation | Flipper, React DevTools |
+| API response | < 500ms (p95) | HTTP request duration | FastAPI middleware, logs |
+| Bundle size (APK) | < 50MB | Build artifact size | Android build output |
+| Bundle size (IPA) | < 100MB | Build artifact size | Xcode build output |
+| Memory usage | < 100MB | Runtime memory during session | Xcode Instruments, Android Profiler |
+
+**Measurement Approach:**
+- Backend: Instrument API endpoints with timing middleware
+- Frontend: Use React DevTools Profiler + Flipper Performance plugin
+- E2E: Automated performance tests in CI
 
 ---
 
-## Dependencies & Blockers
+## Deliverables
+
+### Test Reports
+
+**1. Cross-Device Test Report**
+
+**Format:** Markdown document in `project_plans/mvp/test-reports/`
+
+**Contents:**
+- Test matrix (devices, OS versions, flows tested)
+- Pass/fail status per device per flow
+- Screenshots of failures
+- Known issues and workarounds
+- Recommendations for device support policy
+
+**Example:**
+
+```markdown
+# Cross-Device Test Report
+
+## Test Matrix
+
+| Device | OS | Generate | Visualize | Export | Kid Mode | Settings |
+|--------|----|----|----|----|----|----|
+| iPhone 12 | iOS 16 | ✓ | ✓ | ✓ | ✓ | ✓ |
+| iPhone SE | iOS 14 | ✓ | ✓ | ✗ (PDF export slow) | ✓ | ✓ |
+| Pixel 5a | Android 13 | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Samsung A10 | Android 10 | ✓ | ⚠ (FPS drops) | ✓ | ✓ | ✓ |
+
+## Issues
+
+**ISS-1 (P1):** PDF export on iPhone SE (iOS 14) takes 8+ seconds
+- Repro: Generate large pattern (20cm sphere), export to PDF
+- Root cause: Memory pressure on low-RAM device
+- Fix: Optimize PDF generation (reduce image resolution)
+
+**ISS-2 (P2):** Frame rate drops on Samsung A10 during visualization
+- Repro: Navigate rapidly between rounds
+- Root cause: GPU limitations on older device
+- Fix: Reduce SVG complexity, implement LOD rendering
+```
+
+**2. Accessibility Audit Report**
+
+**Format:** Markdown + JSON (axe results)
+
+**Contents:**
+- Automated audit results (axe, Lighthouse)
+- Manual testing results (keyboard, screen reader)
+- Color contrast verification
+- Issues found (categorized by severity)
+- Remediation status
+- WCAG AA compliance statement
+
+**3. Performance Benchmark Report**
+
+**Format:** Markdown + CSV (raw data)
+
+**Contents:**
+- Backend profiling results (hot spots, optimization recommendations)
+- Frontend profiling results (component render times, FPS)
+- Bundle size analysis (breakdown by module)
+- Performance test results (generation time, visualization FPS)
+- Before/after comparisons for optimizations
+- Recommendations for further improvements
+
+### Bug Database
+
+**Tool:** GitHub Issues with labels
+
+**Labels:**
+- `bug` - Defect
+- `P0-critical`, `P1-high`, `P2-medium`, `P3-low` - Priority
+- `accessibility`, `performance`, `ux` - Category
+- `ios`, `android`, `web` - Platform
+- `needs-triage`, `in-progress`, `fixed`, `wont-fix` - Status
+
+**Triage Process:**
+1. QA Lead creates issue for each bug found
+2. Team triages in Sprint 8 (assign priority, owner)
+3. P0/P1 bugs assigned to Sprint 9
+4. Verification in Sprint 10 (regression testing)
+
+### Monitoring & Dashboards
+
+**Backend Monitoring**
+
+**Tool:** Grafana + Prometheus (or Datadog, New Relic)
+
+**Dashboards:**
+
+1. **API Health:**
+   - Request rate (requests/min)
+   - Response time (p50, p95, p99)
+   - Error rate (percentage)
+   - Active requests
+
+2. **Pattern Generation:**
+   - Generation time by shape type
+   - Success/failure rate
+   - Gauge distribution (common gauges)
+
+3. **System:**
+   - CPU usage
+   - Memory usage
+   - Disk I/O
+   - Network I/O
+
+**Alerts:**
+- Error rate > 1% for 5 minutes
+- p95 response time > 1s for 5 minutes
+- Service unavailable (5xx errors)
+
+**Frontend Telemetry**
+
+**Tool:** Custom backend endpoint + analytics dashboard
+
+**Events Tracked:**
+- `pattern_generated` (shape, gauge, success, generation_time_ms)
+- `pattern_visualized` (total_rounds, rounds_viewed, session_duration_seconds)
+- `pattern_exported` (format, success, file_size_bytes)
+- `settings_changed` (setting_name, old_value, new_value)
+- `error_occurred` (error_code, error_message, screen)
+
+**Dashboard Metrics:**
+- Events per hour/day
+- Top shapes generated
+- Export format distribution
+- Error breakdown by type
+- User engagement (session duration, rounds viewed)
+
+### Documentation
+
+**1. API Documentation**
+
+**Tool:** FastAPI auto-generated OpenAPI/Swagger UI
+
+**URL:** `https://api.knitwit.app/docs`
+
+**Contents:**
+- All endpoints with request/response schemas
+- Authentication (if applicable)
+- Error codes and messages
+- Rate limits
+- Examples
+
+**2. User Guide**
+
+**Location:** `docs/user-guide.md`
+
+**Contents:**
+- Introduction to Knit-Wit
+- How to generate a pattern (step-by-step)
+- Understanding the visualization
+- Exporting patterns (PDF, SVG, JSON)
+- Settings and customization
+- Accessibility features
+- Troubleshooting
+
+**3. Developer Documentation**
+
+**Location:** `README.md`, `docs/developer/`
+
+**Contents:**
+- Setup instructions (frontend, backend, full stack)
+- Architecture overview
+- Code structure and conventions
+- Testing strategy
+- Contributing guide
+- Deployment process
+
+**4. Release Notes**
+
+**Location:** `CHANGELOG.md`, `docs/releases/mvp-v1.0.md`
+
+**Contents:**
+- MVP features (pattern generation, visualization, export, accessibility)
+- Known issues and limitations
+- Performance characteristics
+- Browser/device support
+- Upgrade instructions (if applicable)
+- Future roadmap (v1.1+)
+
+---
+
+## Dependencies & Risks
 
 ### Dependencies
 
-**Internal Dependencies:**
-- Settings screen infrastructure (from Phase 3)
-- Theme system and design tokens established
-- All screens and components implemented (Phase 3 complete)
-- AsyncStorage or similar persistence mechanism
+**Internal:**
+- Phase 3 complete (all MVP features implemented)
+- CI/CD pipeline operational (automated tests, builds)
+- Staging environment available for testing
 
-**External Dependencies:**
-- OpenDyslexic or Lexend font licensed and available
-- React Native accessibility APIs (built-in)
-- Accessibility testing tools (axe DevTools, Lighthouse)
+**External:**
+- Physical devices available for testing (iOS, Android, tablets)
+- Error tracking service provisioned (Sentry account, API key)
+- Monitoring infrastructure set up (Grafana/Datadog)
 
-### Potential Blockers
+### Risks & Mitigation
 
-| Blocker | Impact | Mitigation Strategy | Owner |
-|---------|--------|---------------------|-------|
-| Dyslexia font licensing delays | Medium | Use system fonts as fallback; defer to post-MVP | Frontend Lead |
-| Screen reader API differences iOS/Android | Medium | Abstract platform differences; prioritize iOS if needed | Frontend Lead |
-| Animation performance on low-end devices | Medium | Provide reduced-motion option; optimize animations | Frontend Eng 2 |
-| Design resources for Kid Mode not ready | High | Work with designer early; use simplified existing designs | Product Owner |
-| WCAG audit reveals major issues | High | Start audits early (Week 12 Day 1); iterate quickly | QA Lead |
+| Risk | Impact | Probability | Mitigation |
+|------|--------|-------------|------------|
+| **Critical bugs found late** | High (launch delay) | Medium | Early cross-device testing (Sprint 8); daily bug triage |
+| **Performance targets not met** | High (poor UX) | Medium | Profiling in Sprint 8; optimization buffer in Sprint 9 |
+| **Accessibility compliance fails** | High (legal/ethical) | Low | Automated audits early; manual testing by specialists |
+| **E2E automation blocked** | Medium (manual testing burden) | Low | Start Detox setup early; fallback to manual critical path testing |
+| **Device availability** | Medium (incomplete testing) | Low | Secure devices in advance; use cloud testing services (BrowserStack) |
+| **Documentation incomplete** | Low (poor onboarding) | Medium | Assign dedicated time; template documents early |
 
----
-
-## Risks
-
-### Technical Risks
-
-| Risk | Probability | Impact | Mitigation | Owner |
-|------|-------------|--------|-----------|-------|
-| **Scope creep on animations** | Medium | Medium | Time-box to 5 hours per animation; MVP can use simple fades | Frontend Eng 2 |
-| **Screen reader implementation complex** | Medium | High | Start with critical screens; defer non-essential screens to Phase 5 | Frontend Lead |
-| **Performance regression from accessibility features** | Low | High | Profile after implementation; optimize hot paths | Frontend Lead |
-| **WCAG audit failures late in phase** | Medium | High | Integrate audits from Day 1; fix incrementally | QA Lead |
-| **Theme switching causes layout bugs** | Medium | Medium | Test theme switching thoroughly; use snapshot tests | Frontend Eng 1 |
-
-### Resource Risks
-
-| Risk | Probability | Impact | Mitigation | Owner |
-|------|-------------|--------|-----------|-------|
-| **Accessibility specialist availability** | Medium | High | Frontend Lead has WCAG knowledge; hire consultant if needed | Product Owner |
-| **Content writing for kid-friendly copy** | Medium | Medium | Involve team in copy review; iterate based on feedback | Frontend Lead |
-| **Designer bandwidth for Kid Mode designs** | Low | Medium | Use existing design system with modifications | Product Owner |
-
-### User Experience Risks
-
-| Risk | Probability | Impact | Mitigation | Owner |
-|------|-------------|--------|-----------|-------|
-| **Kid Mode feels patronizing to older users** | Low | Medium | Clear toggle; default OFF; market as "beginner mode" | Product Owner |
-| **High-contrast mode affects branding** | Low | Low | Brand colors remain in standard mode; high-contrast is opt-in | Design Lead |
-| **Animations distracting or annoying** | Medium | Medium | Allow disabling; respect reduced-motion preference | Frontend Eng 2 |
-
----
-
-## Phase Exit Criteria
-
-### Must-Have (Blocking Phase 5)
-
-- [ ] Kid Mode toggle functional with simplified UI
-- [ ] WCAG AA compliance: 0 critical issues (axe DevTools)
-- [ ] Screen reader labels on all interactive elements
-- [ ] Color contrast verified: all text meets 4.5:1 or 3:1
-- [ ] Accessibility settings screen complete and functional
-- [ ] High-contrast mode implemented
-- [ ] Keyboard navigation working on critical screens (Home, Generate, Visualize)
-
-### Should-Have (Before MVP Launch)
-
-- [ ] Animated stitch explanations (at least 3 stitches)
-- [ ] Left-handed mode functional
-- [ ] Dyslexia-friendly font option working
-- [ ] Keyboard navigation on all screens (including Settings, Export)
-- [ ] Manual screen reader testing completed (iOS + Android)
-
-### Nice-to-Have (Can Defer to v1.1)
-
-- [ ] Animated stitch explanations for all 20+ stitch types
-- [ ] Voice control integration (Siri, Google Assistant)
-- [ ] Haptic feedback for accessibility
-- [ ] Additional Kid Mode themes (animals, space, etc.)
+**Contingency Plans:**
+- If critical bugs found: Extend Sprint 9 by 2-3 days; defer P2 bugs
+- If performance targets missed: Descope non-critical features; add caching aggressively
+- If accessibility fails: Dedicated sprint for remediation (post-launch if necessary, with disclosure)
+- If E2E blocked: Manual test critical paths; automate post-launch
 
 ---
 
 ## Next Phase Preview
 
-### Phase 5: QA & Polish (Weeks 14-15)
+**Phase 5: Launch Preparation (Week 16)**
 
-**Focus:** Comprehensive QA, accessibility audits, performance optimization, bug fixes
+**Goals:**
+- Final smoke tests and regression verification
+- Production deployment (backend, frontend)
+- Monitoring and alerting configured
+- Go/no-go decision for public launch
+- Launch communications (social, blog, docs site)
 
 **Key Activities:**
-- Cross-device testing (iOS 14+, Android 10+, tablets)
-- Comprehensive accessibility audit (automated + manual)
-- Performance profiling and optimization
-- Bug triage and resolution
-- Documentation updates
-
-**Accessibility-Specific Activities:**
-- Full WCAG AA manual audit
-- Screen reader testing on multiple devices
-- Keyboard navigation testing on all screens
-- Color contrast verification for all color combinations
-- Text scaling testing at multiple sizes
-- Reduced motion preference testing
-
-**Deliverables:**
-- Accessibility audit report with zero critical issues
-- Cross-device test results
-- Performance benchmarks meeting targets
-- Bug list triaged and prioritized
-- Updated documentation with accessibility guidelines
+- Staging → production deployment
+- DNS configuration and SSL certificates
+- Final security review
+- Launch day monitoring (on-call rotation)
+- Post-launch retrospective
 
 **Success Criteria:**
-- WCAG AA compliance: 0 critical issues, < 5 warnings
-- Screen reader testing passed on iOS and Android
-- All high-priority bugs fixed
-- Performance targets met (generation < 200ms, visualization > 50fps)
+- Production environment stable
+- Monitoring shows healthy metrics
+- Zero production incidents in first 24 hours
+- User feedback collection operational
 
 ---
 
-## Appendix
-
-### Accessibility Resources
-
-**WCAG Guidelines:**
-- WCAG 2.1 Overview: https://www.w3.org/WAI/WCAG21/quickref/
-- Understanding WCAG 2.1: https://www.w3.org/WAI/WCAG21/Understanding/
-- How to Meet WCAG (Quick Reference): https://www.w3.org/WAI/WCAG21/quickref/
-
-**Testing Tools:**
-- axe DevTools: https://www.deque.com/axe/devtools/
-- WebAIM Contrast Checker: https://webaim.org/resources/contrastchecker/
-- WAVE Accessibility Tool: https://wave.webaim.org/
-- Lighthouse (Chrome DevTools): Built-in
-- React Native Accessibility API: https://reactnative.dev/docs/accessibility
-
-**React Native Resources:**
-- Accessibility Guide: https://reactnative.dev/docs/accessibility
-- VoiceOver Testing: https://developer.apple.com/documentation/accessibility/voiceover
-- TalkBack Testing: https://support.google.com/accessibility/android/answer/6283677
-
-**Fonts:**
-- OpenDyslexic: https://opendyslexic.org/
-- Lexend: https://www.lexend.com/
-- System Font Stack: Use platform defaults when possible
-
-### Kid Mode Copy Examples
-
-**Standard vs Kid-Friendly Terminology:**
-
-| Standard | Kid-Friendly |
-|----------|--------------|
-| "Work 2 sc in next st" | "Make 2 stitches in the next spot" |
-| "Sc2tog" | "Combine 2 stitches into 1" |
-| "Ch 2, turn" | "Make 2 chains, then flip your work" |
-| "Insert hook in indicated st" | "Put your hook in the stitch" |
-| "Fasten off" | "Cut the yarn and pull through" |
-| "Skip next st" | "Jump over the next stitch" |
-| "Gauge: 14 sts/10cm" | "How tight: 14 stitches fit in 10cm" |
-| "Round 5: [Inc, 3 sc] × 6" | "Step 5: Do this 6 times: Add 1, then 3 regular" |
-
-### Color Palette Contrast Ratios
-
-**Standard Theme (WCAG AA Compliant):**
-
-| Element | Foreground | Background | Contrast Ratio | WCAG Level |
-|---------|-----------|-----------|----------------|-----------|
-| Body Text | #1f2937 | #ffffff | 14.2:1 | AAA |
-| Secondary Text | #6b7280 | #ffffff | 4.6:1 | AA |
-| Primary Button Text | #ffffff | #6366f1 | 7.5:1 | AAA |
-| Link Text | #2563eb | #ffffff | 8.6:1 | AAA |
-| Error Text | #dc2626 | #ffffff | 5.9:1 | AA |
-| Success Text | #16a34a | #ffffff | 4.5:1 | AA |
-
-**High-Contrast Theme (WCAG AAA Compliant):**
-
-| Element | Foreground | Background | Contrast Ratio | WCAG Level |
-|---------|-----------|-----------|----------------|-----------|
-| Body Text | #ffffff | #000000 | 21:1 | AAA |
-| Secondary Text | #e5e5e5 | #000000 | 15.3:1 | AAA |
-| Primary Button Text | #000000 | #ffff00 | 19.6:1 | AAA |
-| Link Text | #00ffff | #000000 | 16.8:1 | AAA |
-| Error Text | #ff6b6b | #000000 | 7.2:1 | AAA |
-| Success Text | #51cf66 | #000000 | 10.1:1 | AAA |
-
-**Kid Mode Theme (WCAG AA Compliant, Bright & Friendly):**
-
-| Element | Foreground | Background | Contrast Ratio | WCAG Level |
-|---------|-----------|-----------|----------------|-----------|
-| Body Text | #1f2937 | #fef3c7 | 12.1:1 | AAA |
-| Primary Button Text | #ffffff | #f59e0b | 4.7:1 | AA |
-| Secondary Button Text | #ffffff | #8b5cf6 | 7.1:1 | AAA |
-| Accent Text | #ffffff | #10b981 | 4.8:1 | AA |
-
----
-
-## Document Metadata
-
-**Document Version:** 1.0
-**Last Updated:** 2025-11-05
-**Owner:** Frontend Lead + Accessibility Specialist
-**Status:** Approved for Planning
-**Related Documents:**
-- [Implementation Plan](../implementation-plan.md)
-- [Phase 3: Full Feature Implementation](./phase-3.md)
-- [Phase 5: QA & Polish](./phase-5.md)
-- [Accessibility Guidelines](../../docs/frontend/accessibility.md)
-
----
-
-**End of Phase 4: Kid Mode & Accessibility Plan**
+**Phase 4 Status:** Not Started
+**Next Review:** Sprint 8 Retrospective (End of Week 13)
