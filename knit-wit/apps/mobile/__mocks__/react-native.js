@@ -20,6 +20,20 @@ const StyleSheet = {
   },
 };
 
+const Dimensions = {
+  get: jest.fn(() => ({ width: 375, height: 812 })),
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+};
+
+const AccessibilityInfo = {
+  announceForAccessibility: jest.fn(),
+  isReduceMotionEnabled: jest.fn(() => Promise.resolve(false)),
+  isScreenReaderEnabled: jest.fn(() => Promise.resolve(false)),
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+};
+
 const View = 'View';
 const Text = 'Text';
 const TouchableOpacity = 'TouchableOpacity';
@@ -33,6 +47,8 @@ const TextInput = 'TextInput';
 module.exports = {
   Platform,
   StyleSheet,
+  Dimensions,
+  AccessibilityInfo,
   View,
   Text,
   TouchableOpacity,

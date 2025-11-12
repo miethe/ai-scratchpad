@@ -3,6 +3,7 @@ import { View, StyleSheet, Text } from 'react-native';
 import { SVGRenderer } from '../components/visualization/SVGRenderer';
 import { RoundScrubber } from '../components/visualization/RoundScrubber';
 import { StitchTooltip } from '../components/visualization/StitchTooltip';
+import { Legend } from '../components/visualization/Legend';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { NetworkError } from '../components/common/NetworkError';
 import { useVisualizationStore } from '../stores/useVisualizationStore';
@@ -67,7 +68,11 @@ export const VisualizationScreen: React.FC<VisualizationScreenProps> = ({ route 
 
   if (loading) {
     return (
-      <View style={styles.centerContainer}>
+      <View
+        style={styles.centerContainer}
+        importantForAccessibility="yes"
+        accessibilityLiveRegion="polite"
+      >
         <LoadingSpinner size="large" message="Generating visualization..." />
       </View>
     );
@@ -75,7 +80,11 @@ export const VisualizationScreen: React.FC<VisualizationScreenProps> = ({ route 
 
   if (error) {
     return (
-      <View style={styles.centerContainer}>
+      <View
+        style={styles.centerContainer}
+        importantForAccessibility="yes"
+        accessibilityLiveRegion="assertive"
+      >
         <NetworkError message={error} onRetry={loadVisualization} />
       </View>
     );
@@ -96,17 +105,22 @@ export const VisualizationScreen: React.FC<VisualizationScreenProps> = ({ route 
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.renderContainer}>
+    <View
+      style={styles.container}
+      accessibilityLabel="Pattern visualization screen"
+    >
+      <View
+        style={styles.renderContainer}
+        accessibilityLabel={`Visualization of round ${currentFrame.round_number}`}
+      >
         <SVGRenderer
           frame={currentFrame}
           onStitchTap={handleStitchTap}
         />
+        <Legend />
       </View>
 
       <RoundScrubber />
-
-      {/* Legend will be added in B7 */}
 
       <StitchTooltip
         visible={tooltipVisible}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, Dimensions } from 'react-native';
+import { View, StyleSheet, Dimensions, AccessibilityInfo } from 'react-native';
 import Svg, { Circle, Line, G } from 'react-native-svg';
 import type { VisualizationFrame } from '../../types/visualization';
 
@@ -22,6 +22,14 @@ export const SVGRenderer = React.memo<SVGRendererProps>(({
   // Scale factor: backend uses radius=100, we scale to fit viewport
   // Leave 20% padding on each side
   const scale = Math.min(width, height) / 250;
+
+  // Announce round changes to screen readers
+  React.useEffect(() => {
+    if (frame) {
+      const message = `Round ${frame.round_number}, ${frame.stitch_count} stitches`;
+      AccessibilityInfo.announceForAccessibility(message);
+    }
+  }, [frame.round_number, frame.stitch_count]);
 
   // Color mapping for stitch types
   const getStitchColor = (highlight: string): string => {
@@ -62,20 +70,27 @@ export const SVGRenderer = React.memo<SVGRendererProps>(({
           })}
 
           {/* Render nodes (foreground) */}
-          {frame.nodes.map((node) => (
-            <Circle
-              key={node.id}
-              cx={node.position[0]}
-              cy={node.position[1]}
-              r={8}
-              fill={getStitchColor(node.highlight)}
-              stroke="#FFFFFF"
-              strokeWidth={2}
-              onPress={() => onStitchTap?.(node.id)}
-              // Accessibility
-              accessibilityLabel={`Stitch ${node.id}, type ${node.stitch_type}`}
-            />
-          ))}
+          {frame.nodes.map((node) => {
+            const highlightText = node.highlight === 'normal' ? 'normal' : node.highlight;
+            const accessibilityLabel = `Stitch ${node.id}, ${node.stitch_type}, ${highlightText}`;
+
+            return (
+              <Circle
+                key={node.id}
+                cx={node.position[0]}
+                cy={node.position[1]}
+                r={8}
+                fill={getStitchColor(node.highlight)}
+                stroke="#FFFFFF"
+                strokeWidth={2}
+                onPress={() => onStitchTap?.(node.id)}
+                // Accessibility
+                accessibilityRole="button"
+                accessibilityLabel={accessibilityLabel}
+                accessibilityHint="Tap to view details"
+              />
+            );
+          })}
         </G>
       </Svg>
     </View>
