@@ -58,3 +58,25 @@ export type {
   ThemeTouchTargets,
   ThemeShadows,
 } from './types';
+
+// Accessibility theme exports (E6: Colorblind Palettes)
+export {
+  colorblindPalettes,
+  stitchPatterns,
+  stitchSymbols,
+  patternFills,
+  getStitchVisualization,
+  contrastVerification,
+  type AccessibilityPalettes,
+  type StitchPalette,
+  type StitchPattern,
+  type StitchSymbols,
+} from './accessibilityTheme';
+
+export {
+  AccessibilityPatternDefs,
+  getPatternFill,
+  getCombinedFill,
+  PatternOverlay,
+  type AccessibilityLegendProps,
+} from './AccessibilityPatterns';

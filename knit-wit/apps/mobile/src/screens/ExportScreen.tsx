@@ -10,6 +10,8 @@ import {
 } from 'react-native';
 import { FormatSelector } from '../components/export/FormatSelector';
 import { PaperSizeSelector } from '../components/export/PaperSizeSelector';
+import { SimplifiedButton, SimplifiedCard } from '../components/kidmode';
+import { useSettingsStore } from '../stores/useSettingsStore';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 import { spacing } from '../theme/spacing';
@@ -25,6 +27,7 @@ type ExportScreenProps = RootStackScreenProps<'Export'>;
 
 export const ExportScreen: React.FC<ExportScreenProps> = ({ route }) => {
   const { pattern } = route.params;
+  const { kidMode } = useSettingsStore();
 
   const [selectedFormat, setSelectedFormat] = useState<ExportFormat | null>(null);
   const [paperSize, setPaperSize] = useState<PaperSize>('A4');
@@ -186,35 +189,57 @@ export const ExportScreen: React.FC<ExportScreenProps> = ({ route }) => {
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity
-          style={[styles.exportButton, !canExport && styles.exportButtonDisabled]}
-          onPress={handleExport}
-          disabled={!canExport}
-          accessible={true}
-          accessibilityRole="button"
-          accessibilityLabel={`Export pattern as ${
-            selectedFormat || 'selected format'
-          }`}
-          accessibilityHint={
-            !selectedFormat
-              ? 'Please select a format first'
-              : 'Export and save your pattern'
-          }
-          accessibilityState={{ disabled: !canExport }}
-        >
-          {isExporting ? (
-            <View style={styles.exportButtonContent}>
-              <ActivityIndicator color={colors.white} size="small" />
-              <Text style={styles.exportButtonText}>Exporting...</Text>
-            </View>
-          ) : (
-            <Text style={styles.exportButtonText}>
-              {selectedFormat
+        {kidMode ? (
+          <SimplifiedButton
+            label={
+              isExporting
+                ? 'Exporting...'
+                : selectedFormat
                 ? `Export as ${selectedFormat.toUpperCase()}`
-                : 'Select Format to Export'}
-            </Text>
-          )}
-        </TouchableOpacity>
+                : 'Select Format to Export'
+            }
+            onPress={handleExport}
+            disabled={!canExport || isExporting}
+            variant="primary"
+            size="large"
+            accessibilityHint={
+              !selectedFormat
+                ? 'Please select a format first'
+                : 'Export and save your pattern'
+            }
+            style={styles.kidModeExportButton}
+          />
+        ) : (
+          <TouchableOpacity
+            style={[styles.exportButton, !canExport && styles.exportButtonDisabled]}
+            onPress={handleExport}
+            disabled={!canExport}
+            accessible={true}
+            accessibilityRole="button"
+            accessibilityLabel={`Export pattern as ${
+              selectedFormat || 'selected format'
+            }`}
+            accessibilityHint={
+              !selectedFormat
+                ? 'Please select a format first'
+                : 'Export and save your pattern'
+            }
+            accessibilityState={{ disabled: !canExport }}
+          >
+            {isExporting ? (
+              <View style={styles.exportButtonContent}>
+                <ActivityIndicator color={colors.white} size="small" />
+                <Text style={styles.exportButtonText}>Exporting...</Text>
+              </View>
+            ) : (
+              <Text style={styles.exportButtonText}>
+                {selectedFormat
+                  ? `Export as ${selectedFormat.toUpperCase()}`
+                  : 'Select Format to Export'}
+              </Text>
+            )}
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -337,5 +362,9 @@ const styles = StyleSheet.create({
     ...typography.bodyLarge,
     fontWeight: '600',
     color: colors.white,
+  },
+  // Kid Mode specific styles
+  kidModeExportButton: {
+    width: '100%',
   },
 });

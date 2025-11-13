@@ -12,10 +12,13 @@ import {
 import { MainTabScreenProps } from '../types';
 import type { ShapeType, Units, Terminology } from '../types';
 import { colors, typography, spacing, shadows, touchTargets } from '../theme';
+import { useSettingsStore } from '../stores/useSettingsStore';
+import { SimplifiedButton, SimplifiedCard } from '../components/kidmode';
 
 type Props = MainTabScreenProps<'Generate'>;
 
 export default function GenerateScreen({ navigation }: Props) {
+  const { kidMode } = useSettingsStore();
   const [shape, setShape] = useState<ShapeType>('sphere');
   const [diameter, setDiameter] = useState('10');
   const [height, setHeight] = useState('15');
@@ -77,29 +80,55 @@ export default function GenerateScreen({ navigation }: Props) {
           >
             Shape
           </Text>
-          <View
-            style={styles.buttonGroup}
-            accessible={true}
-            accessibilityRole="radiogroup"
-            accessibilityLabel="Shape selection"
-          >
-            {(['sphere', 'cylinder', 'cone'] as ShapeType[]).map((s) => (
-              <TouchableOpacity
-                key={s}
-                style={[styles.button, shape === s && styles.buttonActive]}
-                onPress={() => handleShapeChange(s)}
-                accessibilityRole="radio"
-                accessibilityLabel={`${s.charAt(0).toUpperCase() + s.slice(1)} shape`}
-                accessibilityState={{ selected: shape === s, checked: shape === s }}
-                accessibilityHint={`Select ${s} shape for pattern`}
-                accessible={true}
-              >
-                <Text style={[styles.buttonText, shape === s && styles.buttonTextActive]}>
-                  {s.charAt(0).toUpperCase() + s.slice(1)}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          {kidMode ? (
+            <View
+              style={styles.kidModeCardGroup}
+              accessible={true}
+              accessibilityRole="radiogroup"
+              accessibilityLabel="Shape selection"
+            >
+              {(['sphere', 'cylinder', 'cone'] as ShapeType[]).map((s) => (
+                <SimplifiedCard
+                  key={s}
+                  variant={shape === s ? 'primary' : 'default'}
+                  selected={shape === s}
+                  pressable={true}
+                  onPress={() => handleShapeChange(s)}
+                  accessibilityLabel={`${s.charAt(0).toUpperCase() + s.slice(1)} shape`}
+                  accessibilityHint={`Select ${s} shape for pattern`}
+                  style={styles.kidModeShapeCard}
+                >
+                  <Text style={styles.kidModeCardText}>
+                    {s.charAt(0).toUpperCase() + s.slice(1)}
+                  </Text>
+                </SimplifiedCard>
+              ))}
+            </View>
+          ) : (
+            <View
+              style={styles.buttonGroup}
+              accessible={true}
+              accessibilityRole="radiogroup"
+              accessibilityLabel="Shape selection"
+            >
+              {(['sphere', 'cylinder', 'cone'] as ShapeType[]).map((s) => (
+                <TouchableOpacity
+                  key={s}
+                  style={[styles.button, shape === s && styles.buttonActive]}
+                  onPress={() => handleShapeChange(s)}
+                  accessibilityRole="radio"
+                  accessibilityLabel={`${s.charAt(0).toUpperCase() + s.slice(1)} shape`}
+                  accessibilityState={{ selected: shape === s, checked: shape === s }}
+                  accessibilityHint={`Select ${s} shape for pattern`}
+                  accessible={true}
+                >
+                  <Text style={[styles.buttonText, shape === s && styles.buttonTextActive]}>
+                    {s.charAt(0).toUpperCase() + s.slice(1)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
         </View>
 
         {/* Diameter Input */}
@@ -208,16 +237,27 @@ export default function GenerateScreen({ navigation }: Props) {
         </View>
 
         {/* Generate Button */}
-        <TouchableOpacity
-          style={styles.generateButton}
-          onPress={handleGenerate}
-          accessibilityRole="button"
-          accessibilityLabel="Generate pattern"
-          accessibilityHint="Creates a crochet pattern with the specified parameters and navigates to visualization"
-          accessible={true}
-        >
-          <Text style={styles.generateButtonText}>Generate Pattern</Text>
-        </TouchableOpacity>
+        {kidMode ? (
+          <SimplifiedButton
+            label="Generate Pattern"
+            onPress={handleGenerate}
+            variant="primary"
+            size="large"
+            accessibilityHint="Creates a crochet pattern with the specified parameters and navigates to visualization"
+            style={styles.kidModeGenerateButton}
+          />
+        ) : (
+          <TouchableOpacity
+            style={styles.generateButton}
+            onPress={handleGenerate}
+            accessibilityRole="button"
+            accessibilityLabel="Generate pattern"
+            accessibilityHint="Creates a crochet pattern with the specified parameters and navigates to visualization"
+            accessible={true}
+          >
+            <Text style={styles.generateButtonText}>Generate Pattern</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </ScrollView>
   );
@@ -330,5 +370,24 @@ const styles = StyleSheet.create({
   generateButtonText: {
     ...typography.titleLarge,
     color: colors.textInverse,
+  },
+  // Kid Mode specific styles
+  kidModeCardGroup: {
+    gap: spacing.sm,
+  },
+  kidModeShapeCard: {
+    flex: 1,
+    minHeight: 80,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  kidModeCardText: {
+    ...typography.titleMedium,
+    color: colors.textPrimary,
+    textAlign: 'center',
+    fontWeight: '600',
+  },
+  kidModeGenerateButton: {
+    marginTop: spacing.md,
   },
 });

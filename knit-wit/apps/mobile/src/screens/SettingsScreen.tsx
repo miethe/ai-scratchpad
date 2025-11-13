@@ -79,7 +79,7 @@ export default function SettingsScreen({ navigation }: Props) {
 
         <SettingRow
           label="Kid Mode"
-          description="Simplified UI with beginner-friendly language"
+          description="Simplified interface for young learners with larger buttons and friendly colors"
           value={kidMode}
           onValueChange={handleKidModeToggle}
           testID="kid-mode-toggle"

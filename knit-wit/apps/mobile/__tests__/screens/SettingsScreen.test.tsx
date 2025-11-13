@@ -50,7 +50,7 @@ describe('SettingsScreen', () => {
     );
 
     expect(getByText('Kid Mode')).toBeTruthy();
-    expect(getByText('Simplified UI with beginner-friendly language')).toBeTruthy();
+    expect(getByText('Simplified interface for young learners with larger buttons and friendly colors')).toBeTruthy();
     expect(getByTestId('kid-mode-toggle')).toBeTruthy();
   });
 

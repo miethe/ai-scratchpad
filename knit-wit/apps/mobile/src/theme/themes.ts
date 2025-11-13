@@ -1,6 +1,9 @@
 import { Platform } from 'react-native';
 import type { Theme, ThemeColors, ThemeTypography, ThemeShadows } from './types';
 
+// Import the comprehensive Kid Mode theme
+import { kidModeTheme } from './kidModeTheme';
+
 const fontFamily = {
   regular: Platform.select({
     ios: 'System',
@@ -68,27 +71,6 @@ const defaultColors: ThemeColors = {
   borderDark: '#D1D5DB',
 };
 
-const kidModeColors: ThemeColors = {
-  ...defaultColors,
-  // Kid Mode: bright, friendly colors
-  primary: '#FF9F40', // Bright orange
-  primaryLight: '#FFBD73',
-  primaryDark: '#E67A00',
-
-  secondary: '#FF6B9D', // Pink (already friendly)
-  secondaryLight: '#FFB3D0',
-  secondaryDark: '#D43A7A',
-
-  // Accent color for highlights
-  info: '#4ECDC4', // Turquoise
-
-  // Warm, friendly background
-  background: '#FFF8E7',
-  backgroundSecondary: '#FFF0CC',
-  surface: '#FFFFFF',
-  surfaceSecondary: '#FFF8E7',
-};
-
 const darkModeColors: ThemeColors = {
   ...defaultColors,
   // Dark Mode: inverted colors
@@ -121,13 +103,15 @@ const darkModeColors: ThemeColors = {
 const kidModeDarkColors: ThemeColors = {
   ...darkModeColors,
   // Kid Mode Dark: combine kid mode brightness with dark theme
-  primary: '#FFBD73',
-  primaryLight: '#FFD9A3',
-  primaryDark: '#FF9F40',
+  // Using the same pink primary as light Kid Mode for consistency
+  primary: '#FF6B9D',
+  primaryLight: '#FFB3D0',
+  primaryDark: '#E63D7A',
 
-  secondary: '#FFB3D0',
-  secondaryLight: '#FFD9E8',
-  secondaryDark: '#FF9DB8',
+  // Sunny yellow secondary
+  secondary: '#FFC837',
+  secondaryLight: '#FFE29F',
+  secondaryDark: '#E6A800',
 
   background: '#1A1410',
   backgroundSecondary: '#2D2418',
@@ -228,41 +212,6 @@ const baseTypography: ThemeTypography = {
   },
 };
 
-const kidModeTypography: ThemeTypography = {
-  ...baseTypography,
-  // Kid Mode: larger, more readable fonts
-  displayLarge: {
-    ...baseTypography.displayLarge,
-    fontSize: 64,
-    lineHeight: 72,
-  },
-  displayMedium: {
-    ...baseTypography.displayMedium,
-    fontSize: 52,
-    lineHeight: 60,
-  },
-  displaySmall: {
-    ...baseTypography.displaySmall,
-    fontSize: 42,
-    lineHeight: 52,
-  },
-  bodyLarge: {
-    ...baseTypography.bodyLarge,
-    fontSize: 18,
-    lineHeight: 28,
-  },
-  bodyMedium: {
-    ...baseTypography.bodyMedium,
-    fontSize: 16,
-    lineHeight: 24,
-  },
-  bodySmall: {
-    ...baseTypography.bodySmall,
-    fontSize: 14,
-    lineHeight: 20,
-  },
-};
-
 const baseShadows: ThemeShadows = {
   sm: {
     shadowColor: '#000',
@@ -354,11 +303,9 @@ export const defaultTheme: Theme = {
   shadows: baseShadows,
 };
 
-export const kidModeTheme: Theme = {
-  ...defaultTheme,
-  colors: kidModeColors,
-  typography: kidModeTypography,
-};
+// Kid Mode theme is now imported from dedicated file
+// See kidModeTheme.ts for comprehensive design documentation
+export { kidModeTheme };
 
 export const darkModeTheme: Theme = {
   ...defaultTheme,
@@ -369,6 +316,9 @@ export const darkModeTheme: Theme = {
 export const kidModeDarkTheme: Theme = {
   ...defaultTheme,
   colors: kidModeDarkColors,
-  typography: kidModeTypography,
+  typography: kidModeTheme.typography, // Use Kid Mode typography from dedicated theme
+  spacing: kidModeTheme.spacing,       // Use Kid Mode spacing
+  borderRadius: kidModeTheme.borderRadius, // Use Kid Mode border radius
+  touchTargets: kidModeTheme.touchTargets, // Use Kid Mode touch targets
   shadows: darkShadows,
 };
