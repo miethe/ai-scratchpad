@@ -71,3 +71,21 @@ jest.mock('react-native-svg', () => {
     Path: jest.fn().mockImplementation((props) => React.createElement('Path', props)),
   };
 });
+
+// Mock expo-file-system
+jest.mock('expo-file-system', () => ({
+  documentDirectory: 'file:///mock/document/',
+  writeAsStringAsync: jest.fn().mockResolvedValue(undefined),
+  EncodingType: {
+    Base64: 'base64',
+  },
+}));
+
+// Mock expo-sharing
+jest.mock('expo-sharing', () => ({
+  isAvailableAsync: jest.fn().mockResolvedValue(true),
+  shareAsync: jest.fn().mockResolvedValue(undefined),
+}));
+
+// Set up environment variables
+process.env.EXPO_PUBLIC_API_URL = 'http://localhost:8000/api/v1';

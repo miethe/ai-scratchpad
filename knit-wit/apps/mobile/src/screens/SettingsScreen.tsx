@@ -1,14 +1,22 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Switch, TouchableOpacity } from 'react-native';
 import { MainTabScreenProps } from '../types';
 import { colors, typography, spacing, shadows, touchTargets } from '../theme';
+import { useSettingsStore } from '../stores/useSettingsStore';
 
 type Props = MainTabScreenProps<'Settings'>;
 
 export default function SettingsScreen({ navigation }: Props) {
-  const [kidMode, setKidMode] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
-  const [usTerminology, setUsTerminology] = useState(true);
+  const {
+    kidMode,
+    darkMode,
+    defaultUnits,
+    defaultTerminology,
+    setKidMode,
+    setDarkMode,
+    setDefaultUnits,
+    setDefaultTerminology,
+  } = useSettingsStore();
 
   return (
     <ScrollView
@@ -40,9 +48,7 @@ export default function SettingsScreen({ navigation }: Props) {
           value={darkMode}
           onValueChange={setDarkMode}
           testID="dark-mode-toggle"
-          disabled
         />
-        <Text style={styles.comingSoon}>Coming soon</Text>
       </View>
 
       <View style={styles.section}>
@@ -51,9 +57,17 @@ export default function SettingsScreen({ navigation }: Props) {
         <SettingRow
           label="US Terminology"
           description="Use US crochet terms (turn off for UK terms)"
-          value={usTerminology}
-          onValueChange={setUsTerminology}
+          value={defaultTerminology === 'US'}
+          onValueChange={(value) => setDefaultTerminology(value ? 'US' : 'UK')}
           testID="us-terminology-toggle"
+        />
+
+        <SettingRow
+          label="Metric Units (cm)"
+          description="Use metric units (turn off for imperial/inches)"
+          value={defaultUnits === 'cm'}
+          onValueChange={(value) => setDefaultUnits(value ? 'cm' : 'in')}
+          testID="metric-units-toggle"
         />
       </View>
 

@@ -13,6 +13,12 @@ from knit_wit_engine.models.dsl import (
     GaugeInfo,
     ShapeParameters,
     PatternMetadata,
+    # Parsing DSL models
+    OpDSL,
+    RoundDSL,
+    MetaDSL,
+    ObjectDSL,
+    PatternParseDSL,
 )
 from knit_wit_engine.models.requests import Gauge
 
@@ -24,4 +30,10 @@ __all__ = [
     "ShapeParameters",
     "PatternMetadata",
     "Gauge",
+    # Parsing DSL models
+    "OpDSL",
+    "RoundDSL",
+    "MetaDSL",
+    "ObjectDSL",
+    "PatternParseDSL",
 ]
