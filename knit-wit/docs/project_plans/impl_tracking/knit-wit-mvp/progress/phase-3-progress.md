@@ -3,9 +3,9 @@
 **Phase Plan**: `docs/project_plans/mvp/phases/phase-3.md`
 **Duration**: Weeks 8-11 (Sprints 5-7)
 **Branch**: `claude/phase-3-implementation-011CV4ZM3qsWS5J9Ct8zTvt8`
-**Status**: Not Started
-**Start Date**: TBD
-**Target Completion**: TBD
+**Status**: Sprint 5 Complete (60/141 pts), Sprint 6 In Progress
+**Start Date**: 2025-11-13
+**Target Completion**: 2025-12-11 (4 weeks)
 **Last Updated**: 2025-11-13
 
 ---
@@ -64,10 +64,10 @@ Complete MVP feature development with pattern parsing, multi-format exports, acc
 |-------|-------|--------|--------|-------------|-------|
 | **C1** | Text parser (backend) | 13 pt | ✅ Complete | BE Lead | Regex-based implementation |
 | **C2** | Parser error handling | 5 pt | ✅ Complete | BE Lead | Line numbers, helpful messages |
-| **C3** | PDF export endpoint | 13 pt | Not Started | BE Eng | reportlab/weasyprint |
+| **C3** | PDF export endpoint | 13 pt | ✅ Complete | BE Eng | ReportLab with A4/letter support |
 | **C4** | SVG/PNG export endpoint | 8 pt | Not Started | BE Eng | Per-round + composite |
-| **C5** | JSON DSL export | 3 pt | Not Started | BE Eng | Round-trip compatible |
-| **C6** | Export screen UI | 8 pt | Not Started | FE Eng | Format selection + download |
+| **C5** | JSON DSL export | 3 pt | ✅ Complete | BE Eng | Pydantic model_dump_json |
+| **C6** | Export screen UI | 8 pt | ✅ Complete | FE Eng | Format cards + expo-file-system |
 | **C7** | Parse screen UI | 8 pt | Not Started | FE Eng | Text input + validation |
 
 **Epic Notes:**
@@ -86,9 +86,9 @@ Complete MVP feature development with pattern parsing, multi-format exports, acc
 
 | Story | Title | Effort | Status | Assigned To | Notes |
 |-------|-------|--------|--------|-------------|-------|
-| **D7** | Settings persistence | 8 pt | Not Started | FE Lead | AsyncStorage integration |
-| **D8** | Terminology/units toggles | 5 pt | Not Started | FE Eng | US/UK, cm/in switches |
-| **D9** | Theme system refactor | 5 pt | Not Started | FE Eng | Support Kid Mode + a11y |
+| **D7** | Settings persistence | 8 pt | ✅ Complete | FE Lead | AsyncStorage auto-save implemented |
+| **D8** | Terminology/units toggles | 5 pt | ✅ Complete | FE Eng | Functional US/UK, cm/in toggles |
+| **D9** | Theme system refactor | 5 pt | ✅ Complete | FE Eng | 4 themes: default, kidMode, dark, kidModeDark |
 
 **Epic Notes:**
 - Settings persist across app restarts
