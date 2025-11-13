@@ -49,6 +49,7 @@ app = FastAPI(
         {"name": "root", "description": "Root API information"},
         {"name": "visualization", "description": "Pattern visualization endpoints"},
         {"name": "parser", "description": "Pattern text parsing endpoints"},
+        {"name": "export", "description": "Pattern export endpoints (PDF, JSON)"},
     ],
 )
 
