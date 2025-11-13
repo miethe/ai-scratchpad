@@ -7,7 +7,6 @@ Implements C3 (PDF Export) and C5 (JSON DSL Export) from Phase 3.
 
 import io
 from typing import Literal
-from datetime import datetime
 
 # Import from knit_wit_engine package
 import sys

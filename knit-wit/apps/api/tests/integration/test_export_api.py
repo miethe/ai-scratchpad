@@ -26,14 +26,7 @@ pattern_engine_path = (
 if str(pattern_engine_path) not in sys.path:
     sys.path.insert(0, str(pattern_engine_path))
 
-from knit_wit_engine.models.dsl import (
-    PatternDSL,
-    RoundInstruction,
-    StitchInstruction,
-    ShapeParameters,
-    GaugeInfo,
-    PatternMetadata,
-)
+from knit_wit_engine.models.dsl import PatternDSL
 
 from app.main import app
 
