@@ -50,6 +50,7 @@ app = FastAPI(
         {"name": "visualization", "description": "Pattern visualization endpoints"},
         {"name": "parser", "description": "Pattern text parsing endpoints"},
         {"name": "export", "description": "Pattern export endpoints (PDF, JSON)"},
+        {"name": "telemetry", "description": "Anonymous telemetry event tracking"},
     ],
 )
 

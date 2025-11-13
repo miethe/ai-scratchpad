@@ -181,3 +181,208 @@ async def export_json(pattern: PatternDSL) -> JSONResponse:
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"JSON export failed: {str(e)}",
         )
+
+
+@router.post("/svg", status_code=status.HTTP_200_OK)
+async def export_svg(
+    pattern: PatternDSL,
+    mode: Literal["per-round", "composite"] = "composite",
+) -> Response:
+    """
+    Export pattern as SVG diagram(s).
+
+    Generates vector graphics showing circular stitch layout with color-coded
+    increases/decreases. Supports two export modes:
+    - per-round: Individual SVG files (one per round) as ZIP archive
+    - composite: Single SVG with all rounds stacked vertically
+
+    **Performance:** < 1 second generation time, < 1 MB per round
+
+    **Request Body:** PatternDSL object (JSON)
+    **Query Parameters:**
+        - mode: "per-round" or "composite" (default: "composite")
+
+    **Response:** SVG file (image/svg+xml) or ZIP archive (application/zip)
+
+    **Example Request:**
+    ```bash
+    curl -X POST "http://localhost:8000/api/v1/export/svg?mode=composite" \\
+         -H "Content-Type: application/json" \\
+         -d '{
+           "shape": {"shape_type": "sphere", "diameter_cm": 10},
+           "gauge": {"stitches_per_cm": 1.4, "rows_per_cm": 1.6},
+           "rounds": [...],
+           "metadata": {...}
+         }' \\
+         --output pattern.svg
+    ```
+
+    **Success Response (200 OK):**
+    - Content-Type: image/svg+xml (composite) or application/zip (per-round)
+    - Content-Disposition: attachment; filename="pattern_{timestamp}.svg"
+    - Body: SVG XML or ZIP archive
+
+    **Error Responses:**
+    - 400: Invalid mode parameter
+    - 422: Invalid PatternDSL structure
+    - 500: SVG generation failed
+
+    Args:
+        pattern: PatternDSL object from request body
+        mode: Export mode ("per-round" or "composite")
+
+    Returns:
+        Response: SVG file or ZIP archive with appropriate headers
+
+    Raises:
+        HTTPException: 400/422/500 for various errors
+    """
+    try:
+        # Generate SVG(s)
+        svg_result = export_service.generate_svg(pattern, mode=mode)
+
+        # Generate filename with timestamp
+        timestamp = pattern.metadata.generated_at.strftime("%Y%m%d_%H%M%S")
+        shape_type = pattern.shape.shape_type
+
+        if mode == "per-round":
+            # Create ZIP archive with individual SVG files
+            import zipfile
+            import io as io_module
+
+            zip_buffer = io_module.BytesIO()
+
+            with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+                for idx, svg_str in enumerate(svg_result):
+                    filename = f"round_{idx + 1}.svg"
+                    zip_file.writestr(filename, svg_str)
+
+            zip_bytes = zip_buffer.getvalue()
+            zip_buffer.close()
+
+            return Response(
+                content=zip_bytes,
+                media_type="application/zip",
+                headers={
+                    "Content-Disposition": f'attachment; filename="pattern_{shape_type}_{timestamp}_rounds.zip"',
+                    "Cache-Control": "no-cache",
+                },
+            )
+        else:
+            # Return single SVG
+            filename = f"pattern_{shape_type}_{timestamp}.svg"
+
+            return Response(
+                content=svg_result,
+                media_type="image/svg+xml",
+                headers={
+                    "Content-Disposition": f'attachment; filename="{filename}"',
+                    "Cache-Control": "no-cache",
+                },
+            )
+
+    except ValueError as e:
+        # Invalid mode or validation error
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid request: {str(e)}",
+        )
+    except Exception as e:
+        # SVG generation failed
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"SVG generation failed: {str(e)}",
+        )
+
+
+@router.post("/png", status_code=status.HTTP_200_OK)
+async def export_png(
+    pattern: PatternDSL,
+    dpi: int = 72,
+) -> Response:
+    """
+    Export pattern as PNG rasterized image.
+
+    Generates high-quality PNG from SVG visualization with specified DPI:
+    - 72 DPI: Screen display (smaller file size)
+    - 300 DPI: Print quality (larger file size)
+
+    **Performance:** < 2 seconds generation time, < 5 MB file size
+
+    **Request Body:** PatternDSL object (JSON)
+    **Query Parameters:**
+        - dpi: 72 or 300 (default: 72)
+
+    **Response:** PNG file (image/png)
+
+    **Example Request:**
+    ```bash
+    curl -X POST "http://localhost:8000/api/v1/export/png?dpi=300" \\
+         -H "Content-Type: application/json" \\
+         -d '{
+           "shape": {"shape_type": "sphere", "diameter_cm": 10},
+           "gauge": {"stitches_per_cm": 1.4, "rows_per_cm": 1.6},
+           "rounds": [...],
+           "metadata": {...}
+         }' \\
+         --output pattern.png
+    ```
+
+    **Success Response (200 OK):**
+    - Content-Type: image/png
+    - Content-Disposition: attachment; filename="pattern_{timestamp}.png"
+    - Body: PNG binary data
+
+    **Error Responses:**
+    - 400: Invalid DPI parameter
+    - 422: Invalid PatternDSL structure
+    - 500: PNG generation failed
+
+    Args:
+        pattern: PatternDSL object from request body
+        dpi: Dots per inch (72 for screen, 300 for print)
+
+    Returns:
+        Response: PNG file with appropriate headers
+
+    Raises:
+        HTTPException: 400/422/500 for various errors
+    """
+    try:
+        # Validate DPI
+        if dpi not in [72, 300]:
+            raise ValueError(f"Invalid DPI: {dpi}. Must be 72 or 300")
+
+        # Generate composite SVG first
+        svg_str = export_service.generate_svg(pattern, mode="composite")
+
+        # Convert to PNG
+        png_bytes = export_service.generate_png(svg_str, dpi=dpi)
+
+        # Generate filename with timestamp
+        timestamp = pattern.metadata.generated_at.strftime("%Y%m%d_%H%M%S")
+        shape_type = pattern.shape.shape_type
+        filename = f"pattern_{shape_type}_{timestamp}_{dpi}dpi.png"
+
+        # Return PNG with appropriate headers
+        return Response(
+            content=png_bytes,
+            media_type="image/png",
+            headers={
+                "Content-Disposition": f'attachment; filename="{filename}"',
+                "Cache-Control": "no-cache",
+            },
+        )
+
+    except ValueError as e:
+        # Invalid DPI or validation error
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid request: {str(e)}",
+        )
+    except Exception as e:
+        # PNG generation failed
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"PNG generation failed: {str(e)}",
+        )

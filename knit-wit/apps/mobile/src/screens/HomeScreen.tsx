@@ -10,30 +10,46 @@ export default function HomeScreen({ navigation }: Props) {
     navigation.navigate('Generate');
   };
 
+  const handleParsePattern = () => {
+    navigation.navigate('Parse');
+  };
+
   return (
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.content}
       accessibilityLabel="Home screen"
+      accessible={true}
     >
       <View style={styles.header}>
         <Text style={styles.title} accessibilityRole="header">
           Welcome to Knit-Wit
         </Text>
-        <Text style={styles.subtitle}>
+        <Text
+          style={styles.subtitle}
+          accessible={true}
+          accessibilityRole="text"
+        >
           Generate custom crochet patterns for geometric shapes with interactive step-by-step
           guidance.
         </Text>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Quick Start</Text>
+        <Text
+          style={styles.sectionTitle}
+          accessibilityRole="header"
+          accessibilityLevel={2}
+        >
+          Quick Start
+        </Text>
         <TouchableOpacity
           style={styles.card}
           onPress={handleStartGenerating}
           accessibilityRole="button"
           accessibilityLabel="Start generating a pattern"
           accessibilityHint="Navigate to the pattern generator"
+          accessible={true}
         >
           <View style={styles.cardContent}>
             <Text style={styles.cardTitle}>Generate Pattern</Text>
@@ -42,11 +58,37 @@ export default function HomeScreen({ navigation }: Props) {
             </Text>
           </View>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.card}
+          onPress={handleParsePattern}
+          accessibilityRole="button"
+          accessibilityLabel="Parse existing pattern"
+          accessibilityHint="Navigate to the pattern parser to validate and visualize an existing pattern"
+          accessible={true}
+        >
+          <View style={styles.cardContent}>
+            <Text style={styles.cardTitle}>Parse Pattern</Text>
+            <Text style={styles.cardDescription}>
+              Validate and visualize an existing crochet pattern
+            </Text>
+          </View>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Features</Text>
-        <View style={styles.featureList}>
+        <Text
+          style={styles.sectionTitle}
+          accessibilityRole="header"
+          accessibilityLevel={2}
+        >
+          Features
+        </Text>
+        <View
+          style={styles.featureList}
+          accessible={true}
+          accessibilityRole="list"
+        >
           <FeatureItem
             title="Parametric Patterns"
             description="Specify dimensions and gauge to generate custom patterns"
@@ -76,7 +118,12 @@ interface FeatureItemProps {
 
 function FeatureItem({ title, description }: FeatureItemProps) {
   return (
-    <View style={styles.featureItem}>
+    <View
+      style={styles.featureItem}
+      accessible={true}
+      accessibilityLabel={`${title}. ${description}`}
+      accessibilityRole="text"
+    >
       <Text style={styles.featureTitle}>{title}</Text>
       <Text style={styles.featureDescription}>{description}</Text>
     </View>
@@ -116,6 +163,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: 12,
     padding: spacing.lg,
+    marginBottom: spacing.md,
     ...shadows.md,
   },
   cardContent: {

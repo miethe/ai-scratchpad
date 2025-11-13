@@ -452,3 +452,405 @@ class TestExportAPI:
         # Both should succeed
         assert pdf_response.status_code == 200
         assert json_response.status_code == 200
+
+    # =============================================================================
+    # SVG Export Endpoint Tests
+    # =============================================================================
+
+    def test_export_svg_composite_success(
+        self, sample_pattern_dict: dict
+    ) -> None:
+        """Test successful SVG export in composite mode."""
+        response = client.post(
+            "/api/v1/export/svg?mode=composite", json=sample_pattern_dict
+        )
+
+        # Verify status code
+        assert response.status_code == 200
+
+        # Verify content type
+        assert response.headers["content-type"] == "image/svg+xml"
+
+        # Verify Content-Disposition header
+        assert "attachment" in response.headers["content-disposition"]
+        assert "filename=" in response.headers["content-disposition"]
+        assert ".svg" in response.headers["content-disposition"]
+
+        # Verify Cache-Control header
+        assert response.headers["cache-control"] == "no-cache"
+
+        # Verify SVG content
+        svg_content = response.content.decode("utf-8")
+        assert len(svg_content) > 0
+        assert "<svg" in svg_content
+        assert "</svg>" in svg_content
+
+    def test_export_svg_per_round_success(
+        self, sample_pattern_dict: dict
+    ) -> None:
+        """Test successful SVG export in per-round mode (returns ZIP)."""
+        response = client.post(
+            "/api/v1/export/svg?mode=per-round", json=sample_pattern_dict
+        )
+
+        # Verify status code
+        assert response.status_code == 200
+
+        # Verify content type is ZIP
+        assert response.headers["content-type"] == "application/zip"
+
+        # Verify Content-Disposition header
+        assert "attachment" in response.headers["content-disposition"]
+        assert ".zip" in response.headers["content-disposition"]
+
+        # Verify ZIP content
+        zip_bytes = response.content
+        assert len(zip_bytes) > 0
+
+        # Verify ZIP is valid
+        import zipfile
+        import io as io_module
+
+        zip_buffer = io_module.BytesIO(zip_bytes)
+        with zipfile.ZipFile(zip_buffer, "r") as zip_file:
+            # Should have one SVG per round
+            file_list = zip_file.namelist()
+            assert len(file_list) == len(sample_pattern_dict["rounds"])
+            assert all(f.endswith(".svg") for f in file_list)
+
+    def test_export_svg_default_mode(
+        self, sample_pattern_dict: dict
+    ) -> None:
+        """Test SVG export with default mode (composite)."""
+        response = client.post("/api/v1/export/svg", json=sample_pattern_dict)
+
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "image/svg+xml"
+
+    def test_export_svg_invalid_mode(
+        self, sample_pattern_dict: dict
+    ) -> None:
+        """Test SVG export with invalid mode returns 422."""
+        response = client.post(
+            "/api/v1/export/svg?mode=invalid_mode", json=sample_pattern_dict
+        )
+
+        # FastAPI/Pydantic validation catches this
+        assert response.status_code == 422
+
+    def test_export_svg_invalid_pattern(self) -> None:
+        """Test SVG export with invalid PatternDSL returns 422."""
+        invalid_pattern = {
+            "shape": {"shape_type": "sphere"},  # Missing required fields
+            "gauge": {"stitches_per_cm": 1.4},  # Missing required fields
+            "rounds": [],  # Empty rounds (invalid)
+        }
+
+        response = client.post("/api/v1/export/svg", json=invalid_pattern)
+        assert response.status_code == 422
+
+    def test_export_svg_filename_format(
+        self, sample_pattern_dict: dict
+    ) -> None:
+        """Test SVG filename includes shape type and timestamp."""
+        response = client.post("/api/v1/export/svg", json=sample_pattern_dict)
+
+        filename = response.headers["content-disposition"]
+        assert "pattern_" in filename
+        assert "sphere" in filename
+        assert ".svg" in filename
+
+    def test_export_svg_file_size(
+        self, sample_pattern_dict: dict
+    ) -> None:
+        """Test SVG file size is under 1 MB."""
+        response = client.post("/api/v1/export/svg", json=sample_pattern_dict)
+
+        svg_size_mb = len(response.content) / (1024 * 1024)
+        assert svg_size_mb < 1.0
+
+    def test_export_svg_contains_vector_elements(
+        self, sample_pattern_dict: dict
+    ) -> None:
+        """Test SVG contains proper vector elements."""
+        response = client.post("/api/v1/export/svg", json=sample_pattern_dict)
+
+        svg_content = response.content.decode("utf-8")
+        assert "<circle" in svg_content  # Nodes
+        assert "<line" in svg_content  # Edges
+        assert 'xmlns="http://www.w3.org/2000/svg"' in svg_content
+
+    # =============================================================================
+    # PNG Export Endpoint Tests
+    # =============================================================================
+
+    def test_export_png_72dpi_success(
+        self, sample_pattern_dict: dict
+    ) -> None:
+        """Test successful PNG export at 72 DPI."""
+        response = client.post(
+            "/api/v1/export/png?dpi=72", json=sample_pattern_dict
+        )
+
+        # Verify status code
+        assert response.status_code == 200
+
+        # Verify content type
+        assert response.headers["content-type"] == "image/png"
+
+        # Verify Content-Disposition header
+        assert "attachment" in response.headers["content-disposition"]
+        assert "filename=" in response.headers["content-disposition"]
+        assert ".png" in response.headers["content-disposition"]
+        assert "72dpi" in response.headers["content-disposition"]
+
+        # Verify Cache-Control header
+        assert response.headers["cache-control"] == "no-cache"
+
+        # Verify PNG content
+        png_bytes = response.content
+        assert len(png_bytes) > 0
+
+        # Verify PNG signature
+        assert png_bytes[:8] == b'\x89PNG\r\n\x1a\n'
+
+    def test_export_png_300dpi_success(
+        self, sample_pattern_dict: dict
+    ) -> None:
+        """Test successful PNG export at 300 DPI."""
+        response = client.post(
+            "/api/v1/export/png?dpi=300", json=sample_pattern_dict
+        )
+
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "image/png"
+        assert "300dpi" in response.headers["content-disposition"]
+
+        # Verify PNG signature
+        png_bytes = response.content
+        assert png_bytes[:8] == b'\x89PNG\r\n\x1a\n'
+
+    def test_export_png_default_dpi(
+        self, sample_pattern_dict: dict
+    ) -> None:
+        """Test PNG export with default DPI (72)."""
+        response = client.post("/api/v1/export/png", json=sample_pattern_dict)
+
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "image/png"
+        assert "72dpi" in response.headers["content-disposition"]
+
+    def test_export_png_invalid_dpi(
+        self, sample_pattern_dict: dict
+    ) -> None:
+        """Test PNG export with invalid DPI returns 400."""
+        response = client.post(
+            "/api/v1/export/png?dpi=150", json=sample_pattern_dict
+        )
+
+        # Application validation catches this
+        assert response.status_code == 400
+
+    def test_export_png_invalid_pattern(self) -> None:
+        """Test PNG export with invalid PatternDSL returns 422."""
+        invalid_pattern = {
+            "shape": {"shape_type": "sphere"},  # Missing required fields
+            "gauge": {"stitches_per_cm": 1.4},  # Missing required fields
+            "rounds": [],  # Empty rounds (invalid)
+        }
+
+        response = client.post("/api/v1/export/png", json=invalid_pattern)
+        assert response.status_code == 422
+
+    def test_export_png_file_size_72dpi(
+        self, sample_pattern_dict: dict
+    ) -> None:
+        """Test PNG file size at 72 DPI is under 5 MB."""
+        response = client.post("/api/v1/export/png?dpi=72", json=sample_pattern_dict)
+
+        png_size_mb = len(response.content) / (1024 * 1024)
+        assert png_size_mb < 5.0
+
+    def test_export_png_file_size_300dpi(
+        self, sample_pattern_dict: dict
+    ) -> None:
+        """Test PNG file size at 300 DPI is under 5 MB."""
+        response = client.post("/api/v1/export/png?dpi=300", json=sample_pattern_dict)
+
+        png_size_mb = len(response.content) / (1024 * 1024)
+        assert png_size_mb < 5.0
+
+    def test_export_png_300dpi_larger_than_72dpi(
+        self, sample_pattern_dict: dict
+    ) -> None:
+        """Test 300 DPI PNG is larger than 72 DPI PNG."""
+        response_72 = client.post("/api/v1/export/png?dpi=72", json=sample_pattern_dict)
+        response_300 = client.post("/api/v1/export/png?dpi=300", json=sample_pattern_dict)
+
+        # 300 DPI should produce larger file
+        assert len(response_300.content) > len(response_72.content)
+
+    # =============================================================================
+    # Cross-Format SVG/PNG Tests
+    # =============================================================================
+
+    def test_export_all_formats_same_pattern(
+        self, sample_pattern_dict: dict
+    ) -> None:
+        """Test exporting same pattern to all formats (PDF, JSON, SVG, PNG)."""
+        # Export to PDF
+        pdf_response = client.post("/api/v1/export/pdf", json=sample_pattern_dict)
+        assert pdf_response.status_code == 200
+
+        # Export to JSON
+        json_response = client.post("/api/v1/export/json", json=sample_pattern_dict)
+        assert json_response.status_code == 200
+
+        # Export to SVG
+        svg_response = client.post("/api/v1/export/svg", json=sample_pattern_dict)
+        assert svg_response.status_code == 200
+
+        # Export to PNG
+        png_response = client.post("/api/v1/export/png", json=sample_pattern_dict)
+        assert png_response.status_code == 200
+
+        # All should succeed
+        assert len(pdf_response.content) > 0
+        assert len(json_response.json()["json"]) > 0
+        assert len(svg_response.content) > 0
+        assert len(png_response.content) > 0
+
+    def test_export_svg_png_workflow(
+        self, sample_pattern_dict: dict
+    ) -> None:
+        """Test SVG and PNG exports produce consistent results."""
+        # Export SVG
+        svg_response = client.post("/api/v1/export/svg", json=sample_pattern_dict)
+        assert svg_response.status_code == 200
+
+        # Export PNG (internally uses SVG)
+        png_response = client.post("/api/v1/export/png", json=sample_pattern_dict)
+        assert png_response.status_code == 200
+
+        # Both should succeed
+        svg_content = svg_response.content.decode("utf-8")
+        assert "<svg" in svg_content
+
+        png_bytes = png_response.content
+        assert png_bytes[:8] == b'\x89PNG\r\n\x1a\n'
+
+    # =============================================================================
+    # SVG/PNG Edge Cases
+    # =============================================================================
+
+    def test_export_svg_minimal_pattern(self) -> None:
+        """Test SVG export with minimal 1-round pattern."""
+        minimal_pattern = {
+            "shape": {"shape_type": "sphere", "diameter_cm": 5.0},
+            "gauge": {"stitches_per_cm": 1.4, "rows_per_cm": 1.6},
+            "rounds": [
+                {
+                    "round_number": 0,
+                    "stitches": [{"stitch_type": "sc", "count": 6}],
+                    "total_stitches": 6,
+                }
+            ],
+            "metadata": {
+                "generated_at": datetime.now().isoformat(),
+                "engine_version": "0.1.0",
+                "total_rounds": 1,
+            },
+        }
+
+        response = client.post("/api/v1/export/svg", json=minimal_pattern)
+        assert response.status_code == 200
+
+    def test_export_png_minimal_pattern(self) -> None:
+        """Test PNG export with minimal 1-round pattern."""
+        minimal_pattern = {
+            "shape": {"shape_type": "sphere", "diameter_cm": 5.0},
+            "gauge": {"stitches_per_cm": 1.4, "rows_per_cm": 1.6},
+            "rounds": [
+                {
+                    "round_number": 0,
+                    "stitches": [{"stitch_type": "sc", "count": 6}],
+                    "total_stitches": 6,
+                }
+            ],
+            "metadata": {
+                "generated_at": datetime.now().isoformat(),
+                "engine_version": "0.1.0",
+                "total_rounds": 1,
+            },
+        }
+
+        response = client.post("/api/v1/export/png", json=minimal_pattern)
+        assert response.status_code == 200
+
+    def test_export_svg_complex_cone_pattern(self) -> None:
+        """Test SVG export with complex cone pattern."""
+        cone_pattern = {
+            "shape": {
+                "shape_type": "cone",
+                "base_diameter_cm": 15.0,
+                "top_diameter_cm": 8.0,
+                "height_cm": 20.0,
+            },
+            "gauge": {
+                "stitches_per_cm": 1.4,
+                "rows_per_cm": 1.6,
+                "hook_size_mm": 3.5,
+                "yarn_weight": "DK",
+            },
+            "rounds": [
+                {
+                    "round_number": i,
+                    "stitches": [{"stitch_type": "sc", "count": 24 + (i * 2)}],
+                    "total_stitches": 24 + (i * 2),
+                }
+                for i in range(15)  # 15 rounds
+            ],
+            "metadata": {
+                "generated_at": datetime.now().isoformat(),
+                "engine_version": "0.1.0",
+                "total_rounds": 15,
+                "difficulty": "intermediate",
+            },
+        }
+
+        response = client.post("/api/v1/export/svg", json=cone_pattern)
+        assert response.status_code == 200
+
+    def test_export_png_complex_cone_pattern(self) -> None:
+        """Test PNG export with complex cone pattern."""
+        cone_pattern = {
+            "shape": {
+                "shape_type": "cone",
+                "base_diameter_cm": 15.0,
+                "top_diameter_cm": 8.0,
+                "height_cm": 20.0,
+            },
+            "gauge": {
+                "stitches_per_cm": 1.4,
+                "rows_per_cm": 1.6,
+                "hook_size_mm": 3.5,
+                "yarn_weight": "DK",
+            },
+            "rounds": [
+                {
+                    "round_number": i,
+                    "stitches": [{"stitch_type": "sc", "count": 24 + (i * 2)}],
+                    "total_stitches": 24 + (i * 2),
+                }
+                for i in range(15)  # 15 rounds
+            ],
+            "metadata": {
+                "generated_at": datetime.now().isoformat(),
+                "engine_version": "0.1.0",
+                "total_rounds": 15,
+                "difficulty": "intermediate",
+            },
+        }
+
+        response = client.post("/api/v1/export/png", json=cone_pattern)
+        assert response.status_code == 200

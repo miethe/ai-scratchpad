@@ -3,6 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types';
 import MainTabNavigator from './MainTabNavigator';
+import ParseScreen from '../screens/ParseScreen';
 import { VisualizationScreen } from '../screens/VisualizationScreen';
 import { ExportScreen } from '../screens/ExportScreen';
 
@@ -17,6 +18,14 @@ export default function RootNavigator() {
         }}
       >
         <Stack.Screen name="Main" component={MainTabNavigator} />
+        <Stack.Screen
+          name="Parse"
+          component={ParseScreen}
+          options={{
+            headerShown: true,
+            title: 'Parse Pattern',
+          }}
+        />
         <Stack.Screen
           name="Visualization"
           component={VisualizationScreen}

@@ -12,11 +12,31 @@ export const Legend: React.FC = () => {
   ];
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Legend</Text>
+    <View
+      style={styles.container}
+      accessible={true}
+      accessibilityRole="none"
+      accessibilityLabel="Stitch type legend"
+    >
+      <Text
+        style={styles.title}
+        accessibilityRole="header"
+        accessibilityLevel={3}
+      >
+        Legend
+      </Text>
       {legendItems.map((item, index) => (
-        <View key={index} style={styles.item} accessibilityLabel={`${item.label}: ${item.description}`}>
-          <View style={[styles.colorBox, { backgroundColor: item.color }]} />
+        <View
+          key={index}
+          style={styles.item}
+          accessible={true}
+          accessibilityRole="text"
+          accessibilityLabel={`${item.label}: ${item.description}`}
+        >
+          <View
+            style={[styles.colorBox, { backgroundColor: item.color }]}
+            accessible={false}
+          />
           <View style={styles.textContainer}>
             <Text style={styles.label}>{item.label}</Text>
             <Text style={styles.description}>{item.description}</Text>

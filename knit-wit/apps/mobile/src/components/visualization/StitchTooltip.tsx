@@ -39,11 +39,18 @@ export const StitchTooltip: React.FC<StitchTooltipProps> = ({
     const badgeText = highlight === 'increase' ? 'Increase' : 'Decrease';
 
     return (
-      <View style={[styles.badge, badgeStyle]}>
+      <View
+        style={[styles.badge, badgeStyle]}
+        accessible={false}
+      >
         <Text style={styles.badgeText}>{badgeText}</Text>
       </View>
     );
   };
+
+  const stitchName = getStitchName(node.stitch_type);
+  const highlightType = node.highlight === 'normal' ? '' : `, ${node.highlight}`;
+  const modalLabel = `Stitch details: ${stitchName}${highlightType}. Stitch ID: ${node.id}`;
 
   return (
     <Modal
@@ -52,25 +59,59 @@ export const StitchTooltip: React.FC<StitchTooltipProps> = ({
       animationType="fade"
       onRequestClose={onClose}
       accessibilityViewIsModal
+      accessible={true}
+      accessibilityLabel={modalLabel}
     >
       <TouchableOpacity
         style={styles.overlay}
         activeOpacity={1}
         onPress={onClose}
         accessibilityRole="button"
-        accessibilityLabel="Close tooltip"
+        accessibilityLabel="Close stitch details"
+        accessibilityHint="Tap anywhere to close this tooltip"
+        accessible={true}
       >
-        <View style={styles.tooltip}>
+        <View
+          style={styles.tooltip}
+          accessible={true}
+          accessibilityRole="none"
+          accessibilityLabel={modalLabel}
+        >
           <View style={styles.header}>
-            <Text style={styles.stitchType}>{node.stitch_type.toUpperCase()}</Text>
+            <Text
+              style={styles.stitchType}
+              accessible={true}
+              accessibilityRole="text"
+              accessibilityLabel={`Stitch type: ${node.stitch_type.toUpperCase()}`}
+            >
+              {node.stitch_type.toUpperCase()}
+            </Text>
             {getHighlightBadge(node.highlight)}
           </View>
 
-          <Text style={styles.stitchName}>{getStitchName(node.stitch_type)}</Text>
+          <Text
+            style={styles.stitchName}
+            accessible={true}
+            accessibilityRole="text"
+          >
+            {stitchName}
+          </Text>
 
-          <Text style={styles.nodeId}>{node.id}</Text>
+          <Text
+            style={styles.nodeId}
+            accessible={true}
+            accessibilityRole="text"
+            accessibilityLabel={`Stitch identifier: ${node.id}`}
+          >
+            {node.id}
+          </Text>
 
-          <View style={styles.positionContainer}>
+          <View
+            style={styles.positionContainer}
+            accessible={true}
+            accessibilityRole="text"
+            accessibilityLabel={`Position: ${node.position[0].toFixed(1)}, ${node.position[1].toFixed(1)}`}
+          >
             <Text style={styles.positionLabel}>Position:</Text>
             <Text style={styles.positionValue}>
               ({node.position[0].toFixed(1)}, {node.position[1].toFixed(1)})

@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
+  AccessibilityInfo,
 } from 'react-native';
 import { MainTabScreenProps } from '../types';
 import type { ShapeType, Units, Terminology } from '../types';
@@ -20,6 +21,21 @@ export default function GenerateScreen({ navigation }: Props) {
   const [height, setHeight] = useState('15');
   const [units, setUnits] = useState<Units>('cm');
   const [terminology, setTerminology] = useState<Terminology>('US');
+
+  const handleShapeChange = (newShape: ShapeType) => {
+    setShape(newShape);
+    AccessibilityInfo.announceForAccessibility(`Shape changed to ${newShape}`);
+  };
+
+  const handleUnitsChange = (newUnits: Units) => {
+    setUnits(newUnits);
+    AccessibilityInfo.announceForAccessibility(`Units changed to ${newUnits}`);
+  };
+
+  const handleTerminologyChange = (newTerminology: Terminology) => {
+    setTerminology(newTerminology);
+    AccessibilityInfo.announceForAccessibility(`Terminology changed to ${newTerminology}`);
+  };
 
   const handleGenerate = () => {
     // Placeholder for pattern generation
@@ -36,27 +52,47 @@ export default function GenerateScreen({ navigation }: Props) {
       style={styles.container}
       contentContainerStyle={styles.content}
       accessibilityLabel="Pattern generator screen"
+      accessible={true}
     >
       <View style={styles.header}>
         <Text style={styles.title} accessibilityRole="header">
           Generate Pattern
         </Text>
-        <Text style={styles.subtitle}>Configure your crochet pattern parameters</Text>
+        <Text
+          style={styles.subtitle}
+          accessible={true}
+          accessibilityRole="text"
+        >
+          Configure your crochet pattern parameters
+        </Text>
       </View>
 
       <View style={styles.form}>
         {/* Shape Selection */}
         <View style={styles.formSection}>
-          <Text style={styles.label}>Shape</Text>
-          <View style={styles.buttonGroup}>
+          <Text
+            style={styles.label}
+            accessibilityRole="header"
+            accessibilityLevel={2}
+          >
+            Shape
+          </Text>
+          <View
+            style={styles.buttonGroup}
+            accessible={true}
+            accessibilityRole="radiogroup"
+            accessibilityLabel="Shape selection"
+          >
             {(['sphere', 'cylinder', 'cone'] as ShapeType[]).map((s) => (
               <TouchableOpacity
                 key={s}
                 style={[styles.button, shape === s && styles.buttonActive]}
-                onPress={() => setShape(s)}
-                accessibilityRole="button"
-                accessibilityLabel={`Select ${s} shape`}
-                accessibilityState={{ selected: shape === s }}
+                onPress={() => handleShapeChange(s)}
+                accessibilityRole="radio"
+                accessibilityLabel={`${s.charAt(0).toUpperCase() + s.slice(1)} shape`}
+                accessibilityState={{ selected: shape === s, checked: shape === s }}
+                accessibilityHint={`Select ${s} shape for pattern`}
+                accessible={true}
               >
                 <Text style={[styles.buttonText, shape === s && styles.buttonTextActive]}>
                   {s.charAt(0).toUpperCase() + s.slice(1)}
@@ -68,7 +104,13 @@ export default function GenerateScreen({ navigation }: Props) {
 
         {/* Diameter Input */}
         <View style={styles.formSection}>
-          <Text style={styles.label}>Diameter</Text>
+          <Text
+            style={styles.label}
+            accessibilityRole="header"
+            accessibilityLevel={2}
+          >
+            Diameter
+          </Text>
           <View style={styles.inputRow}>
             <TextInput
               style={styles.input}
@@ -77,17 +119,26 @@ export default function GenerateScreen({ navigation }: Props) {
               keyboardType="decimal-pad"
               placeholder="10"
               accessibilityLabel="Diameter input"
-              accessibilityHint="Enter the diameter for your pattern"
+              accessibilityHint="Enter the diameter for your pattern in centimeters or inches"
+              accessibilityRole="none"
+              accessible={true}
             />
-            <View style={styles.unitToggle}>
+            <View
+              style={styles.unitToggle}
+              accessible={true}
+              accessibilityRole="radiogroup"
+              accessibilityLabel="Unit selection"
+            >
               {(['cm', 'in'] as Units[]).map((u) => (
                 <TouchableOpacity
                   key={u}
                   style={[styles.unitButton, units === u && styles.unitButtonActive]}
-                  onPress={() => setUnits(u)}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Set units to ${u}`}
-                  accessibilityState={{ selected: units === u }}
+                  onPress={() => handleUnitsChange(u)}
+                  accessibilityRole="radio"
+                  accessibilityLabel={`${u === 'cm' ? 'Centimeters' : 'Inches'}`}
+                  accessibilityState={{ selected: units === u, checked: units === u }}
+                  accessibilityHint={`Set units to ${u === 'cm' ? 'centimeters' : 'inches'}`}
+                  accessible={true}
                 >
                   <Text style={[styles.unitText, units === u && styles.unitTextActive]}>{u}</Text>
                 </TouchableOpacity>
@@ -99,7 +150,13 @@ export default function GenerateScreen({ navigation }: Props) {
         {/* Height Input (for cylinder/cone) */}
         {(shape === 'cylinder' || shape === 'cone') && (
           <View style={styles.formSection}>
-            <Text style={styles.label}>Height</Text>
+            <Text
+              style={styles.label}
+              accessibilityRole="header"
+              accessibilityLevel={2}
+            >
+              Height
+            </Text>
             <View style={styles.inputRow}>
               <TextInput
                 style={styles.input}
@@ -108,7 +165,9 @@ export default function GenerateScreen({ navigation }: Props) {
                 keyboardType="decimal-pad"
                 placeholder="15"
                 accessibilityLabel="Height input"
-                accessibilityHint="Enter the height for your pattern"
+                accessibilityHint={`Enter the height for your ${shape} pattern`}
+                accessibilityRole="none"
+                accessible={true}
               />
             </View>
           </View>
@@ -116,16 +175,29 @@ export default function GenerateScreen({ navigation }: Props) {
 
         {/* Terminology Toggle */}
         <View style={styles.formSection}>
-          <Text style={styles.label}>Crochet Terminology</Text>
-          <View style={styles.buttonGroup}>
+          <Text
+            style={styles.label}
+            accessibilityRole="header"
+            accessibilityLevel={2}
+          >
+            Crochet Terminology
+          </Text>
+          <View
+            style={styles.buttonGroup}
+            accessible={true}
+            accessibilityRole="radiogroup"
+            accessibilityLabel="Terminology selection"
+          >
             {(['US', 'UK'] as Terminology[]).map((term) => (
               <TouchableOpacity
                 key={term}
                 style={[styles.button, terminology === term && styles.buttonActive]}
-                onPress={() => setTerminology(term)}
-                accessibilityRole="button"
-                accessibilityLabel={`Set terminology to ${term}`}
-                accessibilityState={{ selected: terminology === term }}
+                onPress={() => handleTerminologyChange(term)}
+                accessibilityRole="radio"
+                accessibilityLabel={`${term} terminology`}
+                accessibilityState={{ selected: terminology === term, checked: terminology === term }}
+                accessibilityHint={`Use ${term} crochet terminology`}
+                accessible={true}
               >
                 <Text style={[styles.buttonText, terminology === term && styles.buttonTextActive]}>
                   {term}
@@ -141,7 +213,8 @@ export default function GenerateScreen({ navigation }: Props) {
           onPress={handleGenerate}
           accessibilityRole="button"
           accessibilityLabel="Generate pattern"
-          accessibilityHint="Creates a pattern with the specified parameters"
+          accessibilityHint="Creates a crochet pattern with the specified parameters and navigates to visualization"
+          accessible={true}
         >
           <Text style={styles.generateButtonText}>Generate Pattern</Text>
         </TouchableOpacity>

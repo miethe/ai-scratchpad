@@ -3,7 +3,7 @@
 from fastapi import APIRouter
 
 from app.core import settings
-from app.api.v1.endpoints import visualization, parser, export
+from app.api.v1.endpoints import visualization, parser, export, telemetry
 
 # Create main v1 router
 api_router = APIRouter()
@@ -12,5 +12,6 @@ api_router = APIRouter()
 api_router.include_router(visualization.router)
 api_router.include_router(parser.router)
 api_router.include_router(export.router)
+api_router.include_router(telemetry.router)
 
 __all__ = ["api_router"]
