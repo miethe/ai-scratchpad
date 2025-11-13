@@ -16,11 +16,7 @@ if str(pattern_engine_path) not in sys.path:
     sys.path.insert(0, str(pattern_engine_path))
 
 from app.services.parser_service import PatternParserService, ParserError
-from knit_wit_engine.models.dsl import (
-    PatternParseDSL,
-    RoundDSL,
-    OpDSL,
-)
+from knit_wit_engine.models.dsl import PatternParseDSL
 
 
 @pytest.fixture
