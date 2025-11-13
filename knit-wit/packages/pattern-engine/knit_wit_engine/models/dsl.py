@@ -208,3 +208,212 @@ class PatternDSL(BaseModel):
     def from_json(cls, json_str: str) -> "PatternDSL":
         """Create pattern from JSON string."""
         return cls.model_validate_json(json_str)
+
+
+# =============================================================================
+# Parsing DSL Models (Simplified format for text pattern parsing)
+# =============================================================================
+
+
+class OpDSL(BaseModel):
+    """
+    Simplified operation model for text pattern parsing.
+
+    Represents a single operation or sequence of operations within a round.
+    Used by the pattern parser for bracket/repeat grammar.
+
+    Examples:
+        - {"op": "sc", "count": 6} - 6 single crochet stitches
+        - {"op": "inc", "count": 1} - 1 increase
+        - {"op": "seq", "ops": [...], "repeat": 6} - sequence repeated 6 times
+    """
+
+    model_config = ConfigDict(frozen=False, validate_assignment=True)
+
+    op: str = Field(
+        ...,
+        description="Operation type (sc, inc, dec, MR, seq, etc.)",
+        examples=["sc", "inc", "dec", "MR", "seq"]
+    )
+    count: int = Field(
+        default=1,
+        ge=0,
+        description="Number of stitches produced by this operation (0 for MR)"
+    )
+    ops: Optional[List["OpDSL"]] = Field(
+        default=None,
+        description="Child operations for sequence operations (op='seq')"
+    )
+    repeat: Optional[int] = Field(
+        default=None,
+        ge=1,
+        description="Number of times to repeat sequence (for op='seq')"
+    )
+
+
+class RoundDSL(BaseModel):
+    """
+    Simplified round model for text pattern parsing.
+
+    Represents a single round with its operations and expected stitch count.
+    Used by the pattern parser for bracket/repeat grammar.
+
+    Examples:
+        - Round 1: MR 6 sc (6)
+          {"r": 1, "ops": [{"op": "MR", "count": 1}, {"op": "sc", "count": 6}], "stitches": 6}
+        - Round 3: [2 sc, inc] x6 (18)
+          {"r": 3, "ops": [{"op": "seq", "ops": [...], "repeat": 6, "count": 18}], "stitches": 18}
+    """
+
+    model_config = ConfigDict(frozen=False, validate_assignment=True)
+
+    r: int = Field(
+        ...,
+        ge=1,
+        description="Round number (1-indexed)"
+    )
+    ops: List[OpDSL] = Field(
+        ...,
+        description="List of operations for this round"
+    )
+    stitches: int = Field(
+        ...,
+        ge=1,
+        description="Expected total stitch count after completing this round"
+    )
+
+
+class MetaDSL(BaseModel):
+    """
+    Metadata for parsed patterns.
+
+    Contains information about pattern terminology, stitch types, and gauge.
+    """
+
+    model_config = ConfigDict(frozen=False, validate_assignment=True)
+
+    version: str = Field(
+        default="0.1",
+        description="DSL version"
+    )
+    units: Literal["cm", "in"] = Field(
+        default="cm",
+        description="Unit system (metric or imperial)"
+    )
+    terms: Literal["US", "UK"] = Field(
+        default="US",
+        description="Terminology (US or UK crochet terms)"
+    )
+    stitch: str = Field(
+        default="sc",
+        description="Primary stitch type"
+    )
+    round_mode: Literal["spiral", "joined"] = Field(
+        default="spiral",
+        description="Round construction mode"
+    )
+    gauge: Optional[Dict[str, float]] = Field(
+        default=None,
+        description="Gauge information (sts_per_10cm, rows_per_10cm)"
+    )
+
+
+class ObjectDSL(BaseModel):
+    """
+    Object/shape definition for parsed patterns.
+
+    Describes the geometric shape being crocheted.
+    """
+
+    model_config = ConfigDict(frozen=False, validate_assignment=True, extra="allow")
+
+    type: str = Field(
+        ...,
+        description="Shape type (sphere, cylinder, cone, unknown, etc.)"
+    )
+    params: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="Shape-specific parameters (diameter, height, etc.)"
+    )
+
+
+class PatternParseDSL(BaseModel):
+    """
+    Complete parsed pattern representation.
+
+    This is a simplified DSL format specifically designed for text pattern parsing.
+    It uses bracket/repeat grammar and is more lightweight than PatternDSL.
+
+    Example:
+        ```json
+        {
+          "meta": {
+            "version": "0.1",
+            "terms": "US",
+            "stitch": "sc"
+          },
+          "object": {
+            "type": "unknown",
+            "params": {}
+          },
+          "rounds": [
+            {
+              "r": 1,
+              "ops": [{"op": "MR", "count": 1}, {"op": "sc", "count": 6}],
+              "stitches": 6
+            }
+          ],
+          "materials": {
+            "hook_size_mm": 4.0,
+            "yardage_estimate": 25
+          },
+          "notes": []
+        }
+        ```
+    """
+
+    model_config = ConfigDict(frozen=False, validate_assignment=True)
+
+    meta: MetaDSL = Field(
+        ...,
+        description="Pattern metadata"
+    )
+    object: ObjectDSL = Field(
+        ...,
+        description="Shape/object definition",
+        alias="object"
+    )
+    rounds: List[RoundDSL] = Field(
+        ...,
+        description="List of rounds with operations"
+    )
+    materials: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="Materials information (hook size, yardage, etc.)"
+    )
+    notes: List[str] = Field(
+        default_factory=list,
+        description="Pattern notes and instructions"
+    )
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert pattern to dictionary for JSON serialization."""
+        return self.model_dump(mode="json", by_alias=True)
+
+    def to_json(self) -> str:
+        """Convert pattern to JSON string."""
+        return self.model_dump_json(indent=2, by_alias=True)
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "PatternParseDSL":
+        """Create pattern from dictionary."""
+        return cls.model_validate(data)
+
+    @classmethod
+    def from_json(cls, json_str: str) -> "PatternParseDSL":
+        """Create pattern from JSON string."""
+        return cls.model_validate_json(json_str)
+
+
+# Enable forward references for recursive OpDSL model
+OpDSL.model_rebuild()

@@ -1,5 +1,5 @@
 """API v1 endpoint modules."""
 
-from app.api.v1.endpoints import visualization
+from app.api.v1.endpoints import visualization, parser
 
-__all__ = ["visualization"]
+__all__ = ["visualization", "parser"]

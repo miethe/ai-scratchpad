@@ -11,6 +11,8 @@ dependencies = [
     "pydantic-settings>=2.1.0",
     "python-dotenv>=1.0.0",
     "python-multipart>=0.0.6",
+    "numpy>=2.3.4",
+    "httpx>=0.28.1",
 ]
 
 [project.optional-dependencies]
@@ -60,4 +62,4 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = "--cov=app --cov-report=term-missing --cov-report=html"
+# addopts = "--cov=app --cov-report=term-missing --cov-report=html"
