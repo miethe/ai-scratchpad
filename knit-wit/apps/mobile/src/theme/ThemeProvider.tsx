@@ -2,7 +2,7 @@ import React, { createContext, useContext, useMemo } from 'react';
 import type { ReactNode } from 'react';
 import { useSettingsStore } from '../stores/useSettingsStore';
 import type { Theme } from './types';
-import { defaultTheme, kidModeTheme, darkModeTheme, kidModeDarkTheme } from './themes';
+import { createTheme } from './themes';
 
 interface ThemeContextValue {
   theme: Theme;
@@ -15,20 +15,14 @@ export interface ThemeProviderProps {
 }
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
-  const { kidMode, darkMode } = useSettingsStore();
+  const { kidMode, darkMode, dyslexiaFont } = useSettingsStore();
 
   const theme = useMemo(() => {
-    if (kidMode && darkMode) {
-      return kidModeDarkTheme;
-    }
-    if (kidMode) {
-      return kidModeTheme;
-    }
-    if (darkMode) {
-      return darkModeTheme;
-    }
-    return defaultTheme;
-  }, [kidMode, darkMode]);
+    return createTheme({
+      mode: kidMode && darkMode ? 'kidModeDark' : kidMode ? 'kidMode' : darkMode ? 'darkMode' : 'default',
+      useDyslexiaFont: dyslexiaFont,
+    });
+  }, [kidMode, darkMode, dyslexiaFont]);
 
   const value = useMemo(() => ({ theme }), [theme]);
 

@@ -8,6 +8,7 @@ interface SettingsState {
   // Appearance
   kidMode: boolean;
   darkMode: boolean;
+  dyslexiaFont: boolean;
 
   // Pattern defaults
   defaultUnits: Units;
@@ -19,6 +20,7 @@ interface SettingsState {
   // Actions
   setKidMode: (enabled: boolean) => void;
   setDarkMode: (enabled: boolean) => void;
+  setDyslexiaFont: (enabled: boolean) => void;
   setDefaultUnits: (units: Units) => void;
   setDefaultTerminology: (terminology: Terminology) => void;
   _setHasHydrated: (hasHydrated: boolean) => void;
@@ -27,6 +29,7 @@ interface SettingsState {
 interface PersistedSettings {
   kidMode: boolean;
   darkMode: boolean;
+  dyslexiaFont: boolean;
   defaultUnits: Units;
   defaultTerminology: Terminology;
 }
@@ -34,6 +37,7 @@ interface PersistedSettings {
 const defaultSettings: PersistedSettings = {
   kidMode: false,
   darkMode: false,
+  dyslexiaFont: false,
   defaultUnits: 'cm',
   defaultTerminology: 'US',
 };
@@ -66,23 +70,28 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   // Actions
   setKidMode: (enabled) => {
     set({ kidMode: enabled });
-    const { kidMode, darkMode, defaultUnits, defaultTerminology } = get();
-    saveSettings({ kidMode, darkMode, defaultUnits, defaultTerminology });
+    const { kidMode, darkMode, dyslexiaFont, defaultUnits, defaultTerminology } = get();
+    saveSettings({ kidMode, darkMode, dyslexiaFont, defaultUnits, defaultTerminology });
   },
   setDarkMode: (enabled) => {
     set({ darkMode: enabled });
-    const { kidMode, darkMode, defaultUnits, defaultTerminology } = get();
-    saveSettings({ kidMode, darkMode, defaultUnits, defaultTerminology });
+    const { kidMode, darkMode, dyslexiaFont, defaultUnits, defaultTerminology } = get();
+    saveSettings({ kidMode, darkMode, dyslexiaFont, defaultUnits, defaultTerminology });
+  },
+  setDyslexiaFont: (enabled) => {
+    set({ dyslexiaFont: enabled });
+    const { kidMode, darkMode, dyslexiaFont, defaultUnits, defaultTerminology } = get();
+    saveSettings({ kidMode, darkMode, dyslexiaFont, defaultUnits, defaultTerminology });
   },
   setDefaultUnits: (units) => {
     set({ defaultUnits: units });
-    const { kidMode, darkMode, defaultUnits, defaultTerminology } = get();
-    saveSettings({ kidMode, darkMode, defaultUnits, defaultTerminology });
+    const { kidMode, darkMode, dyslexiaFont, defaultUnits, defaultTerminology } = get();
+    saveSettings({ kidMode, darkMode, dyslexiaFont, defaultUnits, defaultTerminology });
   },
   setDefaultTerminology: (terminology) => {
     set({ defaultTerminology: terminology });
-    const { kidMode, darkMode, defaultUnits, defaultTerminology } = get();
-    saveSettings({ kidMode, darkMode, defaultUnits, defaultTerminology });
+    const { kidMode, darkMode, dyslexiaFont, defaultUnits, defaultTerminology } = get();
+    saveSettings({ kidMode, darkMode, dyslexiaFont, defaultUnits, defaultTerminology });
   },
   _setHasHydrated: (hasHydrated) => set({ _hasHydrated: hasHydrated }),
 }));

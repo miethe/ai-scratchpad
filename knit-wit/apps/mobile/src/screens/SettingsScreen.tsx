@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Switch, TouchableOpacity, AccessibilityInfo } from 'react-native';
 import { MainTabScreenProps } from '../types';
 import { colors, typography, spacing, shadows, touchTargets } from '../theme';
 import { useSettingsStore } from '../stores/useSettingsStore';
+import { telemetryClient } from '../services/telemetryClient';
 
 type Props = MainTabScreenProps<'Settings'>;
 
@@ -10,13 +11,23 @@ export default function SettingsScreen({ navigation }: Props) {
   const {
     kidMode,
     darkMode,
+    dyslexiaFont,
     defaultUnits,
     defaultTerminology,
     setKidMode,
     setDarkMode,
+    setDyslexiaFont,
     setDefaultUnits,
     setDefaultTerminology,
   } = useSettingsStore();
+
+  const [telemetryEnabled, setTelemetryEnabled] = useState(false);
+
+  // Load telemetry consent on mount
+  useEffect(() => {
+    const consent = telemetryClient.getConsent();
+    setTelemetryEnabled(consent);
+  }, []);
 
   const handleKidModeToggle = (value: boolean) => {
     setKidMode(value);
@@ -33,6 +44,15 @@ export default function SettingsScreen({ navigation }: Props) {
       value
         ? 'Dark Mode turned on'
         : 'Dark Mode turned off'
+    );
+  };
+
+  const handleDyslexiaFontToggle = (value: boolean) => {
+    setDyslexiaFont(value);
+    AccessibilityInfo.announceForAccessibility(
+      value
+        ? (kidMode ? 'Easier reading font turned on' : 'Dyslexia-friendly font enabled')
+        : (kidMode ? 'Easier reading font turned off' : 'Dyslexia-friendly font disabled')
     );
   };
 
@@ -53,6 +73,18 @@ export default function SettingsScreen({ navigation }: Props) {
       kidMode
         ? `Size changed to ${value ? 'centimeters' : 'inches'}`
         : `Units changed to ${value ? 'metric centimeters' : 'imperial inches'}`
+    );
+  };
+
+  const handleTelemetryToggle = async (value: boolean) => {
+    setTelemetryEnabled(value);
+    await telemetryClient.setConsent(value);
+
+    // Announce to screen reader
+    AccessibilityInfo.announceForAccessibility(
+      value
+        ? (kidMode ? 'Sharing turned on' : 'Telemetry enabled')
+        : (kidMode ? 'Sharing turned off' : 'Telemetry disabled')
     );
   };
 
@@ -110,6 +142,18 @@ export default function SettingsScreen({ navigation }: Props) {
           onValueChange={handleDarkModeToggle}
           testID="dark-mode-toggle"
         />
+
+        <SettingRow
+          label={kidMode ? 'Easier Reading Font' : 'Dyslexia-Friendly Font'}
+          description={
+            kidMode
+              ? 'Use a special font that makes reading easier'
+              : 'Use OpenDyslexic font for improved readability'
+          }
+          value={dyslexiaFont}
+          onValueChange={handleDyslexiaFontToggle}
+          testID="dyslexia-font-toggle"
+        />
       </View>
 
       <View style={styles.section}>
@@ -143,6 +187,28 @@ export default function SettingsScreen({ navigation }: Props) {
           value={defaultUnits === 'cm'}
           onValueChange={handleUnitsToggle}
           testID="metric-units-toggle"
+        />
+      </View>
+
+      <View style={styles.section}>
+        <Text
+          style={styles.sectionTitle}
+          accessibilityRole="header"
+          accessibilityLevel={2}
+        >
+          Privacy
+        </Text>
+
+        <SettingRow
+          label={kidMode ? 'Share Usage Data' : 'Share Usage Data'}
+          description={
+            kidMode
+              ? 'Help us make the app better by sharing how you use it. No personal information is collected.'
+              : 'Help us improve Knit-Wit by sharing anonymous usage data. No personal information is collected.'
+          }
+          value={telemetryEnabled}
+          onValueChange={handleTelemetryToggle}
+          testID="telemetry-toggle"
         />
       </View>
 

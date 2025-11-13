@@ -1,9 +1,22 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import SettingsScreen from '../../src/screens/SettingsScreen';
 import { useSettingsStore } from '../../src/stores/useSettingsStore';
+import { telemetryClient } from '../../src/services/telemetryClient';
+
+jest.mock('@react-native-async-storage/async-storage', () => ({
+  getItem: jest.fn(),
+  setItem: jest.fn(),
+}));
 
 jest.mock('../../src/stores/useSettingsStore');
+jest.mock('../../src/services/telemetryClient', () => ({
+  telemetryClient: {
+    getConsent: jest.fn(),
+    setConsent: jest.fn(),
+  },
+}));
 
 const mockNavigation = {
   navigate: jest.fn(),
@@ -19,10 +32,12 @@ describe('SettingsScreen', () => {
   const defaultStoreValues = {
     kidMode: false,
     darkMode: false,
+    dyslexiaFont: false,
     defaultUnits: 'cm' as const,
     defaultTerminology: 'US' as const,
     setKidMode: jest.fn(),
     setDarkMode: jest.fn(),
+    setDyslexiaFont: jest.fn(),
     setDefaultUnits: jest.fn(),
     setDefaultTerminology: jest.fn(),
     _hasHydrated: true,
@@ -32,6 +47,9 @@ describe('SettingsScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseSettingsStore.mockReturnValue(defaultStoreValues);
+    (telemetryClient.getConsent as jest.Mock).mockReturnValue(false);
+    (AsyncStorage.getItem as jest.Mock).mockResolvedValue(null);
+    (AsyncStorage.setItem as jest.Mock).mockResolvedValue(undefined);
   });
 
   it('renders correctly', () => {
@@ -41,6 +59,7 @@ describe('SettingsScreen', () => {
     expect(getByText('Customize your Knit-Wit experience')).toBeTruthy();
     expect(getByText('Appearance')).toBeTruthy();
     expect(getByText('Pattern Defaults')).toBeTruthy();
+    expect(getByText('Privacy')).toBeTruthy();
     expect(getByText('About')).toBeTruthy();
   });
 
@@ -82,6 +101,57 @@ describe('SettingsScreen', () => {
     expect(getByText('Metric Units (cm)')).toBeTruthy();
     expect(getByText('Use metric units (turn off for imperial/inches)')).toBeTruthy();
     expect(getByTestId('metric-units-toggle')).toBeTruthy();
+  });
+
+  it('displays telemetry toggle', () => {
+    const { getByText, getByTestId } = render(
+      <SettingsScreen navigation={mockNavigation} route={{} as any} />
+    );
+
+    expect(getByText('Share Usage Data')).toBeTruthy();
+    expect(getByText('Help us improve Knit-Wit by sharing anonymous usage data. No personal information is collected.')).toBeTruthy();
+    expect(getByTestId('telemetry-toggle')).toBeTruthy();
+  });
+
+  it('loads telemetry consent state on mount', async () => {
+    (telemetryClient.getConsent as jest.Mock).mockReturnValue(true);
+
+    const { getByTestId } = render(<SettingsScreen navigation={mockNavigation} route={{} as any} />);
+
+    await waitFor(() => {
+      expect(telemetryClient.getConsent).toHaveBeenCalled();
+      expect(getByTestId('telemetry-toggle').props.value).toBe(true);
+    });
+  });
+
+  it('displays telemetry toggle with current consent state', async () => {
+    (telemetryClient.getConsent as jest.Mock).mockReturnValue(false);
+
+    const { getByTestId } = render(<SettingsScreen navigation={mockNavigation} route={{} as any} />);
+
+    await waitFor(() => {
+      expect(getByTestId('telemetry-toggle').props.value).toBe(false);
+    });
+  });
+
+  it('calls telemetryClient.setConsent when toggle is changed', async () => {
+    const { getByTestId } = render(<SettingsScreen navigation={mockNavigation} route={{} as any} />);
+
+    const toggle = getByTestId('telemetry-toggle');
+
+    // Enable telemetry
+    fireEvent(toggle, 'onValueChange', true);
+
+    await waitFor(() => {
+      expect(telemetryClient.setConsent).toHaveBeenCalledWith(true);
+    });
+
+    // Disable telemetry
+    fireEvent(toggle, 'onValueChange', false);
+
+    await waitFor(() => {
+      expect(telemetryClient.setConsent).toHaveBeenCalledWith(false);
+    });
   });
 
   it('calls setKidMode when Kid Mode toggle is pressed', () => {
@@ -197,5 +267,17 @@ describe('SettingsScreen', () => {
     expect(getByLabelText('Dark Mode toggle')).toBeTruthy();
     expect(getByLabelText('US Terminology toggle')).toBeTruthy();
     expect(getByLabelText('Metric Units (cm) toggle')).toBeTruthy();
+    expect(getByLabelText('Share Usage Data toggle')).toBeTruthy();
+  });
+
+  it('displays kid-friendly copy in Kid Mode', () => {
+    mockUseSettingsStore.mockReturnValue({
+      ...defaultStoreValues,
+      kidMode: true,
+    });
+
+    const { getByText } = render(<SettingsScreen navigation={mockNavigation} route={{} as any} />);
+
+    expect(getByText('Help us make the app better by sharing how you use it. No personal information is collected.')).toBeTruthy();
   });
 });

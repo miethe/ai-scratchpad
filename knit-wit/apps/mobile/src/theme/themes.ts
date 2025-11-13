@@ -1,26 +1,8 @@
-import { Platform } from 'react-native';
-import type { Theme, ThemeColors, ThemeTypography, ThemeShadows } from './types';
+import type { Theme, ThemeColors, ThemeShadows, ThemeMode } from './types';
+import { createTypography } from './typography';
 
 // Import the comprehensive Kid Mode theme
-import { kidModeTheme } from './kidModeTheme';
-
-const fontFamily = {
-  regular: Platform.select({
-    ios: 'System',
-    android: 'Roboto',
-    default: 'System',
-  }),
-  medium: Platform.select({
-    ios: 'System',
-    android: 'Roboto-Medium',
-    default: 'System',
-  }),
-  bold: Platform.select({
-    ios: 'System',
-    android: 'Roboto-Bold',
-    default: 'System',
-  }),
-};
+import { kidModeTheme as baseKidModeTheme } from './kidModeTheme';
 
 const defaultColors: ThemeColors = {
   // Primary palette
@@ -119,99 +101,6 @@ const kidModeDarkColors: ThemeColors = {
   surfaceSecondary: '#3D3128',
 };
 
-const baseTypography: ThemeTypography = {
-  displayLarge: {
-    fontFamily: fontFamily.bold,
-    fontSize: 57,
-    lineHeight: 64,
-    fontWeight: '700',
-  },
-  displayMedium: {
-    fontFamily: fontFamily.bold,
-    fontSize: 45,
-    lineHeight: 52,
-    fontWeight: '700',
-  },
-  displaySmall: {
-    fontFamily: fontFamily.bold,
-    fontSize: 36,
-    lineHeight: 44,
-    fontWeight: '700',
-  },
-  headlineLarge: {
-    fontFamily: fontFamily.bold,
-    fontSize: 32,
-    lineHeight: 40,
-    fontWeight: '700',
-  },
-  headlineMedium: {
-    fontFamily: fontFamily.bold,
-    fontSize: 28,
-    lineHeight: 36,
-    fontWeight: '700',
-  },
-  headlineSmall: {
-    fontFamily: fontFamily.bold,
-    fontSize: 24,
-    lineHeight: 32,
-    fontWeight: '700',
-  },
-  titleLarge: {
-    fontFamily: fontFamily.medium,
-    fontSize: 22,
-    lineHeight: 28,
-    fontWeight: '600',
-  },
-  titleMedium: {
-    fontFamily: fontFamily.medium,
-    fontSize: 16,
-    lineHeight: 24,
-    fontWeight: '600',
-  },
-  titleSmall: {
-    fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: '600',
-  },
-  bodyLarge: {
-    fontFamily: fontFamily.regular,
-    fontSize: 16,
-    lineHeight: 24,
-    fontWeight: '400',
-  },
-  bodyMedium: {
-    fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: '400',
-  },
-  bodySmall: {
-    fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
-    fontWeight: '400',
-  },
-  labelLarge: {
-    fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: '500',
-  },
-  labelMedium: {
-    fontFamily: fontFamily.medium,
-    fontSize: 12,
-    lineHeight: 16,
-    fontWeight: '500',
-  },
-  labelSmall: {
-    fontFamily: fontFamily.medium,
-    fontSize: 11,
-    lineHeight: 16,
-    fontWeight: '500',
-  },
-};
-
 const baseShadows: ThemeShadows = {
   sm: {
     shadowColor: '#000',
@@ -274,51 +163,79 @@ const darkShadows: ThemeShadows = {
   },
 };
 
-export const defaultTheme: Theme = {
-  colors: defaultColors,
-  typography: baseTypography,
-  spacing: {
-    xs: 4,
-    sm: 8,
-    md: 16,
-    lg: 24,
-    xl: 32,
-    xxl: 48,
-    xxxl: 64,
-  },
-  borderRadius: {
-    none: 0,
-    sm: 4,
-    md: 8,
-    lg: 12,
-    xl: 16,
-    xxl: 24,
-    full: 9999,
-  },
-  touchTargets: {
-    minimum: 44,
-    comfortable: 48,
-    kidMode: 56,
-  },
-  shadows: baseShadows,
-};
+/**
+ * Create a theme based on mode and dyslexia font preference
+ */
+export function createTheme(options: {
+  mode: ThemeMode;
+  useDyslexiaFont?: boolean;
+}): Theme {
+  const { mode, useDyslexiaFont = false } = options;
+  const typography = createTypography(useDyslexiaFont);
 
-// Kid Mode theme is now imported from dedicated file
-// See kidModeTheme.ts for comprehensive design documentation
-export { kidModeTheme };
+  const baseTheme: Theme = {
+    colors: defaultColors,
+    typography,
+    spacing: {
+      xs: 4,
+      sm: 8,
+      md: 16,
+      lg: 24,
+      xl: 32,
+      xxl: 48,
+      xxxl: 64,
+    },
+    borderRadius: {
+      none: 0,
+      sm: 4,
+      md: 8,
+      lg: 12,
+      xl: 16,
+      xxl: 24,
+      full: 9999,
+    },
+    touchTargets: {
+      minimum: 44,
+      comfortable: 48,
+      kidMode: 56,
+    },
+    shadows: baseShadows,
+  };
 
-export const darkModeTheme: Theme = {
-  ...defaultTheme,
-  colors: darkModeColors,
-  shadows: darkShadows,
-};
+  switch (mode) {
+    case 'kidMode':
+      return {
+        ...baseTheme,
+        colors: baseKidModeTheme.colors,
+        spacing: baseKidModeTheme.spacing,
+        borderRadius: baseKidModeTheme.borderRadius,
+        touchTargets: baseKidModeTheme.touchTargets,
+      };
 
-export const kidModeDarkTheme: Theme = {
-  ...defaultTheme,
-  colors: kidModeDarkColors,
-  typography: kidModeTheme.typography, // Use Kid Mode typography from dedicated theme
-  spacing: kidModeTheme.spacing,       // Use Kid Mode spacing
-  borderRadius: kidModeTheme.borderRadius, // Use Kid Mode border radius
-  touchTargets: kidModeTheme.touchTargets, // Use Kid Mode touch targets
-  shadows: darkShadows,
-};
+    case 'darkMode':
+      return {
+        ...baseTheme,
+        colors: darkModeColors,
+        shadows: darkShadows,
+      };
+
+    case 'kidModeDark':
+      return {
+        ...baseTheme,
+        colors: kidModeDarkColors,
+        spacing: baseKidModeTheme.spacing,
+        borderRadius: baseKidModeTheme.borderRadius,
+        touchTargets: baseKidModeTheme.touchTargets,
+        shadows: darkShadows,
+      };
+
+    default:
+      return baseTheme;
+  }
+}
+
+// Legacy theme exports for backward compatibility
+export const defaultTheme = createTheme({ mode: 'default' });
+export const kidModeTheme = createTheme({ mode: 'kidMode' });
+export const darkModeTheme = createTheme({ mode: 'darkMode' });
+export const kidModeDarkTheme = createTheme({ mode: 'kidModeDark' });
