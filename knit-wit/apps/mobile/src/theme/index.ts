@@ -1,3 +1,4 @@
+// Legacy exports for backward compatibility
 export { colors, type ColorKey } from './colors';
 export { typography, type TypographyStyle } from './typography';
 export {
@@ -43,3 +44,17 @@ export const shadows = {
 } as const;
 
 export type ShadowSize = keyof typeof shadows;
+
+// New theme system exports
+export { ThemeProvider, useTheme } from './ThemeProvider';
+export { defaultTheme, kidModeTheme, darkModeTheme, kidModeDarkTheme } from './themes';
+export type {
+  Theme,
+  ThemeMode,
+  ThemeColors,
+  ThemeTypography,
+  ThemeSpacing,
+  ThemeBorderRadius,
+  ThemeTouchTargets,
+  ThemeShadows,
+} from './types';
