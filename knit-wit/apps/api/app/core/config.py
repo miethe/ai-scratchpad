@@ -44,8 +44,20 @@ class Settings(BaseSettings):
     # API configuration
     api_v1_prefix: str = Field(default="/api/v1", description="API v1 route prefix")
 
-    # Logging
+    # Logging configuration
     log_level: str = Field(default="INFO", description="Logging level")
+    log_dir: str = Field(
+        default="logs/telemetry",
+        description="Directory for log files"
+    )
+    log_retention_days: int = Field(
+        default=90,
+        description="Number of days to retain log files"
+    )
+    log_enable_console: bool = Field(
+        default=True,
+        description="Enable console logging (in addition to file logging)"
+    )
 
     model_config = SettingsConfigDict(
         env_file=".env",

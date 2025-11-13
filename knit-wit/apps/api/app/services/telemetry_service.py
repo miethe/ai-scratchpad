@@ -3,6 +3,12 @@ Telemetry Service for Knit-Wit API
 
 Provides privacy-respecting anonymous event tracking with NO PII.
 All events are logged as structured JSON for later analysis.
+
+Logging is configured with:
+- Daily rotation (TimedRotatingFileHandler)
+- 90-day retention policy
+- Structured JSON output
+- Request correlation IDs for tracing
 """
 
 import logging
@@ -12,7 +18,8 @@ from typing import Dict, Any, Set, Optional
 from enum import Enum
 
 
-# Configure structured JSON logger
+# Use the configured structured JSON logger
+# Logger is configured via app.core.logging_config.init_logging() at startup
 logger = logging.getLogger("knit_wit.telemetry")
 
 
@@ -139,7 +146,7 @@ class TelemetryService:
                 "properties": safe_properties,
             }
 
-            # Log as structured JSON
+            # Log as structured JSON (compatible with existing tests and logging rotation)
             logger.info(json.dumps(log_entry))
 
         except TelemetryError:

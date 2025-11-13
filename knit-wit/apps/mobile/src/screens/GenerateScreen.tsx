@@ -14,6 +14,7 @@ import type { ShapeType, Units, Terminology } from '../types';
 import { colors, typography, spacing, shadows, touchTargets } from '../theme';
 import { useSettingsStore } from '../stores/useSettingsStore';
 import { SimplifiedButton, SimplifiedCard } from '../components/kidmode';
+import { telemetryClient } from '../services/telemetryClient';
 
 type Props = MainTabScreenProps<'Generate'>;
 
@@ -53,6 +54,14 @@ export default function GenerateScreen({ navigation }: Props) {
   };
 
   const handleGenerate = () => {
+    // Track pattern generation event
+    telemetryClient.trackGeneration(shape, 'sc', {
+      diameter: parseFloat(diameter),
+      height: shape !== 'sphere' ? parseFloat(height) : undefined,
+      units,
+      terminology,
+    });
+
     // Placeholder for pattern generation
     // This will be connected to the API in later phases
     Alert.alert(

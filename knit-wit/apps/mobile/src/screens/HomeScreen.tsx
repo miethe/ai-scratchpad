@@ -3,11 +3,16 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { MainTabScreenProps } from '../types';
 import { colors, typography, spacing, shadows } from '../theme';
 import { useSettingsStore } from '../stores/useSettingsStore';
+import { useFocusIndicator } from '../hooks/useFocusIndicator';
 
 type Props = MainTabScreenProps<'Home'>;
 
 export default function HomeScreen({ navigation }: Props) {
   const { kidMode } = useSettingsStore();
+
+  // Focus indicators for interactive cards
+  const makePatternFocus = useFocusIndicator();
+  const checkPatternFocus = useFocusIndicator();
 
   const handleStartGenerating = () => {
     navigation.navigate('Generate');
@@ -48,8 +53,13 @@ export default function HomeScreen({ navigation }: Props) {
           {kidMode ? 'Get Started' : 'Quick Start'}
         </Text>
         <TouchableOpacity
-          style={styles.card}
+          style={[
+            styles.card,
+            makePatternFocus.focused && makePatternFocus.focusStyle,
+          ]}
           onPress={handleStartGenerating}
+          onFocus={makePatternFocus.onFocus}
+          onBlur={makePatternFocus.onBlur}
           accessibilityRole="button"
           accessibilityLabel={
             kidMode ? 'Make a pattern' : 'Start generating a pattern'
@@ -74,8 +84,13 @@ export default function HomeScreen({ navigation }: Props) {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.card}
+          style={[
+            styles.card,
+            checkPatternFocus.focused && checkPatternFocus.focusStyle,
+          ]}
           onPress={handleParsePattern}
+          onFocus={checkPatternFocus.onFocus}
+          onBlur={checkPatternFocus.onBlur}
           accessibilityRole="button"
           accessibilityLabel={
             kidMode ? 'Check a pattern' : 'Parse existing pattern'

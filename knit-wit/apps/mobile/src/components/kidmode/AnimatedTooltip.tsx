@@ -6,10 +6,13 @@
  * - Visual animation demonstrating the concept
  * - Simple, beginner-friendly text explanation
  * - Close button or tap-outside-to-dismiss
+ * - Focus trap for keyboard navigation
+ * - Escape key to close
  *
  * Respects prefers-reduced-motion accessibility setting.
  *
  * @see Story E3: Beginner Copy and Animations
+ * @see Story E5: Keyboard Navigation
  */
 
 import React, { useEffect, useState } from 'react';
@@ -21,6 +24,7 @@ import {
   TouchableWithoutFeedback,
   StyleSheet,
   AccessibilityInfo,
+  Platform,
 } from 'react-native';
 import {
   IncreaseAnimation,
@@ -28,6 +32,7 @@ import {
   MagicRingAnimation,
 } from './animations/StitchAnimations';
 import { kidModeTheme } from '../../theme/kidModeTheme';
+import { useFocusIndicator } from '../../hooks/useFocusIndicator';
 
 // ============================================================================
 // Types
@@ -111,6 +116,8 @@ const TOOLTIP_CONTENT: Record<TooltipType, TooltipContent> = {
  * - Animated demonstration of crochet concept
  * - Simple, friendly text explanation
  * - Close button and tap-outside-to-dismiss
+ * - Focus trap (Tab cycles within modal)
+ * - Escape key closes modal
  * - Respects prefers-reduced-motion
  */
 export const AnimatedTooltip: React.FC<AnimatedTooltipProps> = ({
@@ -121,11 +128,27 @@ export const AnimatedTooltip: React.FC<AnimatedTooltipProps> = ({
   description,
 }) => {
   const [reduceMotion, setReduceMotion] = useState(false);
+  const closeButtonFocus = useFocusIndicator();
 
   useEffect(() => {
     // Check accessibility settings for reduced motion preference
     AccessibilityInfo.isReduceMotionEnabled().then(setReduceMotion);
   }, []);
+
+  // Escape key closes modal (web only)
+  useEffect(() => {
+    if (!visible || Platform.OS !== 'web') return;
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+        event.preventDefault();
+      }
+    };
+
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [visible, onClose]);
 
   // Use custom content if provided, otherwise use default
   const content = {
@@ -195,12 +218,17 @@ export const AnimatedTooltip: React.FC<AnimatedTooltipProps> = ({
 
               {/* Close Button */}
               <TouchableOpacity
-                style={styles.closeButton}
+                style={[
+                  styles.closeButton,
+                  closeButtonFocus.focused && closeButtonFocus.focusStyle,
+                ]}
                 onPress={onClose}
+                onFocus={closeButtonFocus.onFocus}
+                onBlur={closeButtonFocus.onBlur}
                 accessible={true}
                 accessibilityRole="button"
                 accessibilityLabel="Close tooltip"
-                accessibilityHint="Double tap to close this helpful tip"
+                accessibilityHint="Double tap to close this helpful tip. You can also press the Escape key."
               >
                 <Text style={styles.closeButtonText}>Got It!</Text>
               </TouchableOpacity>

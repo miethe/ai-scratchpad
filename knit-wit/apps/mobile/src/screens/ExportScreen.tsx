@@ -12,6 +12,7 @@ import { FormatSelector } from '../components/export/FormatSelector';
 import { PaperSizeSelector } from '../components/export/PaperSizeSelector';
 import { SimplifiedButton, SimplifiedCard } from '../components/kidmode';
 import { useSettingsStore } from '../stores/useSettingsStore';
+import { useFocusIndicator } from '../hooks/useFocusIndicator';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 import { spacing } from '../theme/spacing';
@@ -21,6 +22,7 @@ import exportService, {
   type ExportFormat,
   type PaperSize,
 } from '../services/exportService';
+import { telemetryClient } from '../services/telemetryClient';
 import type { RootStackScreenProps } from '../types/navigation';
 
 type ExportScreenProps = RootStackScreenProps<'Export'>;
@@ -36,6 +38,9 @@ export const ExportScreen: React.FC<ExportScreenProps> = ({ route }) => {
     type: 'success' | 'error' | null;
     message: string;
   }>({ type: null, message: '' });
+
+  // Focus indicator for export button
+  const exportButtonFocus = useFocusIndicator();
 
   const handleFormatSelect = (format: ExportFormat) => {
     setSelectedFormat(format);
@@ -53,6 +58,8 @@ export const ExportScreen: React.FC<ExportScreenProps> = ({ route }) => {
 
     setIsExporting(true);
     setExportStatus({ type: null, message: '' });
+
+    const exportStartTime = Date.now();
 
     try {
       let result;
@@ -75,6 +82,17 @@ export const ExportScreen: React.FC<ExportScreenProps> = ({ route }) => {
       }
 
       if (result.success) {
+        const exportDuration = Date.now() - exportStartTime;
+
+        // Track successful export
+        telemetryClient.trackExport(selectedFormat, {
+          shape_type: pattern.object.type,
+          stitch_type: pattern.meta.stitch,
+          round_count: pattern.rounds.length,
+          paper_size: selectedFormat === 'pdf' ? paperSize : undefined,
+          duration_ms: exportDuration,
+        });
+
         const formatLabel = selectedFormat.toUpperCase();
         setExportStatus({
           type: 'success',
@@ -235,8 +253,14 @@ export const ExportScreen: React.FC<ExportScreenProps> = ({ route }) => {
           />
         ) : (
           <TouchableOpacity
-            style={[styles.exportButton, !canExport && styles.exportButtonDisabled]}
+            style={[
+              styles.exportButton,
+              !canExport && styles.exportButtonDisabled,
+              exportButtonFocus.focused && exportButtonFocus.focusStyle,
+            ]}
             onPress={handleExport}
+            onFocus={exportButtonFocus.onFocus}
+            onBlur={exportButtonFocus.onBlur}
             disabled={!canExport}
             accessible={true}
             accessibilityRole="button"

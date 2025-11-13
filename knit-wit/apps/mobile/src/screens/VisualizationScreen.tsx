@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import { SVGRenderer } from '../components/visualization/SVGRenderer';
 import { RoundScrubber } from '../components/visualization/RoundScrubber';
@@ -9,6 +9,7 @@ import { NetworkError } from '../components/common/NetworkError';
 import { useVisualizationStore } from '../stores/useVisualizationStore';
 import { useSettingsStore } from '../stores/useSettingsStore';
 import { patternApi } from '../services/api';
+import { telemetryClient } from '../services/telemetryClient';
 import type { PatternDSL } from '../types/pattern';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
@@ -39,8 +40,25 @@ export const VisualizationScreen: React.FC<VisualizationScreenProps> = ({ route 
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [tooltipVisible, setTooltipVisible] = useState(false);
 
+  // Track visualization duration
+  const startTimeRef = useRef<number | null>(null);
+
   useEffect(() => {
     loadVisualization();
+
+    // Track start time when component mounts
+    startTimeRef.current = Date.now();
+
+    // Track visualization event on unmount
+    return () => {
+      if (startTimeRef.current && frames.length > 0) {
+        const duration = Date.now() - startTimeRef.current;
+        telemetryClient.trackVisualization(frames.length, duration, {
+          shape_type: pattern.object.type,
+          stitch_type: pattern.meta.stitch,
+        });
+      }
+    };
   }, [pattern]);
 
   const loadVisualization = async () => {
