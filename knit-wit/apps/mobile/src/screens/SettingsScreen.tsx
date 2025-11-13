@@ -1,8 +1,9 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Switch, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, Switch, TouchableOpacity, AccessibilityInfo } from 'react-native';
 import { MainTabScreenProps } from '../types';
 import { colors, typography, spacing, shadows, touchTargets } from '../theme';
 import { useSettingsStore } from '../stores/useSettingsStore';
+import { telemetryClient } from '../services/telemetryClient';
 
 type Props = MainTabScreenProps<'Settings'>;
 
@@ -10,76 +11,232 @@ export default function SettingsScreen({ navigation }: Props) {
   const {
     kidMode,
     darkMode,
+    dyslexiaFont,
     defaultUnits,
     defaultTerminology,
     setKidMode,
     setDarkMode,
+    setDyslexiaFont,
     setDefaultUnits,
     setDefaultTerminology,
   } = useSettingsStore();
+
+  const [telemetryEnabled, setTelemetryEnabled] = useState(false);
+
+  // Load telemetry consent on mount
+  useEffect(() => {
+    const consent = telemetryClient.getConsent();
+    setTelemetryEnabled(consent);
+  }, []);
+
+  const handleKidModeToggle = (value: boolean) => {
+    setKidMode(value);
+    AccessibilityInfo.announceForAccessibility(
+      value
+        ? 'Kid Mode turned on'
+        : 'Kid Mode turned off'
+    );
+  };
+
+  const handleDarkModeToggle = (value: boolean) => {
+    setDarkMode(value);
+    AccessibilityInfo.announceForAccessibility(
+      value
+        ? 'Dark Mode turned on'
+        : 'Dark Mode turned off'
+    );
+  };
+
+  const handleDyslexiaFontToggle = (value: boolean) => {
+    setDyslexiaFont(value);
+    AccessibilityInfo.announceForAccessibility(
+      value
+        ? (kidMode ? 'Easier reading font turned on' : 'Dyslexia-friendly font enabled')
+        : (kidMode ? 'Easier reading font turned off' : 'Dyslexia-friendly font disabled')
+    );
+  };
+
+  const handleTerminologyToggle = (value: boolean) => {
+    const newTerminology = value ? 'US' : 'UK';
+    setDefaultTerminology(newTerminology);
+    AccessibilityInfo.announceForAccessibility(
+      kidMode
+        ? `Stitch names changed to ${newTerminology}`
+        : `Terminology changed to ${newTerminology}`
+    );
+  };
+
+  const handleUnitsToggle = (value: boolean) => {
+    const newUnits = value ? 'cm' : 'in';
+    setDefaultUnits(newUnits);
+    AccessibilityInfo.announceForAccessibility(
+      kidMode
+        ? `Size changed to ${value ? 'centimeters' : 'inches'}`
+        : `Units changed to ${value ? 'metric centimeters' : 'imperial inches'}`
+    );
+  };
+
+  const handleTelemetryToggle = async (value: boolean) => {
+    setTelemetryEnabled(value);
+    await telemetryClient.setConsent(value);
+
+    // Announce to screen reader
+    AccessibilityInfo.announceForAccessibility(
+      value
+        ? (kidMode ? 'Sharing turned on' : 'Telemetry enabled')
+        : (kidMode ? 'Sharing turned off' : 'Telemetry disabled')
+    );
+  };
 
   return (
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.content}
       accessibilityLabel="Settings screen"
+      accessible={true}
     >
       <View style={styles.header}>
         <Text style={styles.title} accessibilityRole="header">
           Settings
         </Text>
-        <Text style={styles.subtitle}>Customize your Knit-Wit experience</Text>
+        <Text
+          style={styles.subtitle}
+          accessible={true}
+          accessibilityRole="text"
+        >
+          {kidMode
+            ? 'Change how the app looks and works'
+            : 'Customize your Knit-Wit experience'}
+        </Text>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Appearance</Text>
+        <Text
+          style={styles.sectionTitle}
+          accessibilityRole="header"
+          accessibilityLevel={2}
+        >
+          {kidMode ? 'Look and Feel' : 'Appearance'}
+        </Text>
 
         <SettingRow
           label="Kid Mode"
-          description="Simplified UI with beginner-friendly language"
+          description={
+            kidMode
+              ? 'Easy mode for young learners with big buttons and simple words'
+              : 'Simplified interface for young learners with larger buttons and friendly colors'
+          }
           value={kidMode}
-          onValueChange={setKidMode}
+          onValueChange={handleKidModeToggle}
           testID="kid-mode-toggle"
         />
 
         <SettingRow
           label="Dark Mode"
-          description="Use dark theme throughout the app"
+          description={
+            kidMode
+              ? 'Use dark colors for the whole app'
+              : 'Use dark theme throughout the app'
+          }
           value={darkMode}
-          onValueChange={setDarkMode}
+          onValueChange={handleDarkModeToggle}
           testID="dark-mode-toggle"
+        />
+
+        <SettingRow
+          label={kidMode ? 'Easier Reading Font' : 'Dyslexia-Friendly Font'}
+          description={
+            kidMode
+              ? 'Use a special font that makes reading easier'
+              : 'Use OpenDyslexic font for improved readability'
+          }
+          value={dyslexiaFont}
+          onValueChange={handleDyslexiaFontToggle}
+          testID="dyslexia-font-toggle"
         />
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Pattern Defaults</Text>
+        <Text
+          style={styles.sectionTitle}
+          accessibilityRole="header"
+          accessibilityLevel={2}
+        >
+          {kidMode ? 'Pattern Settings' : 'Pattern Defaults'}
+        </Text>
 
         <SettingRow
-          label="US Terminology"
-          description="Use US crochet terms (turn off for UK terms)"
+          label={kidMode ? 'US Stitch Names' : 'US Terminology'}
+          description={
+            kidMode
+              ? 'Use US names for stitches (turn off for UK names)'
+              : 'Use US crochet terms (turn off for UK terms)'
+          }
           value={defaultTerminology === 'US'}
-          onValueChange={(value) => setDefaultTerminology(value ? 'US' : 'UK')}
+          onValueChange={handleTerminologyToggle}
           testID="us-terminology-toggle"
         />
 
         <SettingRow
-          label="Metric Units (cm)"
-          description="Use metric units (turn off for imperial/inches)"
+          label={kidMode ? 'Centimeters (cm)' : 'Metric Units (cm)'}
+          description={
+            kidMode
+              ? 'Use centimeters to measure (turn off for inches)'
+              : 'Use metric units (turn off for imperial/inches)'
+          }
           value={defaultUnits === 'cm'}
-          onValueChange={(value) => setDefaultUnits(value ? 'cm' : 'in')}
+          onValueChange={handleUnitsToggle}
           testID="metric-units-toggle"
         />
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>About</Text>
+        <Text
+          style={styles.sectionTitle}
+          accessibilityRole="header"
+          accessibilityLevel={2}
+        >
+          Privacy
+        </Text>
 
-        <View style={styles.infoCard}>
+        <SettingRow
+          label={kidMode ? 'Share Usage Data' : 'Share Usage Data'}
+          description={
+            kidMode
+              ? 'Help us make the app better by sharing how you use it. No personal information is collected.'
+              : 'Help us improve Knit-Wit by sharing anonymous usage data. No personal information is collected.'
+          }
+          value={telemetryEnabled}
+          onValueChange={handleTelemetryToggle}
+          testID="telemetry-toggle"
+        />
+      </View>
+
+      <View style={styles.section}>
+        <Text
+          style={styles.sectionTitle}
+          accessibilityRole="header"
+          accessibilityLevel={2}
+        >
+          {kidMode ? 'App Info' : 'About'}
+        </Text>
+
+        <View
+          style={styles.infoCard}
+          accessible={true}
+          accessibilityRole="text"
+          accessibilityLabel="Version 1.0.0 MVP"
+        >
           <Text style={styles.infoLabel}>Version</Text>
           <Text style={styles.infoValue}>1.0.0 (MVP)</Text>
         </View>
 
-        <View style={styles.infoCard}>
+        <View
+          style={styles.infoCard}
+          accessible={true}
+          accessibilityRole="text"
+          accessibilityLabel="Build: Development"
+        >
           <Text style={styles.infoLabel}>Build</Text>
           <Text style={styles.infoValue}>Development</Text>
         </View>
@@ -87,19 +244,25 @@ export default function SettingsScreen({ navigation }: Props) {
         <TouchableOpacity
           style={styles.linkButton}
           accessibilityRole="button"
-          accessibilityLabel="View documentation"
-          accessibilityHint="Opens documentation in browser"
+          accessibilityLabel={kidMode ? 'View help' : 'View documentation'}
+          accessibilityHint={kidMode ? 'Opens help page' : 'Opens documentation in browser'}
+          accessible={true}
         >
-          <Text style={styles.linkButtonText}>Documentation</Text>
+          <Text style={styles.linkButtonText}>
+            {kidMode ? 'Help' : 'Documentation'}
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.linkButton}
           accessibilityRole="button"
-          accessibilityLabel="Report an issue"
-          accessibilityHint="Opens issue tracker in browser"
+          accessibilityLabel={kidMode ? 'Report a problem' : 'Report an issue'}
+          accessibilityHint={kidMode ? 'Tell us about a problem' : 'Opens issue tracker in browser'}
+          accessible={true}
         >
-          <Text style={styles.linkButtonText}>Report an Issue</Text>
+          <Text style={styles.linkButtonText}>
+            {kidMode ? 'Report a Problem' : 'Report an Issue'}
+          </Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -123,11 +286,29 @@ function SettingRow({
   testID,
   disabled = false,
 }: SettingRowProps) {
+  const stateLabel = value ? 'enabled' : 'disabled';
+  const fullLabel = `${label}, ${stateLabel}. ${description}`;
+
   return (
-    <View style={styles.settingRow}>
+    <View
+      style={styles.settingRow}
+      accessible={true}
+      accessibilityRole="none"
+      accessibilityLabel={fullLabel}
+    >
       <View style={styles.settingText}>
-        <Text style={[styles.settingLabel, disabled && styles.settingLabelDisabled]}>{label}</Text>
-        <Text style={styles.settingDescription}>{description}</Text>
+        <Text
+          style={[styles.settingLabel, disabled && styles.settingLabelDisabled]}
+          accessible={false}
+        >
+          {label}
+        </Text>
+        <Text
+          style={styles.settingDescription}
+          accessible={false}
+        >
+          {description}
+        </Text>
       </View>
       <Switch
         value={value}
@@ -137,8 +318,11 @@ function SettingRow({
         trackColor={{ false: colors.gray300, true: colors.primaryLight }}
         thumbColor={value ? colors.primary : colors.gray50}
         ios_backgroundColor={colors.gray300}
-        accessibilityLabel={`${label} toggle`}
+        accessibilityLabel={`${label} switch`}
+        accessibilityHint={`Double tap to ${value ? 'disable' : 'enable'} ${label}`}
         accessibilityState={{ checked: value, disabled }}
+        accessibilityRole="switch"
+        accessible={true}
       />
     </View>
   );

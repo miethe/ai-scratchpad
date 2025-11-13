@@ -1,23 +1,8 @@
-import { Platform } from 'react-native';
-import type { Theme, ThemeColors, ThemeTypography, ThemeShadows } from './types';
+import type { Theme, ThemeColors, ThemeShadows, ThemeMode } from './types';
+import { createTypography } from './typography';
 
-const fontFamily = {
-  regular: Platform.select({
-    ios: 'System',
-    android: 'Roboto',
-    default: 'System',
-  }),
-  medium: Platform.select({
-    ios: 'System',
-    android: 'Roboto-Medium',
-    default: 'System',
-  }),
-  bold: Platform.select({
-    ios: 'System',
-    android: 'Roboto-Bold',
-    default: 'System',
-  }),
-};
+// Import the comprehensive Kid Mode theme
+import { kidModeTheme as baseKidModeTheme } from './kidModeTheme';
 
 const defaultColors: ThemeColors = {
   // Primary palette
@@ -68,27 +53,6 @@ const defaultColors: ThemeColors = {
   borderDark: '#D1D5DB',
 };
 
-const kidModeColors: ThemeColors = {
-  ...defaultColors,
-  // Kid Mode: bright, friendly colors
-  primary: '#FF9F40', // Bright orange
-  primaryLight: '#FFBD73',
-  primaryDark: '#E67A00',
-
-  secondary: '#FF6B9D', // Pink (already friendly)
-  secondaryLight: '#FFB3D0',
-  secondaryDark: '#D43A7A',
-
-  // Accent color for highlights
-  info: '#4ECDC4', // Turquoise
-
-  // Warm, friendly background
-  background: '#FFF8E7',
-  backgroundSecondary: '#FFF0CC',
-  surface: '#FFFFFF',
-  surfaceSecondary: '#FFF8E7',
-};
-
 const darkModeColors: ThemeColors = {
   ...defaultColors,
   // Dark Mode: inverted colors
@@ -121,146 +85,20 @@ const darkModeColors: ThemeColors = {
 const kidModeDarkColors: ThemeColors = {
   ...darkModeColors,
   // Kid Mode Dark: combine kid mode brightness with dark theme
-  primary: '#FFBD73',
-  primaryLight: '#FFD9A3',
-  primaryDark: '#FF9F40',
+  // Using the same pink primary as light Kid Mode for consistency
+  primary: '#FF6B9D',
+  primaryLight: '#FFB3D0',
+  primaryDark: '#E63D7A',
 
-  secondary: '#FFB3D0',
-  secondaryLight: '#FFD9E8',
-  secondaryDark: '#FF9DB8',
+  // Sunny yellow secondary
+  secondary: '#FFC837',
+  secondaryLight: '#FFE29F',
+  secondaryDark: '#E6A800',
 
   background: '#1A1410',
   backgroundSecondary: '#2D2418',
   surface: '#2D2418',
   surfaceSecondary: '#3D3128',
-};
-
-const baseTypography: ThemeTypography = {
-  displayLarge: {
-    fontFamily: fontFamily.bold,
-    fontSize: 57,
-    lineHeight: 64,
-    fontWeight: '700',
-  },
-  displayMedium: {
-    fontFamily: fontFamily.bold,
-    fontSize: 45,
-    lineHeight: 52,
-    fontWeight: '700',
-  },
-  displaySmall: {
-    fontFamily: fontFamily.bold,
-    fontSize: 36,
-    lineHeight: 44,
-    fontWeight: '700',
-  },
-  headlineLarge: {
-    fontFamily: fontFamily.bold,
-    fontSize: 32,
-    lineHeight: 40,
-    fontWeight: '700',
-  },
-  headlineMedium: {
-    fontFamily: fontFamily.bold,
-    fontSize: 28,
-    lineHeight: 36,
-    fontWeight: '700',
-  },
-  headlineSmall: {
-    fontFamily: fontFamily.bold,
-    fontSize: 24,
-    lineHeight: 32,
-    fontWeight: '700',
-  },
-  titleLarge: {
-    fontFamily: fontFamily.medium,
-    fontSize: 22,
-    lineHeight: 28,
-    fontWeight: '600',
-  },
-  titleMedium: {
-    fontFamily: fontFamily.medium,
-    fontSize: 16,
-    lineHeight: 24,
-    fontWeight: '600',
-  },
-  titleSmall: {
-    fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: '600',
-  },
-  bodyLarge: {
-    fontFamily: fontFamily.regular,
-    fontSize: 16,
-    lineHeight: 24,
-    fontWeight: '400',
-  },
-  bodyMedium: {
-    fontFamily: fontFamily.regular,
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: '400',
-  },
-  bodySmall: {
-    fontFamily: fontFamily.regular,
-    fontSize: 12,
-    lineHeight: 16,
-    fontWeight: '400',
-  },
-  labelLarge: {
-    fontFamily: fontFamily.medium,
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: '500',
-  },
-  labelMedium: {
-    fontFamily: fontFamily.medium,
-    fontSize: 12,
-    lineHeight: 16,
-    fontWeight: '500',
-  },
-  labelSmall: {
-    fontFamily: fontFamily.medium,
-    fontSize: 11,
-    lineHeight: 16,
-    fontWeight: '500',
-  },
-};
-
-const kidModeTypography: ThemeTypography = {
-  ...baseTypography,
-  // Kid Mode: larger, more readable fonts
-  displayLarge: {
-    ...baseTypography.displayLarge,
-    fontSize: 64,
-    lineHeight: 72,
-  },
-  displayMedium: {
-    ...baseTypography.displayMedium,
-    fontSize: 52,
-    lineHeight: 60,
-  },
-  displaySmall: {
-    ...baseTypography.displaySmall,
-    fontSize: 42,
-    lineHeight: 52,
-  },
-  bodyLarge: {
-    ...baseTypography.bodyLarge,
-    fontSize: 18,
-    lineHeight: 28,
-  },
-  bodyMedium: {
-    ...baseTypography.bodyMedium,
-    fontSize: 16,
-    lineHeight: 24,
-  },
-  bodySmall: {
-    ...baseTypography.bodySmall,
-    fontSize: 14,
-    lineHeight: 20,
-  },
 };
 
 const baseShadows: ThemeShadows = {
@@ -325,50 +163,79 @@ const darkShadows: ThemeShadows = {
   },
 };
 
-export const defaultTheme: Theme = {
-  colors: defaultColors,
-  typography: baseTypography,
-  spacing: {
-    xs: 4,
-    sm: 8,
-    md: 16,
-    lg: 24,
-    xl: 32,
-    xxl: 48,
-    xxxl: 64,
-  },
-  borderRadius: {
-    none: 0,
-    sm: 4,
-    md: 8,
-    lg: 12,
-    xl: 16,
-    xxl: 24,
-    full: 9999,
-  },
-  touchTargets: {
-    minimum: 44,
-    comfortable: 48,
-    kidMode: 56,
-  },
-  shadows: baseShadows,
-};
+/**
+ * Create a theme based on mode and dyslexia font preference
+ */
+export function createTheme(options: {
+  mode: ThemeMode;
+  useDyslexiaFont?: boolean;
+}): Theme {
+  const { mode, useDyslexiaFont = false } = options;
+  const typography = createTypography(useDyslexiaFont);
 
-export const kidModeTheme: Theme = {
-  ...defaultTheme,
-  colors: kidModeColors,
-  typography: kidModeTypography,
-};
+  const baseTheme: Theme = {
+    colors: defaultColors,
+    typography,
+    spacing: {
+      xs: 4,
+      sm: 8,
+      md: 16,
+      lg: 24,
+      xl: 32,
+      xxl: 48,
+      xxxl: 64,
+    },
+    borderRadius: {
+      none: 0,
+      sm: 4,
+      md: 8,
+      lg: 12,
+      xl: 16,
+      xxl: 24,
+      full: 9999,
+    },
+    touchTargets: {
+      minimum: 44,
+      comfortable: 48,
+      kidMode: 56,
+    },
+    shadows: baseShadows,
+  };
 
-export const darkModeTheme: Theme = {
-  ...defaultTheme,
-  colors: darkModeColors,
-  shadows: darkShadows,
-};
+  switch (mode) {
+    case 'kidMode':
+      return {
+        ...baseTheme,
+        colors: baseKidModeTheme.colors,
+        spacing: baseKidModeTheme.spacing,
+        borderRadius: baseKidModeTheme.borderRadius,
+        touchTargets: baseKidModeTheme.touchTargets,
+      };
 
-export const kidModeDarkTheme: Theme = {
-  ...defaultTheme,
-  colors: kidModeDarkColors,
-  typography: kidModeTypography,
-  shadows: darkShadows,
-};
+    case 'darkMode':
+      return {
+        ...baseTheme,
+        colors: darkModeColors,
+        shadows: darkShadows,
+      };
+
+    case 'kidModeDark':
+      return {
+        ...baseTheme,
+        colors: kidModeDarkColors,
+        spacing: baseKidModeTheme.spacing,
+        borderRadius: baseKidModeTheme.borderRadius,
+        touchTargets: baseKidModeTheme.touchTargets,
+        shadows: darkShadows,
+      };
+
+    default:
+      return baseTheme;
+  }
+}
+
+// Legacy theme exports for backward compatibility
+export const defaultTheme = createTheme({ mode: 'default' });
+export const kidModeTheme = createTheme({ mode: 'kidMode' });
+export const darkModeTheme = createTheme({ mode: 'darkMode' });
+export const kidModeDarkTheme = createTheme({ mode: 'kidModeDark' });

@@ -14,6 +14,7 @@ from fastapi.responses import JSONResponse
 
 from app.api.v1 import api_router
 from app.core import settings
+from app.core.logging_config import init_logging
 
 
 @asynccontextmanager
@@ -23,10 +24,19 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     This handles resource initialization on startup and cleanup on shutdown.
     """
+    # Initialize logging with rotation and JSON formatting
+    init_logging(
+        log_level=settings.log_level,
+        log_dir=settings.log_dir,
+        retention_days=settings.log_retention_days,
+        enable_console=settings.log_enable_console,
+    )
+
     # Startup logic
     print(f"Starting {settings.app_name} v{settings.app_version}")
     print(f"Debug mode: {settings.debug}")
     print(f"CORS origins: {settings.cors_origins}")
+    print(f"Logging: level={settings.log_level}, dir={settings.log_dir}, retention={settings.log_retention_days} days")
 
     yield
 
@@ -50,6 +60,7 @@ app = FastAPI(
         {"name": "visualization", "description": "Pattern visualization endpoints"},
         {"name": "parser", "description": "Pattern text parsing endpoints"},
         {"name": "export", "description": "Pattern export endpoints (PDF, JSON)"},
+        {"name": "telemetry", "description": "Anonymous telemetry event tracking"},
     ],
 )
 

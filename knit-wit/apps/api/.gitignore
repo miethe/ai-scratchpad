@@ -56,7 +56,11 @@ dmypy.json
 
 # Logs
 *.log
-logs/
+*.log.*
+logs/**/*.log
+logs/**/*.log.*
+# But preserve directory structure
+!logs/telemetry/.gitkeep
 
 # Database
 *.db

@@ -25,6 +25,17 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/OpenDyslexic-Regular.ttf",
+            "./assets/fonts/OpenDyslexic-Bold.ttf"
+          ]
+        }
+      ]
+    ]
   }
 }

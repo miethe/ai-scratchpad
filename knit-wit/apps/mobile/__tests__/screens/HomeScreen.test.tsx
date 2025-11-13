@@ -52,7 +52,7 @@ describe('HomeScreen', () => {
     expect(getByText('US/UK Terminology')).toBeTruthy();
   });
 
-  it('navigates to Generate screen when button pressed', () => {
+  it('navigates to Generate screen when generate button pressed', () => {
     const { getByLabelText } = render(
       <HomeScreen navigation={mockNavigation} route={mockRoute} />
     );
@@ -63,6 +63,17 @@ describe('HomeScreen', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Generate');
   });
 
+  it('navigates to Parse screen when parse button pressed', () => {
+    const { getByLabelText } = render(
+      <HomeScreen navigation={mockNavigation} route={mockRoute} />
+    );
+
+    const parseButton = getByLabelText('Parse existing pattern');
+    fireEvent.press(parseButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith('Parse');
+  });
+
   it('has proper accessibility labels', () => {
     const { getByLabelText } = render(
       <HomeScreen navigation={mockNavigation} route={mockRoute} />
@@ -70,5 +81,6 @@ describe('HomeScreen', () => {
 
     expect(getByLabelText('Home screen')).toBeTruthy();
     expect(getByLabelText('Start generating a pattern')).toBeTruthy();
+    expect(getByLabelText('Parse existing pattern')).toBeTruthy();
   });
 });

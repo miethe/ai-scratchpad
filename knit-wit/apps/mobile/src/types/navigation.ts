@@ -8,6 +8,7 @@ import type { PatternDSL } from './pattern';
  */
 export type RootStackParamList = {
   Main: NavigatorScreenParams<MainTabParamList>;
+  Parse: undefined;
   Visualization: { pattern: PatternDSL };
   Export: { pattern: PatternDSL };
   // Future screens like onboarding, pattern detail, etc.

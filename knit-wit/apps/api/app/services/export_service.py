@@ -6,7 +6,9 @@ Implements C3 (PDF Export) and C5 (JSON DSL Export) from Phase 3.
 """
 
 import io
-from typing import Literal
+import math
+from typing import Literal, List, Dict
+from xml.etree import ElementTree as ET
 
 # Import from knit_wit_engine package
 import sys
@@ -28,6 +30,10 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
+
+# SVG/PNG generation imports
+import cairosvg
+from PIL import Image
 
 
 class ExportService:
@@ -376,3 +382,312 @@ class ExportService:
             parts.append(f" <i>— {round_inst.description}</i>")
 
         return "".join(parts)
+
+    def generate_svg(
+        self, dsl: PatternDSL, mode: Literal["per-round", "composite"] = "composite"
+    ) -> List[str] | str:
+        """
+        Generate SVG diagrams from PatternDSL.
+
+        Creates vector graphics showing circular stitch layout using visualization
+        frames from Phase 2. Supports two modes:
+        - per-round: Returns list of SVG strings (one per round)
+        - composite: Returns single SVG with all rounds stacked vertically
+
+        Args:
+            dsl: PatternDSL instance to visualize
+            mode: Export mode ("per-round" or "composite")
+
+        Returns:
+            List[str] if mode="per-round", str if mode="composite"
+            Each SVG is a valid XML string
+
+        Raises:
+            ValueError: If mode is invalid
+
+        Example:
+            >>> service = ExportService()
+            >>> pattern = PatternDSL(...)
+            >>> svg = service.generate_svg(pattern, mode="composite")
+            >>> len(svg) < 1024 * 1024  # Under 1 MB
+            True
+        """
+        # Validate mode
+        if mode not in ["per-round", "composite"]:
+            raise ValueError(f"Invalid mode: {mode}. Must be 'per-round' or 'composite'")
+
+        # Import visualization service to generate frames
+        from app.services.visualization_service import VisualizationService
+
+        viz_service = VisualizationService()
+        frames = viz_service.dsl_to_frames(dsl)
+
+        if mode == "per-round":
+            # Generate individual SVG for each round
+            svgs: List[str] = []
+            for frame in frames:
+                svg_str = self._frame_to_svg(frame, dsl.shape.shape_type)
+                svgs.append(svg_str)
+            return svgs
+        else:
+            # Generate composite SVG with all rounds
+            return self._frames_to_composite_svg(frames, dsl.shape.shape_type)
+
+    def generate_png(
+        self, svg_content: str, dpi: Literal[72, 300] = 72
+    ) -> bytes:
+        """
+        Convert SVG to PNG rasterized image.
+
+        Uses cairosvg to rasterize SVG content at specified DPI:
+        - 72 DPI: Screen display (smaller file size)
+        - 300 DPI: Print quality (larger file size)
+
+        Args:
+            svg_content: Valid SVG XML string
+            dpi: Dots per inch (72 for screen, 300 for print)
+
+        Returns:
+            bytes: PNG image data
+
+        Raises:
+            ValueError: If DPI is invalid or SVG is malformed
+
+        Example:
+            >>> service = ExportService()
+            >>> svg = service.generate_svg(pattern, mode="composite")
+            >>> png_bytes = service.generate_png(svg, dpi=300)
+            >>> len(png_bytes) < 5 * 1024 * 1024  # Under 5 MB
+            True
+        """
+        # Validate DPI
+        if dpi not in [72, 300]:
+            raise ValueError(f"Invalid DPI: {dpi}. Must be 72 or 300")
+
+        try:
+            # Convert SVG to PNG using cairosvg
+            # Scale factor: cairosvg uses 96 DPI as default, so we scale accordingly
+            scale = dpi / 96.0
+
+            png_bytes = cairosvg.svg2png(
+                bytestring=svg_content.encode("utf-8"),
+                scale=scale,
+            )
+
+            return png_bytes
+
+        except Exception as e:
+            raise ValueError(f"Failed to convert SVG to PNG: {str(e)}")
+
+    def _frame_to_svg(self, frame, shape_type: str) -> str:
+        """
+        Convert single visualization frame to SVG.
+
+        Creates SVG with:
+        - Circular node layout (positioned stitches)
+        - Connecting edges forming closed loop
+        - Color-coded highlights for increases/decreases
+        - Centered viewBox for responsive scaling
+
+        Args:
+            frame: VisualizationFrame with nodes and edges
+            shape_type: Shape type for title
+
+        Returns:
+            str: Valid SVG XML string
+        """
+        # SVG dimensions and viewBox
+        # Nodes are positioned around BASE_RADIUS (100 units)
+        # Add padding for visual clarity
+        padding = 50
+        base_radius = 100
+        canvas_size = (base_radius * 2) + (padding * 2)
+        view_box = f"-{base_radius + padding} -{base_radius + padding} {canvas_size} {canvas_size}"
+
+        # Create SVG root
+        svg = ET.Element(
+            "svg",
+            xmlns="http://www.w3.org/2000/svg",
+            viewBox=view_box,
+            width="400",
+            height="400",
+        )
+
+        # Add title
+        title = ET.SubElement(svg, "title")
+        title.text = f"{shape_type.capitalize()} - Round {frame.round_number}"
+
+        # Add background
+        bg = ET.SubElement(
+            svg,
+            "rect",
+            x=str(-base_radius - padding),
+            y=str(-base_radius - padding),
+            width=str(canvas_size),
+            height=str(canvas_size),
+            fill="#f8f9fa",
+        )
+
+        # Draw edges first (so they appear behind nodes)
+        edges_group = ET.SubElement(svg, "g", id="edges")
+        for edge in frame.edges:
+            # Find source and target nodes
+            source_node = next(n for n in frame.nodes if n.id == edge.source)
+            target_node = next(n for n in frame.nodes if n.id == edge.target)
+
+            # Draw line between nodes
+            line = ET.SubElement(
+                edges_group,
+                "line",
+                x1=str(source_node.position[0]),
+                y1=str(source_node.position[1]),
+                x2=str(target_node.position[0]),
+                y2=str(target_node.position[1]),
+                stroke="#6c757d",
+                **{"stroke-width": "1.5"},
+            )
+
+        # Draw nodes
+        nodes_group = ET.SubElement(svg, "g", id="nodes")
+        for node in frame.nodes:
+            # Determine node color based on highlight
+            if node.highlight == "increase":
+                fill_color = "#28a745"  # Green for increases
+            elif node.highlight == "decrease":
+                fill_color = "#dc3545"  # Red for decreases
+            else:
+                fill_color = "#007bff"  # Blue for normal stitches
+
+            # Draw circle for stitch
+            circle = ET.SubElement(
+                nodes_group,
+                "circle",
+                cx=str(node.position[0]),
+                cy=str(node.position[1]),
+                r="5",
+                fill=fill_color,
+                stroke="#ffffff",
+                **{"stroke-width": "1.5"},
+            )
+
+            # Add title for hover tooltip
+            node_title = ET.SubElement(circle, "title")
+            node_title.text = f"{node.stitch_type} ({node.id})"
+
+        # Add round label
+        label = ET.SubElement(
+            svg,
+            "text",
+            x="0",
+            y=str(base_radius + padding - 10),
+            **{
+                "text-anchor": "middle",
+                "font-family": "Arial, sans-serif",
+                "font-size": "16",
+                "fill": "#212529",
+            },
+        )
+        label.text = f"Round {frame.round_number}: {frame.stitch_count} sts"
+
+        # Convert to string
+        return ET.tostring(svg, encoding="unicode")
+
+    def _frames_to_composite_svg(self, frames: List, shape_type: str) -> str:
+        """
+        Combine multiple frames into single composite SVG.
+
+        Stacks rounds vertically with spacing, showing pattern progression.
+
+        Args:
+            frames: List of VisualizationFrame objects
+            shape_type: Shape type for title
+
+        Returns:
+            str: Valid SVG XML string with all rounds
+        """
+        # Calculate layout
+        round_height = 300  # Height allocated per round
+        round_width = 300  # Width per round
+        padding = 20
+
+        total_height = (round_height * len(frames)) + (padding * 2)
+        total_width = round_width + (padding * 2)
+
+        # Create SVG root
+        svg = ET.Element(
+            "svg",
+            xmlns="http://www.w3.org/2000/svg",
+            width=str(total_width),
+            height=str(total_height),
+        )
+
+        # Add title
+        title = ET.SubElement(svg, "title")
+        title.text = f"{shape_type.capitalize()} Pattern - All Rounds"
+
+        # Add background
+        bg = ET.SubElement(
+            svg, "rect", x="0", y="0", width=str(total_width), height=str(total_height), fill="#ffffff"
+        )
+
+        # Add each frame
+        for idx, frame in enumerate(frames):
+            y_offset = (idx * round_height) + padding + (round_height / 2)
+
+            # Create group for this round
+            group = ET.SubElement(
+                svg,
+                "g",
+                id=f"round-{frame.round_number}",
+                transform=f"translate({padding + round_width / 2}, {y_offset})",
+            )
+
+            # Draw edges
+            for edge in frame.edges:
+                source_node = next(n for n in frame.nodes if n.id == edge.source)
+                target_node = next(n for n in frame.nodes if n.id == edge.target)
+
+                line = ET.SubElement(
+                    group,
+                    "line",
+                    x1=str(source_node.position[0]),
+                    y1=str(source_node.position[1]),
+                    x2=str(target_node.position[0]),
+                    y2=str(target_node.position[1]),
+                    stroke="#dee2e6",
+                    **{"stroke-width": "1"},
+                )
+
+            # Draw nodes
+            for node in frame.nodes:
+                # Determine color
+                if node.highlight == "increase":
+                    fill_color = "#28a745"
+                elif node.highlight == "decrease":
+                    fill_color = "#dc3545"
+                else:
+                    fill_color = "#007bff"
+
+                circle = ET.SubElement(
+                    group,
+                    "circle",
+                    cx=str(node.position[0]),
+                    cy=str(node.position[1]),
+                    r="4",
+                    fill=fill_color,
+                    stroke="#ffffff",
+                    **{"stroke-width": "1"},
+                )
+
+            # Add round label
+            label = ET.SubElement(
+                group,
+                "text",
+                x=str(-round_width / 2 + 10),
+                y="-110",
+                **{"font-family": "Arial, sans-serif", "font-size": "14", "fill": "#495057"},
+            )
+            label.text = f"R{frame.round_number}: {frame.stitch_count} sts"
+
+        # Convert to string
+        return ET.tostring(svg, encoding="unicode")

@@ -10,6 +10,9 @@ import {
 } from 'react-native';
 import { FormatSelector } from '../components/export/FormatSelector';
 import { PaperSizeSelector } from '../components/export/PaperSizeSelector';
+import { SimplifiedButton, SimplifiedCard } from '../components/kidmode';
+import { useSettingsStore } from '../stores/useSettingsStore';
+import { useFocusIndicator } from '../hooks/useFocusIndicator';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 import { spacing } from '../theme/spacing';
@@ -19,12 +22,14 @@ import exportService, {
   type ExportFormat,
   type PaperSize,
 } from '../services/exportService';
+import { telemetryClient } from '../services/telemetryClient';
 import type { RootStackScreenProps } from '../types/navigation';
 
 type ExportScreenProps = RootStackScreenProps<'Export'>;
 
 export const ExportScreen: React.FC<ExportScreenProps> = ({ route }) => {
   const { pattern } = route.params;
+  const { kidMode } = useSettingsStore();
 
   const [selectedFormat, setSelectedFormat] = useState<ExportFormat | null>(null);
   const [paperSize, setPaperSize] = useState<PaperSize>('A4');
@@ -34,6 +39,9 @@ export const ExportScreen: React.FC<ExportScreenProps> = ({ route }) => {
     message: string;
   }>({ type: null, message: '' });
 
+  // Focus indicator for export button
+  const exportButtonFocus = useFocusIndicator();
+
   const handleFormatSelect = (format: ExportFormat) => {
     setSelectedFormat(format);
     setExportStatus({ type: null, message: '' });
@@ -41,12 +49,17 @@ export const ExportScreen: React.FC<ExportScreenProps> = ({ route }) => {
 
   const handleExport = async () => {
     if (!selectedFormat) {
-      Alert.alert('No Format Selected', 'Please select an export format first.');
+      Alert.alert(
+        kidMode ? 'Pick a Type' : 'No Format Selected',
+        kidMode ? 'Please pick how you want to save your pattern first.' : 'Please select an export format first.'
+      );
       return;
     }
 
     setIsExporting(true);
     setExportStatus({ type: null, message: '' });
+
+    const exportStartTime = Date.now();
 
     try {
       let result;
@@ -69,16 +82,32 @@ export const ExportScreen: React.FC<ExportScreenProps> = ({ route }) => {
       }
 
       if (result.success) {
+        const exportDuration = Date.now() - exportStartTime;
+
+        // Track successful export
+        telemetryClient.trackExport(selectedFormat, {
+          shape_type: pattern.object.type,
+          stitch_type: pattern.meta.stitch,
+          round_count: pattern.rounds.length,
+          paper_size: selectedFormat === 'pdf' ? paperSize : undefined,
+          duration_ms: exportDuration,
+        });
+
+        const formatLabel = selectedFormat.toUpperCase();
         setExportStatus({
           type: 'success',
-          message: `Pattern exported successfully as ${selectedFormat.toUpperCase()}!${
-            result.fileName ? `\nFile: ${result.fileName}` : ''
-          }`,
+          message: kidMode
+            ? `Your pattern is saved!${result.fileName ? `\nFile: ${result.fileName}` : ''}`
+            : `Pattern exported successfully as ${formatLabel}!${
+                result.fileName ? `\nFile: ${result.fileName}` : ''
+              }`,
         });
       } else {
         setExportStatus({
           type: 'error',
-          message: result.error || 'Export failed. Please try again.',
+          message: kidMode
+            ? result.error || 'Could not save. Please try again.'
+            : result.error || 'Export failed. Please try again.',
         });
       }
     } catch (error) {
@@ -86,7 +115,7 @@ export const ExportScreen: React.FC<ExportScreenProps> = ({ route }) => {
         error instanceof Error ? error.message : 'An unexpected error occurred';
       setExportStatus({
         type: 'error',
-        message,
+        message: kidMode ? 'Something went wrong. Please try again.' : message,
       });
     } finally {
       setIsExporting(false);
@@ -107,29 +136,45 @@ export const ExportScreen: React.FC<ExportScreenProps> = ({ route }) => {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.header}>
-          <Text style={styles.title}>Export Pattern</Text>
+          <Text style={styles.title}>
+            {kidMode ? 'Save Pattern' : 'Export Pattern'}
+          </Text>
           <Text style={styles.subtitle}>
-            Choose your preferred format to save or share your pattern
+            {kidMode
+              ? 'Pick how you want to save or share your pattern'
+              : 'Choose your preferred format to save or share your pattern'}
           </Text>
         </View>
 
         <View style={styles.patternInfo}>
-          <Text style={styles.patternInfoLabel}>Pattern Details</Text>
+          <Text style={styles.patternInfoLabel}>
+            {kidMode ? 'About Your Pattern' : 'Pattern Details'}
+          </Text>
           <View style={styles.patternInfoRow}>
-            <Text style={styles.patternInfoKey}>Shape:</Text>
+            <Text style={styles.patternInfoKey}>
+              {kidMode ? 'Shape:' : 'Shape:'}
+            </Text>
             <Text style={styles.patternInfoValue}>
-              {pattern.object.type.charAt(0).toUpperCase() +
-                pattern.object.type.slice(1)}
+              {kidMode && pattern.object.type === 'sphere'
+                ? 'Ball'
+                : kidMode && pattern.object.type === 'cylinder'
+                ? 'Tube'
+                : pattern.object.type.charAt(0).toUpperCase() +
+                  pattern.object.type.slice(1)}
             </Text>
           </View>
           <View style={styles.patternInfoRow}>
-            <Text style={styles.patternInfoKey}>Rounds:</Text>
+            <Text style={styles.patternInfoKey}>
+              {kidMode ? 'Steps:' : 'Rounds:'}
+            </Text>
             <Text style={styles.patternInfoValue}>
               {pattern.rounds.length}
             </Text>
           </View>
           <View style={styles.patternInfoRow}>
-            <Text style={styles.patternInfoKey}>Stitch:</Text>
+            <Text style={styles.patternInfoKey}>
+              {kidMode ? 'Stitch:' : 'Stitch:'}
+            </Text>
             <Text style={styles.patternInfoValue}>
               {pattern.meta.stitch.toUpperCase()}
             </Text>
@@ -186,35 +231,63 @@ export const ExportScreen: React.FC<ExportScreenProps> = ({ route }) => {
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity
-          style={[styles.exportButton, !canExport && styles.exportButtonDisabled]}
-          onPress={handleExport}
-          disabled={!canExport}
-          accessible={true}
-          accessibilityRole="button"
-          accessibilityLabel={`Export pattern as ${
-            selectedFormat || 'selected format'
-          }`}
-          accessibilityHint={
-            !selectedFormat
-              ? 'Please select a format first'
-              : 'Export and save your pattern'
-          }
-          accessibilityState={{ disabled: !canExport }}
-        >
-          {isExporting ? (
-            <View style={styles.exportButtonContent}>
-              <ActivityIndicator color={colors.white} size="small" />
-              <Text style={styles.exportButtonText}>Exporting...</Text>
-            </View>
-          ) : (
-            <Text style={styles.exportButtonText}>
-              {selectedFormat
-                ? `Export as ${selectedFormat.toUpperCase()}`
-                : 'Select Format to Export'}
-            </Text>
-          )}
-        </TouchableOpacity>
+        {kidMode ? (
+          <SimplifiedButton
+            label={
+              isExporting
+                ? 'Saving...'
+                : selectedFormat
+                ? `Save as ${selectedFormat.toUpperCase()}`
+                : 'Pick Type to Save'
+            }
+            onPress={handleExport}
+            disabled={!canExport || isExporting}
+            variant="primary"
+            size="large"
+            accessibilityHint={
+              !selectedFormat
+                ? 'Please pick a type first'
+                : 'Save your pattern'
+            }
+            style={styles.kidModeExportButton}
+          />
+        ) : (
+          <TouchableOpacity
+            style={[
+              styles.exportButton,
+              !canExport && styles.exportButtonDisabled,
+              exportButtonFocus.focused && exportButtonFocus.focusStyle,
+            ]}
+            onPress={handleExport}
+            onFocus={exportButtonFocus.onFocus}
+            onBlur={exportButtonFocus.onBlur}
+            disabled={!canExport}
+            accessible={true}
+            accessibilityRole="button"
+            accessibilityLabel={`Export pattern as ${
+              selectedFormat || 'selected format'
+            }`}
+            accessibilityHint={
+              !selectedFormat
+                ? 'Please select a format first'
+                : 'Export and save your pattern'
+            }
+            accessibilityState={{ disabled: !canExport }}
+          >
+            {isExporting ? (
+              <View style={styles.exportButtonContent}>
+                <ActivityIndicator color={colors.white} size="small" />
+                <Text style={styles.exportButtonText}>Exporting...</Text>
+              </View>
+            ) : (
+              <Text style={styles.exportButtonText}>
+                {selectedFormat
+                  ? `Export as ${selectedFormat.toUpperCase()}`
+                  : 'Select Format to Export'}
+              </Text>
+            )}
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -337,5 +410,9 @@ const styles = StyleSheet.create({
     ...typography.bodyLarge,
     fontWeight: '600',
     color: colors.white,
+  },
+  // Kid Mode specific styles
+  kidModeExportButton: {
+    width: '100%',
   },
 });

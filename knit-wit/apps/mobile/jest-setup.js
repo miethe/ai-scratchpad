@@ -4,6 +4,14 @@
 // Define __DEV__ for React Native
 global.__DEV__ = true;
 
+// Set up environment variables FIRST before any imports
+process.env.EXPO_PUBLIC_API_URL = 'http://localhost:8000/api/v1';
+
+// Mock expo virtual environment
+jest.mock('expo/virtual/env', () => ({
+  env: process.env,
+}), { virtual: true });
+
 // Mock Dimensions before Platform to ensure it's available
 const mockDimensions = {
   get: jest.fn(() => ({ width: 375, height: 812 })),
@@ -86,6 +94,3 @@ jest.mock('expo-sharing', () => ({
   isAvailableAsync: jest.fn().mockResolvedValue(true),
   shareAsync: jest.fn().mockResolvedValue(undefined),
 }));
-
-// Set up environment variables
-process.env.EXPO_PUBLIC_API_URL = 'http://localhost:8000/api/v1';

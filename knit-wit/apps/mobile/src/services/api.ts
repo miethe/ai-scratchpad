@@ -15,6 +15,25 @@ const apiClient = axios.create({
 });
 
 /**
+ * Parser validation response
+ */
+export interface ParserValidationResult {
+  valid: boolean;
+  errors: Array<{
+    message: string;
+    line?: number;
+  }>;
+}
+
+/**
+ * Parser response
+ */
+export interface ParserResponse {
+  dsl: PatternDSL;
+  validation: ParserValidationResult;
+}
+
+/**
  * Pattern API service
  * Handles communication with the FastAPI backend
  */
@@ -24,6 +43,14 @@ export const patternApi = {
    */
   async generate(request: PatternRequest): Promise<{ dsl: PatternDSL }> {
     const response = await apiClient.post('/patterns/generate', request);
+    return response.data;
+  },
+
+  /**
+   * Parse and validate a pattern text
+   */
+  async parse(text: string): Promise<ParserResponse> {
+    const response = await apiClient.post('/parser/parse', { text });
     return response.data;
   },
 

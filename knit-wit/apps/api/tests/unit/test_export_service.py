@@ -473,3 +473,195 @@ class TestExportService:
         assert "Advanced" in all_text
         assert "180 minutes" in all_text
         assert "Blocked swatch" in all_text
+
+    # =============================================================================
+    # SVG Export Tests
+    # =============================================================================
+
+    def test_svg_generation_composite(
+        self, service: ExportService, simple_pattern: PatternDSL
+    ) -> None:
+        """Test SVG generation in composite mode."""
+        svg_str = service.generate_svg(simple_pattern, mode="composite")
+
+        # Verify SVG was generated
+        assert svg_str is not None
+        assert isinstance(svg_str, str)
+        assert len(svg_str) > 0
+
+        # Verify SVG structure
+        assert '<?xml version' in svg_str or '<svg' in svg_str
+        assert 'xmlns="http://www.w3.org/2000/svg"' in svg_str
+        assert '</svg>' in svg_str
+
+    def test_svg_generation_per_round(
+        self, service: ExportService, simple_pattern: PatternDSL
+    ) -> None:
+        """Test SVG generation in per-round mode."""
+        svg_list = service.generate_svg(simple_pattern, mode="per-round")
+
+        # Verify list of SVGs was generated
+        assert svg_list is not None
+        assert isinstance(svg_list, list)
+        assert len(svg_list) == len(simple_pattern.rounds)
+
+        # Verify each SVG is valid
+        for svg_str in svg_list:
+            assert isinstance(svg_str, str)
+            assert len(svg_str) > 0
+            assert '<svg' in svg_str
+            assert '</svg>' in svg_str
+
+    def test_svg_invalid_mode(
+        self, service: ExportService, simple_pattern: PatternDSL
+    ) -> None:
+        """Test SVG generation with invalid mode raises ValueError."""
+        with pytest.raises(ValueError, match="Invalid mode"):
+            service.generate_svg(simple_pattern, mode="invalid")  # type: ignore
+
+    def test_svg_contains_visualization_data(
+        self, service: ExportService, simple_pattern: PatternDSL
+    ) -> None:
+        """Test SVG contains node and edge visualization data."""
+        svg_str = service.generate_svg(simple_pattern, mode="composite")
+
+        # Verify SVG contains expected elements
+        assert '<circle' in svg_str  # Nodes
+        assert '<line' in svg_str  # Edges
+        assert 'Round' in svg_str  # Round labels
+
+    def test_svg_file_size_constraint(
+        self, service: ExportService, complex_pattern: PatternDSL
+    ) -> None:
+        """Test SVG file size is reasonable (<1MB per round)."""
+        svg_str = service.generate_svg(complex_pattern, mode="composite")
+
+        # Verify file size is under 1 MB
+        size_mb = len(svg_str.encode("utf-8")) / (1024 * 1024)
+        assert size_mb < 1.0, f"SVG size {size_mb:.2f} MB exceeds 1 MB limit"
+
+    def test_svg_per_round_individual_sizes(
+        self, service: ExportService, simple_pattern: PatternDSL
+    ) -> None:
+        """Test individual SVG files are reasonably sized."""
+        svg_list = service.generate_svg(simple_pattern, mode="per-round")
+
+        for idx, svg_str in enumerate(svg_list):
+            size_kb = len(svg_str.encode("utf-8")) / 1024
+            assert size_kb < 100, f"Round {idx + 1} SVG size {size_kb:.2f} KB exceeds 100 KB"
+
+    # =============================================================================
+    # PNG Export Tests
+    # =============================================================================
+
+    def test_png_generation_72dpi(
+        self, service: ExportService, simple_pattern: PatternDSL
+    ) -> None:
+        """Test PNG generation at 72 DPI."""
+        # Generate SVG first
+        svg_str = service.generate_svg(simple_pattern, mode="composite")
+
+        # Convert to PNG
+        png_bytes = service.generate_png(svg_str, dpi=72)
+
+        # Verify PNG was generated
+        assert png_bytes is not None
+        assert isinstance(png_bytes, bytes)
+        assert len(png_bytes) > 0
+
+        # Verify PNG signature (first 8 bytes)
+        assert png_bytes[:8] == b'\x89PNG\r\n\x1a\n'
+
+    def test_png_generation_300dpi(
+        self, service: ExportService, simple_pattern: PatternDSL
+    ) -> None:
+        """Test PNG generation at 300 DPI."""
+        svg_str = service.generate_svg(simple_pattern, mode="composite")
+        png_bytes = service.generate_png(svg_str, dpi=300)
+
+        # Verify PNG was generated
+        assert png_bytes is not None
+        assert isinstance(png_bytes, bytes)
+        assert len(png_bytes) > 0
+
+        # Verify PNG signature
+        assert png_bytes[:8] == b'\x89PNG\r\n\x1a\n'
+
+    def test_png_invalid_dpi(
+        self, service: ExportService, simple_pattern: PatternDSL
+    ) -> None:
+        """Test PNG generation with invalid DPI raises ValueError."""
+        svg_str = service.generate_svg(simple_pattern, mode="composite")
+
+        with pytest.raises(ValueError, match="Invalid DPI"):
+            service.generate_png(svg_str, dpi=150)  # type: ignore
+
+    def test_png_file_size_constraint_72dpi(
+        self, service: ExportService, complex_pattern: PatternDSL
+    ) -> None:
+        """Test PNG file size at 72 DPI is under 5 MB."""
+        svg_str = service.generate_svg(complex_pattern, mode="composite")
+        png_bytes = service.generate_png(svg_str, dpi=72)
+
+        size_mb = len(png_bytes) / (1024 * 1024)
+        assert size_mb < 5.0, f"PNG size {size_mb:.2f} MB exceeds 5 MB limit"
+
+    def test_png_file_size_constraint_300dpi(
+        self, service: ExportService, complex_pattern: PatternDSL
+    ) -> None:
+        """Test PNG file size at 300 DPI is under 5 MB."""
+        svg_str = service.generate_svg(complex_pattern, mode="composite")
+        png_bytes = service.generate_png(svg_str, dpi=300)
+
+        size_mb = len(png_bytes) / (1024 * 1024)
+        assert size_mb < 5.0, f"PNG size {size_mb:.2f} MB exceeds 5 MB limit"
+
+    def test_png_300dpi_larger_than_72dpi(
+        self, service: ExportService, simple_pattern: PatternDSL
+    ) -> None:
+        """Test 300 DPI PNG is larger than 72 DPI."""
+        svg_str = service.generate_svg(simple_pattern, mode="composite")
+
+        png_72 = service.generate_png(svg_str, dpi=72)
+        png_300 = service.generate_png(svg_str, dpi=300)
+
+        # 300 DPI should produce larger file
+        assert len(png_300) > len(png_72)
+
+    def test_png_invalid_svg(self, service: ExportService) -> None:
+        """Test PNG generation with malformed SVG raises ValueError."""
+        invalid_svg = "<not-valid-svg>malformed</not-valid-svg>"
+
+        with pytest.raises(ValueError, match="Failed to convert"):
+            service.generate_png(invalid_svg, dpi=72)
+
+    # =============================================================================
+    # SVG/PNG Integration Tests
+    # =============================================================================
+
+    def test_svg_to_png_workflow(
+        self, service: ExportService, simple_pattern: PatternDSL
+    ) -> None:
+        """Test complete workflow: DSL → SVG → PNG."""
+        # Generate SVG
+        svg_str = service.generate_svg(simple_pattern, mode="composite")
+        assert len(svg_str) > 0
+
+        # Convert to PNG
+        png_bytes = service.generate_png(svg_str, dpi=72)
+        assert len(png_bytes) > 0
+
+        # Verify PNG is valid
+        assert png_bytes[:8] == b'\x89PNG\r\n\x1a\n'
+
+    def test_svg_editable_in_viewer(
+        self, service: ExportService, simple_pattern: PatternDSL
+    ) -> None:
+        """Test SVG contains editable elements (not just raster)."""
+        svg_str = service.generate_svg(simple_pattern, mode="composite")
+
+        # Verify SVG contains vector elements (not base64 images)
+        assert '<circle' in svg_str  # Vector circles
+        assert '<line' in svg_str  # Vector lines
+        assert '<text' in svg_str  # Text elements
+        assert 'base64' not in svg_str  # No embedded raster images
