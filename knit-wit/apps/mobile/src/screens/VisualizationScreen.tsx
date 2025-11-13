@@ -7,6 +7,7 @@ import { Legend } from '../components/visualization/Legend';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { NetworkError } from '../components/common/NetworkError';
 import { useVisualizationStore } from '../stores/useVisualizationStore';
+import { useSettingsStore } from '../stores/useSettingsStore';
 import { patternApi } from '../services/api';
 import type { PatternDSL } from '../types/pattern';
 import { colors } from '../theme/colors';
@@ -23,6 +24,7 @@ interface VisualizationScreenProps {
 
 export const VisualizationScreen: React.FC<VisualizationScreenProps> = ({ route }) => {
   const { pattern } = route.params;
+  const { kidMode } = useSettingsStore();
 
   const {
     frames,
@@ -73,7 +75,10 @@ export const VisualizationScreen: React.FC<VisualizationScreenProps> = ({ route 
         importantForAccessibility="yes"
         accessibilityLiveRegion="polite"
       >
-        <LoadingSpinner size="large" message="Generating visualization..." />
+        <LoadingSpinner
+          size="large"
+          message={kidMode ? 'Drawing your pattern...' : 'Generating visualization...'}
+        />
       </View>
     );
   }
@@ -99,19 +104,33 @@ export const VisualizationScreen: React.FC<VisualizationScreenProps> = ({ route 
   if (!currentFrame) {
     return (
       <View style={styles.centerContainer}>
-        <Text style={styles.noDataText}>No visualization data available</Text>
+        <Text style={styles.noDataText}>
+          {kidMode
+            ? 'No picture to show right now'
+            : 'No visualization data available'}
+        </Text>
       </View>
     );
   }
 
+  const roundLabel = kidMode ? 'Step' : 'Round';
+
   return (
     <View
       style={styles.container}
-      accessibilityLabel="Pattern visualization screen"
+      accessibilityLabel={
+        kidMode
+          ? `Pattern steps view`
+          : `Pattern visualization screen`
+      }
     >
       <View
         style={styles.renderContainer}
-        accessibilityLabel={`Visualization of round ${currentFrame.round_number}`}
+        accessibilityLabel={
+          kidMode
+            ? `Picture of ${roundLabel} ${currentFrame.round_number}`
+            : `Visualization of round ${currentFrame.round_number}`
+        }
       >
         <SVGRenderer
           frame={currentFrame}

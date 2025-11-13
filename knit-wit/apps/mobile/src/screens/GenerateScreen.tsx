@@ -27,27 +27,55 @@ export default function GenerateScreen({ navigation }: Props) {
 
   const handleShapeChange = (newShape: ShapeType) => {
     setShape(newShape);
-    AccessibilityInfo.announceForAccessibility(`Shape changed to ${newShape}`);
+    AccessibilityInfo.announceForAccessibility(
+      kidMode
+        ? `Shape changed to ${newShape === 'sphere' ? 'ball' : newShape === 'cylinder' ? 'tube' : 'cone'}`
+        : `Shape changed to ${newShape}`
+    );
   };
 
   const handleUnitsChange = (newUnits: Units) => {
     setUnits(newUnits);
-    AccessibilityInfo.announceForAccessibility(`Units changed to ${newUnits}`);
+    AccessibilityInfo.announceForAccessibility(
+      kidMode
+        ? `Size changed to ${newUnits === 'cm' ? 'centimeters' : 'inches'}`
+        : `Units changed to ${newUnits}`
+    );
   };
 
   const handleTerminologyChange = (newTerminology: Terminology) => {
     setTerminology(newTerminology);
-    AccessibilityInfo.announceForAccessibility(`Terminology changed to ${newTerminology}`);
+    AccessibilityInfo.announceForAccessibility(
+      kidMode
+        ? `Stitch names changed to ${newTerminology}`
+        : `Terminology changed to ${newTerminology}`
+    );
   };
 
   const handleGenerate = () => {
     // Placeholder for pattern generation
     // This will be connected to the API in later phases
     Alert.alert(
-      'Pattern Generation',
-      `Generating ${shape} pattern with diameter ${diameter}${units}`,
+      kidMode ? 'Making Pattern' : 'Pattern Generation',
+      kidMode
+        ? `Making your ${shape === 'sphere' ? 'ball' : shape === 'cylinder' ? 'tube' : 'cone'} pattern!`
+        : `Generating ${shape} pattern with diameter ${diameter}${units}`,
       [{ text: 'OK' }]
     );
+  };
+
+  const getShapeLabel = (s: ShapeType) => {
+    if (!kidMode) return s.charAt(0).toUpperCase() + s.slice(1);
+    switch (s) {
+      case 'sphere':
+        return 'Ball';
+      case 'cylinder':
+        return 'Tube';
+      case 'cone':
+        return 'Cone';
+      default:
+        return s;
+    }
   };
 
   return (
@@ -59,14 +87,16 @@ export default function GenerateScreen({ navigation }: Props) {
     >
       <View style={styles.header}>
         <Text style={styles.title} accessibilityRole="header">
-          Generate Pattern
+          {kidMode ? 'Make a Pattern' : 'Generate Pattern'}
         </Text>
         <Text
           style={styles.subtitle}
           accessible={true}
           accessibilityRole="text"
         >
-          Configure your crochet pattern parameters
+          {kidMode
+            ? 'Pick a shape and tell us how big you want it'
+            : 'Configure your crochet pattern parameters'}
         </Text>
       </View>
 
@@ -78,7 +108,7 @@ export default function GenerateScreen({ navigation }: Props) {
             accessibilityRole="header"
             accessibilityLevel={2}
           >
-            Shape
+            {kidMode ? 'Pick a Shape' : 'Shape'}
           </Text>
           {kidMode ? (
             <View
@@ -94,12 +124,12 @@ export default function GenerateScreen({ navigation }: Props) {
                   selected={shape === s}
                   pressable={true}
                   onPress={() => handleShapeChange(s)}
-                  accessibilityLabel={`${s.charAt(0).toUpperCase() + s.slice(1)} shape`}
-                  accessibilityHint={`Select ${s} shape for pattern`}
+                  accessibilityLabel={`${getShapeLabel(s)} shape`}
+                  accessibilityHint={`Select ${getShapeLabel(s)} shape for pattern`}
                   style={styles.kidModeShapeCard}
                 >
                   <Text style={styles.kidModeCardText}>
-                    {s.charAt(0).toUpperCase() + s.slice(1)}
+                    {getShapeLabel(s)}
                   </Text>
                 </SimplifiedCard>
               ))}
@@ -138,7 +168,7 @@ export default function GenerateScreen({ navigation }: Props) {
             accessibilityRole="header"
             accessibilityLevel={2}
           >
-            Diameter
+            {kidMode ? 'How Wide?' : 'Diameter'}
           </Text>
           <View style={styles.inputRow}>
             <TextInput
@@ -147,8 +177,12 @@ export default function GenerateScreen({ navigation }: Props) {
               onChangeText={setDiameter}
               keyboardType="decimal-pad"
               placeholder="10"
-              accessibilityLabel="Diameter input"
-              accessibilityHint="Enter the diameter for your pattern in centimeters or inches"
+              accessibilityLabel={kidMode ? 'How wide input' : 'Diameter input'}
+              accessibilityHint={
+                kidMode
+                  ? 'Enter how wide you want it to be'
+                  : 'Enter the diameter for your pattern in centimeters or inches'
+              }
               accessibilityRole="none"
               accessible={true}
             />
@@ -156,7 +190,7 @@ export default function GenerateScreen({ navigation }: Props) {
               style={styles.unitToggle}
               accessible={true}
               accessibilityRole="radiogroup"
-              accessibilityLabel="Unit selection"
+              accessibilityLabel={kidMode ? 'Size type selection' : 'Unit selection'}
             >
               {(['cm', 'in'] as Units[]).map((u) => (
                 <TouchableOpacity
@@ -184,7 +218,7 @@ export default function GenerateScreen({ navigation }: Props) {
               accessibilityRole="header"
               accessibilityLevel={2}
             >
-              Height
+              {kidMode ? 'How Tall?' : 'Height'}
             </Text>
             <View style={styles.inputRow}>
               <TextInput
@@ -193,8 +227,12 @@ export default function GenerateScreen({ navigation }: Props) {
                 onChangeText={setHeight}
                 keyboardType="decimal-pad"
                 placeholder="15"
-                accessibilityLabel="Height input"
-                accessibilityHint={`Enter the height for your ${shape} pattern`}
+                accessibilityLabel={kidMode ? 'How tall input' : 'Height input'}
+                accessibilityHint={
+                  kidMode
+                    ? `Enter how tall you want your ${shape === 'cylinder' ? 'tube' : 'cone'} to be`
+                    : `Enter the height for your ${shape} pattern`
+                }
                 accessibilityRole="none"
                 accessible={true}
               />
@@ -209,13 +247,13 @@ export default function GenerateScreen({ navigation }: Props) {
             accessibilityRole="header"
             accessibilityLevel={2}
           >
-            Crochet Terminology
+            {kidMode ? 'Stitch Names' : 'Crochet Terminology'}
           </Text>
           <View
             style={styles.buttonGroup}
             accessible={true}
             accessibilityRole="radiogroup"
-            accessibilityLabel="Terminology selection"
+            accessibilityLabel={kidMode ? 'Stitch name style' : 'Terminology selection'}
           >
             {(['US', 'UK'] as Terminology[]).map((term) => (
               <TouchableOpacity
@@ -223,9 +261,9 @@ export default function GenerateScreen({ navigation }: Props) {
                 style={[styles.button, terminology === term && styles.buttonActive]}
                 onPress={() => handleTerminologyChange(term)}
                 accessibilityRole="radio"
-                accessibilityLabel={`${term} terminology`}
+                accessibilityLabel={`${term} ${kidMode ? 'stitch names' : 'terminology'}`}
                 accessibilityState={{ selected: terminology === term, checked: terminology === term }}
-                accessibilityHint={`Use ${term} crochet terminology`}
+                accessibilityHint={`Use ${term} crochet ${kidMode ? 'stitch names' : 'terminology'}`}
                 accessible={true}
               >
                 <Text style={[styles.buttonText, terminology === term && styles.buttonTextActive]}>
@@ -239,11 +277,11 @@ export default function GenerateScreen({ navigation }: Props) {
         {/* Generate Button */}
         {kidMode ? (
           <SimplifiedButton
-            label="Generate Pattern"
+            label="Make My Pattern"
             onPress={handleGenerate}
             variant="primary"
             size="large"
-            accessibilityHint="Creates a crochet pattern with the specified parameters and navigates to visualization"
+            accessibilityHint="Creates your crochet pattern and shows you the steps"
             style={styles.kidModeGenerateButton}
           />
         ) : (

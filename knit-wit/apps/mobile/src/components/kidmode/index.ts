@@ -12,3 +12,18 @@ export {
   type SimplifiedCardProps,
   type SimplifiedInputProps,
 } from './SimplifiedUI';
+
+export {
+  AnimatedTooltip,
+  type AnimatedTooltipProps,
+  type TooltipType,
+} from './AnimatedTooltip';
+
+export {
+  IncreaseAnimation,
+  DecreaseAnimation,
+  MagicRingAnimation,
+  type IncreaseAnimationProps,
+  type DecreaseAnimationProps,
+  type MagicRingAnimationProps,
+} from './animations/StitchAnimations';

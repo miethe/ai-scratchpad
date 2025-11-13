@@ -21,14 +21,18 @@ export default function SettingsScreen({ navigation }: Props) {
   const handleKidModeToggle = (value: boolean) => {
     setKidMode(value);
     AccessibilityInfo.announceForAccessibility(
-      `Kid Mode ${value ? 'enabled' : 'disabled'}`
+      value
+        ? 'Kid Mode turned on'
+        : 'Kid Mode turned off'
     );
   };
 
   const handleDarkModeToggle = (value: boolean) => {
     setDarkMode(value);
     AccessibilityInfo.announceForAccessibility(
-      `Dark Mode ${value ? 'enabled' : 'disabled'}`
+      value
+        ? 'Dark Mode turned on'
+        : 'Dark Mode turned off'
     );
   };
 
@@ -36,7 +40,9 @@ export default function SettingsScreen({ navigation }: Props) {
     const newTerminology = value ? 'US' : 'UK';
     setDefaultTerminology(newTerminology);
     AccessibilityInfo.announceForAccessibility(
-      `Terminology changed to ${newTerminology}`
+      kidMode
+        ? `Stitch names changed to ${newTerminology}`
+        : `Terminology changed to ${newTerminology}`
     );
   };
 
@@ -44,7 +50,9 @@ export default function SettingsScreen({ navigation }: Props) {
     const newUnits = value ? 'cm' : 'in';
     setDefaultUnits(newUnits);
     AccessibilityInfo.announceForAccessibility(
-      `Units changed to ${value ? 'metric centimeters' : 'imperial inches'}`
+      kidMode
+        ? `Size changed to ${value ? 'centimeters' : 'inches'}`
+        : `Units changed to ${value ? 'metric centimeters' : 'imperial inches'}`
     );
   };
 
@@ -64,7 +72,9 @@ export default function SettingsScreen({ navigation }: Props) {
           accessible={true}
           accessibilityRole="text"
         >
-          Customize your Knit-Wit experience
+          {kidMode
+            ? 'Change how the app looks and works'
+            : 'Customize your Knit-Wit experience'}
         </Text>
       </View>
 
@@ -74,12 +84,16 @@ export default function SettingsScreen({ navigation }: Props) {
           accessibilityRole="header"
           accessibilityLevel={2}
         >
-          Appearance
+          {kidMode ? 'Look and Feel' : 'Appearance'}
         </Text>
 
         <SettingRow
           label="Kid Mode"
-          description="Simplified interface for young learners with larger buttons and friendly colors"
+          description={
+            kidMode
+              ? 'Easy mode for young learners with big buttons and simple words'
+              : 'Simplified interface for young learners with larger buttons and friendly colors'
+          }
           value={kidMode}
           onValueChange={handleKidModeToggle}
           testID="kid-mode-toggle"
@@ -87,7 +101,11 @@ export default function SettingsScreen({ navigation }: Props) {
 
         <SettingRow
           label="Dark Mode"
-          description="Use dark theme throughout the app"
+          description={
+            kidMode
+              ? 'Use dark colors for the whole app'
+              : 'Use dark theme throughout the app'
+          }
           value={darkMode}
           onValueChange={handleDarkModeToggle}
           testID="dark-mode-toggle"
@@ -100,20 +118,28 @@ export default function SettingsScreen({ navigation }: Props) {
           accessibilityRole="header"
           accessibilityLevel={2}
         >
-          Pattern Defaults
+          {kidMode ? 'Pattern Settings' : 'Pattern Defaults'}
         </Text>
 
         <SettingRow
-          label="US Terminology"
-          description="Use US crochet terms (turn off for UK terms)"
+          label={kidMode ? 'US Stitch Names' : 'US Terminology'}
+          description={
+            kidMode
+              ? 'Use US names for stitches (turn off for UK names)'
+              : 'Use US crochet terms (turn off for UK terms)'
+          }
           value={defaultTerminology === 'US'}
           onValueChange={handleTerminologyToggle}
           testID="us-terminology-toggle"
         />
 
         <SettingRow
-          label="Metric Units (cm)"
-          description="Use metric units (turn off for imperial/inches)"
+          label={kidMode ? 'Centimeters (cm)' : 'Metric Units (cm)'}
+          description={
+            kidMode
+              ? 'Use centimeters to measure (turn off for inches)'
+              : 'Use metric units (turn off for imperial/inches)'
+          }
           value={defaultUnits === 'cm'}
           onValueChange={handleUnitsToggle}
           testID="metric-units-toggle"
@@ -126,7 +152,7 @@ export default function SettingsScreen({ navigation }: Props) {
           accessibilityRole="header"
           accessibilityLevel={2}
         >
-          About
+          {kidMode ? 'App Info' : 'About'}
         </Text>
 
         <View
@@ -152,21 +178,25 @@ export default function SettingsScreen({ navigation }: Props) {
         <TouchableOpacity
           style={styles.linkButton}
           accessibilityRole="button"
-          accessibilityLabel="View documentation"
-          accessibilityHint="Opens documentation in browser"
+          accessibilityLabel={kidMode ? 'View help' : 'View documentation'}
+          accessibilityHint={kidMode ? 'Opens help page' : 'Opens documentation in browser'}
           accessible={true}
         >
-          <Text style={styles.linkButtonText}>Documentation</Text>
+          <Text style={styles.linkButtonText}>
+            {kidMode ? 'Help' : 'Documentation'}
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.linkButton}
           accessibilityRole="button"
-          accessibilityLabel="Report an issue"
-          accessibilityHint="Opens issue tracker in browser"
+          accessibilityLabel={kidMode ? 'Report a problem' : 'Report an issue'}
+          accessibilityHint={kidMode ? 'Tell us about a problem' : 'Opens issue tracker in browser'}
           accessible={true}
         >
-          <Text style={styles.linkButtonText}>Report an Issue</Text>
+          <Text style={styles.linkButtonText}>
+            {kidMode ? 'Report a Problem' : 'Report an Issue'}
+          </Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

@@ -2,10 +2,13 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { MainTabScreenProps } from '../types';
 import { colors, typography, spacing, shadows } from '../theme';
+import { useSettingsStore } from '../stores/useSettingsStore';
 
 type Props = MainTabScreenProps<'Home'>;
 
 export default function HomeScreen({ navigation }: Props) {
+  const { kidMode } = useSettingsStore();
+
   const handleStartGenerating = () => {
     navigation.navigate('Generate');
   };
@@ -23,15 +26,16 @@ export default function HomeScreen({ navigation }: Props) {
     >
       <View style={styles.header}>
         <Text style={styles.title} accessibilityRole="header">
-          Welcome to Knit-Wit
+          {kidMode ? 'Welcome to Knit-Wit' : 'Welcome to Knit-Wit'}
         </Text>
         <Text
           style={styles.subtitle}
           accessible={true}
           accessibilityRole="text"
         >
-          Generate custom crochet patterns for geometric shapes with interactive step-by-step
-          guidance.
+          {kidMode
+            ? 'Make your own crochet patterns! Pick a shape, and we will show you how to make it step by step.'
+            : 'Generate custom crochet patterns for geometric shapes with interactive step-by-step guidance.'}
         </Text>
       </View>
 
@@ -41,20 +45,30 @@ export default function HomeScreen({ navigation }: Props) {
           accessibilityRole="header"
           accessibilityLevel={2}
         >
-          Quick Start
+          {kidMode ? 'Get Started' : 'Quick Start'}
         </Text>
         <TouchableOpacity
           style={styles.card}
           onPress={handleStartGenerating}
           accessibilityRole="button"
-          accessibilityLabel="Start generating a pattern"
-          accessibilityHint="Navigate to the pattern generator"
+          accessibilityLabel={
+            kidMode ? 'Make a pattern' : 'Start generating a pattern'
+          }
+          accessibilityHint={
+            kidMode
+              ? 'Tap to create a new crochet pattern'
+              : 'Navigate to the pattern generator'
+          }
           accessible={true}
         >
           <View style={styles.cardContent}>
-            <Text style={styles.cardTitle}>Generate Pattern</Text>
+            <Text style={styles.cardTitle}>
+              {kidMode ? 'Make a Pattern' : 'Generate Pattern'}
+            </Text>
             <Text style={styles.cardDescription}>
-              Create a new crochet pattern for spheres, cylinders, or cones
+              {kidMode
+                ? 'Pick a shape like a ball, tube, or cone and make your own pattern'
+                : 'Create a new crochet pattern for spheres, cylinders, or cones'}
             </Text>
           </View>
         </TouchableOpacity>
@@ -63,14 +77,24 @@ export default function HomeScreen({ navigation }: Props) {
           style={styles.card}
           onPress={handleParsePattern}
           accessibilityRole="button"
-          accessibilityLabel="Parse existing pattern"
-          accessibilityHint="Navigate to the pattern parser to validate and visualize an existing pattern"
+          accessibilityLabel={
+            kidMode ? 'Check a pattern' : 'Parse existing pattern'
+          }
+          accessibilityHint={
+            kidMode
+              ? 'Tap to check and see a pattern you already have'
+              : 'Navigate to the pattern parser to validate and visualize an existing pattern'
+          }
           accessible={true}
         >
           <View style={styles.cardContent}>
-            <Text style={styles.cardTitle}>Parse Pattern</Text>
+            <Text style={styles.cardTitle}>
+              {kidMode ? 'Check a Pattern' : 'Parse Pattern'}
+            </Text>
             <Text style={styles.cardDescription}>
-              Validate and visualize an existing crochet pattern
+              {kidMode
+                ? 'See if your pattern works and view it step by step'
+                : 'Validate and visualize an existing crochet pattern'}
             </Text>
           </View>
         </TouchableOpacity>
@@ -82,29 +106,52 @@ export default function HomeScreen({ navigation }: Props) {
           accessibilityRole="header"
           accessibilityLevel={2}
         >
-          Features
+          {kidMode ? 'What You Can Do' : 'Features'}
         </Text>
         <View
           style={styles.featureList}
           accessible={true}
           accessibilityRole="list"
         >
-          <FeatureItem
-            title="Parametric Patterns"
-            description="Specify dimensions and gauge to generate custom patterns"
-          />
-          <FeatureItem
-            title="Interactive Visualization"
-            description="Step-by-step SVG diagrams for each round"
-          />
-          <FeatureItem
-            title="Multiple Exports"
-            description="Save as PDF, SVG, or JSON for different uses"
-          />
-          <FeatureItem
-            title="US/UK Terminology"
-            description="Toggle between US and UK crochet terms"
-          />
+          {kidMode ? (
+            <>
+              <FeatureItem
+                title="Custom Patterns"
+                description="Tell us the size you want and we make the pattern for you"
+              />
+              <FeatureItem
+                title="Step by Step"
+                description="See pictures for each step of your pattern"
+              />
+              <FeatureItem
+                title="Save Your Pattern"
+                description="Save as PDF or picture to use later"
+              />
+              <FeatureItem
+                title="Easy Words"
+                description="Use simple crochet words that are easy to understand"
+              />
+            </>
+          ) : (
+            <>
+              <FeatureItem
+                title="Parametric Patterns"
+                description="Specify dimensions and gauge to generate custom patterns"
+              />
+              <FeatureItem
+                title="Interactive Visualization"
+                description="Step-by-step SVG diagrams for each round"
+              />
+              <FeatureItem
+                title="Multiple Exports"
+                description="Save as PDF, SVG, or JSON for different uses"
+              />
+              <FeatureItem
+                title="US/UK Terminology"
+                description="Toggle between US and UK crochet terms"
+              />
+            </>
+          )}
         </View>
       </View>
     </ScrollView>

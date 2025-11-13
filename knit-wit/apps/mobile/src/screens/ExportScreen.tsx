@@ -44,7 +44,10 @@ export const ExportScreen: React.FC<ExportScreenProps> = ({ route }) => {
 
   const handleExport = async () => {
     if (!selectedFormat) {
-      Alert.alert('No Format Selected', 'Please select an export format first.');
+      Alert.alert(
+        kidMode ? 'Pick a Type' : 'No Format Selected',
+        kidMode ? 'Please pick how you want to save your pattern first.' : 'Please select an export format first.'
+      );
       return;
     }
 
@@ -72,16 +75,21 @@ export const ExportScreen: React.FC<ExportScreenProps> = ({ route }) => {
       }
 
       if (result.success) {
+        const formatLabel = selectedFormat.toUpperCase();
         setExportStatus({
           type: 'success',
-          message: `Pattern exported successfully as ${selectedFormat.toUpperCase()}!${
-            result.fileName ? `\nFile: ${result.fileName}` : ''
-          }`,
+          message: kidMode
+            ? `Your pattern is saved!${result.fileName ? `\nFile: ${result.fileName}` : ''}`
+            : `Pattern exported successfully as ${formatLabel}!${
+                result.fileName ? `\nFile: ${result.fileName}` : ''
+              }`,
         });
       } else {
         setExportStatus({
           type: 'error',
-          message: result.error || 'Export failed. Please try again.',
+          message: kidMode
+            ? result.error || 'Could not save. Please try again.'
+            : result.error || 'Export failed. Please try again.',
         });
       }
     } catch (error) {
@@ -89,7 +97,7 @@ export const ExportScreen: React.FC<ExportScreenProps> = ({ route }) => {
         error instanceof Error ? error.message : 'An unexpected error occurred';
       setExportStatus({
         type: 'error',
-        message,
+        message: kidMode ? 'Something went wrong. Please try again.' : message,
       });
     } finally {
       setIsExporting(false);
@@ -110,29 +118,45 @@ export const ExportScreen: React.FC<ExportScreenProps> = ({ route }) => {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.header}>
-          <Text style={styles.title}>Export Pattern</Text>
+          <Text style={styles.title}>
+            {kidMode ? 'Save Pattern' : 'Export Pattern'}
+          </Text>
           <Text style={styles.subtitle}>
-            Choose your preferred format to save or share your pattern
+            {kidMode
+              ? 'Pick how you want to save or share your pattern'
+              : 'Choose your preferred format to save or share your pattern'}
           </Text>
         </View>
 
         <View style={styles.patternInfo}>
-          <Text style={styles.patternInfoLabel}>Pattern Details</Text>
+          <Text style={styles.patternInfoLabel}>
+            {kidMode ? 'About Your Pattern' : 'Pattern Details'}
+          </Text>
           <View style={styles.patternInfoRow}>
-            <Text style={styles.patternInfoKey}>Shape:</Text>
+            <Text style={styles.patternInfoKey}>
+              {kidMode ? 'Shape:' : 'Shape:'}
+            </Text>
             <Text style={styles.patternInfoValue}>
-              {pattern.object.type.charAt(0).toUpperCase() +
-                pattern.object.type.slice(1)}
+              {kidMode && pattern.object.type === 'sphere'
+                ? 'Ball'
+                : kidMode && pattern.object.type === 'cylinder'
+                ? 'Tube'
+                : pattern.object.type.charAt(0).toUpperCase() +
+                  pattern.object.type.slice(1)}
             </Text>
           </View>
           <View style={styles.patternInfoRow}>
-            <Text style={styles.patternInfoKey}>Rounds:</Text>
+            <Text style={styles.patternInfoKey}>
+              {kidMode ? 'Steps:' : 'Rounds:'}
+            </Text>
             <Text style={styles.patternInfoValue}>
               {pattern.rounds.length}
             </Text>
           </View>
           <View style={styles.patternInfoRow}>
-            <Text style={styles.patternInfoKey}>Stitch:</Text>
+            <Text style={styles.patternInfoKey}>
+              {kidMode ? 'Stitch:' : 'Stitch:'}
+            </Text>
             <Text style={styles.patternInfoValue}>
               {pattern.meta.stitch.toUpperCase()}
             </Text>
@@ -193,10 +217,10 @@ export const ExportScreen: React.FC<ExportScreenProps> = ({ route }) => {
           <SimplifiedButton
             label={
               isExporting
-                ? 'Exporting...'
+                ? 'Saving...'
                 : selectedFormat
-                ? `Export as ${selectedFormat.toUpperCase()}`
-                : 'Select Format to Export'
+                ? `Save as ${selectedFormat.toUpperCase()}`
+                : 'Pick Type to Save'
             }
             onPress={handleExport}
             disabled={!canExport || isExporting}
@@ -204,8 +228,8 @@ export const ExportScreen: React.FC<ExportScreenProps> = ({ route }) => {
             size="large"
             accessibilityHint={
               !selectedFormat
-                ? 'Please select a format first'
-                : 'Export and save your pattern'
+                ? 'Please pick a type first'
+                : 'Save your pattern'
             }
             style={styles.kidModeExportButton}
           />
