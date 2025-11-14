@@ -2,6 +2,19 @@
 
 React Native/Expo mobile application for generating parametric crochet patterns with interactive visualization.
 
+**Status**: MVP v1.0 (Production Ready)
+**Framework**: React Native 0.81 + Expo SDK 54
+**Language**: TypeScript (strict mode)
+**Package Manager**: pnpm
+
+## Quick Links
+
+- **[Full API Documentation](../../docs/api/README.md)** - Backend API reference
+- **[Technical Architecture](../../project_plans/mvp/supporting-docs/technical-architecture.md)** - System design
+- **[Testing Strategy](../../project_plans/mvp/supporting-docs/testing-strategy.md)** - Test approach
+- **[Main README](../../README.md)** - Project overview and setup
+- **[User Guide](../../docs/user-guide.md)** - End-user documentation
+
 ## Tech Stack
 
 - **Framework**: React Native 0.81 + Expo SDK 54
@@ -12,6 +25,7 @@ React Native/Expo mobile application for generating parametric crochet patterns 
 - **Rendering**: react-native-svg
 - **Testing**: Jest + React Native Testing Library
 - **Linting**: ESLint + Prettier
+- **Bundler**: Metro (via Expo)
 
 ## Prerequisites
 
@@ -345,13 +359,169 @@ eas submit --platform android
 
 See [Expo EAS documentation](https://docs.expo.dev/eas/) for build configuration.
 
+## Development Standards
+
+### Code Style
+
+- **Prettier**: Auto-formatting (run `pnpm format`)
+- **ESLint**: Linting (run `pnpm lint`)
+- **TypeScript**: Strict mode enforced
+
+Run all checks:
+```bash
+pnpm lint && pnpm format && pnpm typecheck
+```
+
+### Type Safety
+
+- Strict TypeScript mode enabled (`strict: true`)
+- No `any` types allowed (use `unknown` if needed)
+- Explicit return types for all functions
+- Interfaces over types for object shapes
+
+**Example:**
+```typescript
+interface PatternProps {
+  shape: ShapeType;
+  dimensions: Dimensions;
+  onGenerate: (pattern: Pattern) => void;
+}
+
+export const PatternCard: React.FC<PatternProps> = ({
+  shape,
+  dimensions,
+  onGenerate,
+}) => {
+  // Component logic
+};
+```
+
+### Accessibility Standards
+
+- All interactive elements have `accessibilityLabel`
+- All interactive elements have `accessibilityRole`
+- Form fields properly associated with labels
+- Touch targets ≥44x44 points
+- Color not sole indicator of state
+- Screen reader tested
+
+### Component Testing
+
+```bash
+# Run tests in watch mode
+pnpm test:watch
+
+# Generate coverage report
+pnpm test:coverage
+
+# Run specific test file
+pnpm test Screens/HomeScreen.tsx
+```
+
+Test requirements:
+- Unit tests for component logic
+- Snapshot tests for UI components
+- Integration tests for user flows
+- Accessibility tests where applicable
+
+**Example test:**
+```typescript
+import { render } from '@testing-library/react-native';
+import HomeScreen from '@screens/HomeScreen';
+
+test('navigates to Generate screen when button pressed', () => {
+  const navigation = { navigate: jest.fn() } as any;
+  const { getByA11yLabel } = render(
+    <HomeScreen navigation={navigation} />
+  );
+
+  fireEvent.press(getByA11yLabel('Generate Pattern'));
+  expect(navigation.navigate).toHaveBeenCalledWith('Generate');
+});
+```
+
+### API Integration
+
+Frontend communicates with backend via REST API:
+
+```typescript
+import { patternApi } from '@services';
+
+// Generate pattern
+const result = await patternApi.generate({
+  shape: 'sphere',
+  diameter: 10,
+  units: 'cm',
+  gauge: { stitches_per_10cm: 14, rows_per_10cm: 16 },
+  terminology: 'US'
+});
+```
+
+**Configure API endpoint:**
+```bash
+# In .env file
+EXPO_PUBLIC_API_URL=http://localhost:8000/api/v1
+```
+
+### Performance Best Practices
+
+- Use `React.memo` for expensive components
+- Implement `useMemo` for complex calculations
+- Use `useCallback` for event handlers
+- Lazy load screens with React.lazy (future)
+- Optimize images (SVG preferred for diagrams)
+- Use FlatList for long lists instead of ScrollView
+
 ## Contributing
 
-1. Follow existing code structure and naming conventions
-2. Write tests for new features
-3. Run linters before committing
-4. Ensure TypeScript compilation passes
-5. Test on both iOS and Android (or use Expo Go)
+1. **Read the standards**: Follow code style and type safety guidelines
+2. **Write tests**: Required for all new features
+3. **Test accessibility**: Ensure WCAG AA compliance
+4. **Run linters**: `pnpm lint && pnpm typecheck`
+5. **Commit conventionally**: Use conventional commit format
+6. **Request review**: Code review required before merge
+
+### Adding a New Screen
+
+1. **Create screen component** in `src/screens/`
+   ```typescript
+   import { BaseScreenProps } from '@types/navigation';
+
+   interface MyScreenProps extends BaseScreenProps<'MyScreen'> {}
+
+   export const MyScreen: React.FC<MyScreenProps> = ({ navigation }) => {
+     // Screen logic
+     return <View>{/* UI */}</View>;
+   };
+   ```
+
+2. **Add to navigation** in `src/navigation/RootNavigator.tsx`
+   ```typescript
+   <RootStack.Screen
+     name="MyScreen"
+     component={MyScreen}
+     options={{ title: 'My Screen' }}
+   />
+   ```
+
+3. **Add type to navigation params** in `src/types/navigation.ts`
+   ```typescript
+   export type RootStackParamList = {
+     MyScreen: undefined;
+     // ... other screens
+   };
+   ```
+
+4. **Write tests** in `__tests__/screens/`
+5. **Update this README** if screen is user-facing
+
+### Adding a New Component
+
+1. **Create reusable component** in `src/components/`
+2. **Add TypeScript types** for all props
+3. **Add Storybook story** (if using Storybook)
+4. **Write unit tests** for component logic
+5. **Document prop types** in component comment
 
 ## Resources
 
