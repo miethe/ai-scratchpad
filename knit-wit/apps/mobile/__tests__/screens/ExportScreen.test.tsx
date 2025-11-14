@@ -112,15 +112,6 @@ describe('ExportScreen', () => {
       expect(getByText('PNG Image')).toBeTruthy();
     });
 
-    it('shows disabled state for unavailable formats', () => {
-      const { getAllByText } = render(
-        <ExportScreen route={mockRoute} navigation={mockNavigation} />
-      );
-
-      const comingSoonBadges = getAllByText('Coming Soon');
-      expect(comingSoonBadges).toHaveLength(2); // SVG and PNG
-    });
-
     it('does not show paper size selector by default', () => {
       const { queryByText } = render(
         <ExportScreen route={mockRoute} navigation={mockNavigation} />
@@ -154,13 +145,28 @@ describe('ExportScreen', () => {
       expect(queryByText('Paper Size')).toBeNull();
     });
 
-    it('prevents selecting unavailable formats', () => {
-      const { getByLabelText } = render(
+    it('allows selecting SVG format', () => {
+      const { getByLabelText, queryByText } = render(
         <ExportScreen route={mockRoute} navigation={mockNavigation} />
       );
 
-      const svgOption = getByLabelText(/SVG Image.*Not available yet/);
-      expect(svgOption.props.accessibilityState.disabled).toBe(true);
+      const svgOption = getByLabelText(/SVG Image/);
+      fireEvent.press(svgOption);
+
+      // Paper size selector should not appear for SVG
+      expect(queryByText('Paper Size')).toBeNull();
+    });
+
+    it('allows selecting PNG format', () => {
+      const { getByLabelText, queryByText } = render(
+        <ExportScreen route={mockRoute} navigation={mockNavigation} />
+      );
+
+      const pngOption = getByLabelText(/PNG Image/);
+      fireEvent.press(pngOption);
+
+      // Paper size selector should not appear for PNG
+      expect(queryByText('Paper Size')).toBeNull();
     });
 
     it('updates export button text when format is selected', () => {
@@ -301,6 +307,74 @@ describe('ExportScreen', () => {
       });
     });
 
+    it('successfully exports SVG', async () => {
+      const mockExportResult = {
+        success: true,
+        fileName: 'knit-wit-sphere-2024-01-01.svg',
+        filePath: '/path/to/file.svg',
+      };
+
+      (exportService.exportSvg as jest.Mock).mockResolvedValue(mockExportResult);
+
+      const { getByText, getByLabelText } = render(
+        <ExportScreen route={mockRoute} navigation={mockNavigation} />
+      );
+
+      // Select SVG format
+      const svgOption = getByLabelText(/SVG Image/);
+      fireEvent.press(svgOption);
+
+      // Export
+      const exportButton = getByText('Export as SVG');
+      fireEvent.press(exportButton);
+
+      await waitFor(() => {
+        expect(exportService.exportSvg).toHaveBeenCalledWith(
+          mockRoute.params.pattern
+        );
+      });
+
+      await waitFor(() => {
+        expect(
+          getByText(/Pattern exported successfully as SVG/)
+        ).toBeTruthy();
+      });
+    });
+
+    it('successfully exports PNG', async () => {
+      const mockExportResult = {
+        success: true,
+        fileName: 'knit-wit-sphere-2024-01-01.png',
+        filePath: '/path/to/file.png',
+      };
+
+      (exportService.exportPng as jest.Mock).mockResolvedValue(mockExportResult);
+
+      const { getByText, getByLabelText } = render(
+        <ExportScreen route={mockRoute} navigation={mockNavigation} />
+      );
+
+      // Select PNG format
+      const pngOption = getByLabelText(/PNG Image/);
+      fireEvent.press(pngOption);
+
+      // Export
+      const exportButton = getByText('Export as PNG');
+      fireEvent.press(exportButton);
+
+      await waitFor(() => {
+        expect(exportService.exportPng).toHaveBeenCalledWith(
+          mockRoute.params.pattern
+        );
+      });
+
+      await waitFor(() => {
+        expect(
+          getByText(/Pattern exported successfully as PNG/)
+        ).toBeTruthy();
+      });
+    });
+
     it('shows loading state during export', async () => {
       // Create a promise that won't resolve immediately
       let resolveExport: (value: any) => void;
@@ -377,6 +451,56 @@ describe('ExportScreen', () => {
         expect(getByText(/Unexpected error/)).toBeTruthy();
       });
     });
+
+    it('handles SVG export errors gracefully', async () => {
+      const mockError = {
+        success: false,
+        error: 'SVG generation failed',
+      };
+
+      (exportService.exportSvg as jest.Mock).mockResolvedValue(mockError);
+
+      const { getByText, getByLabelText } = render(
+        <ExportScreen route={mockRoute} navigation={mockNavigation} />
+      );
+
+      // Select SVG format
+      const svgOption = getByLabelText(/SVG Image/);
+      fireEvent.press(svgOption);
+
+      // Export
+      const exportButton = getByText('Export as SVG');
+      fireEvent.press(exportButton);
+
+      await waitFor(() => {
+        expect(getByText(/SVG generation failed/)).toBeTruthy();
+      });
+    });
+
+    it('handles PNG export errors gracefully', async () => {
+      const mockError = {
+        success: false,
+        error: 'PNG generation failed',
+      };
+
+      (exportService.exportPng as jest.Mock).mockResolvedValue(mockError);
+
+      const { getByText, getByLabelText } = render(
+        <ExportScreen route={mockRoute} navigation={mockNavigation} />
+      );
+
+      // Select PNG format
+      const pngOption = getByLabelText(/PNG Image/);
+      fireEvent.press(pngOption);
+
+      // Export
+      const exportButton = getByText('Export as PNG');
+      fireEvent.press(exportButton);
+
+      await waitFor(() => {
+        expect(getByText(/PNG generation failed/)).toBeTruthy();
+      });
+    });
   });
 
   describe('Accessibility', () => {
@@ -390,6 +514,12 @@ describe('ExportScreen', () => {
       ).toBeTruthy();
       expect(
         getByLabelText(/JSON Data.*Machine-readable pattern format/)
+      ).toBeTruthy();
+      expect(
+        getByLabelText(/SVG Image.*Scalable vector diagram/)
+      ).toBeTruthy();
+      expect(
+        getByLabelText(/PNG Image.*Raster diagram for sharing/)
       ).toBeTruthy();
     });
 

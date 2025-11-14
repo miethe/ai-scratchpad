@@ -123,25 +123,107 @@ export const exportService = {
   },
 
   /**
-   * Export pattern to SVG format (placeholder for future implementation)
+   * Export pattern to SVG format
    */
   async exportSvg(pattern: PatternDSL): Promise<ExportResult> {
-    // TODO: Implement SVG export once backend endpoint is available
-    return {
-      success: false,
-      error: 'SVG export not yet implemented',
-    };
+    try {
+      const response = await apiClient.post(
+        `/export/svg`,
+        pattern,
+        {
+          params: { mode: 'composite' }, // Use composite mode for single SVG file
+          responseType: 'blob',
+          timeout: 10000, // 10 second timeout for SVG generation
+        }
+      );
+
+      // Generate filename
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const shapeName = pattern.object.type;
+      const fileName = `knit-wit-${shapeName}-${timestamp}.svg`;
+
+      // Save to device
+      const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+
+      // Convert blob to base64 and save
+      const base64 = await this.blobToBase64(response.data);
+      await FileSystem.writeAsStringAsync(fileUri, base64, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      // Share the file
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(fileUri, {
+          mimeType: 'image/svg+xml',
+          dialogTitle: 'Save or Share Pattern SVG',
+        });
+      }
+
+      return {
+        success: true,
+        filePath: fileUri,
+        fileName,
+        sizeBytes: response.data.size,
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to export SVG';
+      return {
+        success: false,
+        error: message,
+      };
+    }
   },
 
   /**
-   * Export pattern to PNG format (placeholder for future implementation)
+   * Export pattern to PNG format
    */
   async exportPng(pattern: PatternDSL): Promise<ExportResult> {
-    // TODO: Implement PNG export once backend endpoint is available
-    return {
-      success: false,
-      error: 'PNG export not yet implemented',
-    };
+    try {
+      const response = await apiClient.post(
+        `/export/png`,
+        pattern,
+        {
+          params: { dpi: 72 }, // Use 72 DPI for screen quality (smaller file size)
+          responseType: 'blob',
+          timeout: 20000, // 20 second timeout for PNG generation
+        }
+      );
+
+      // Generate filename
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const shapeName = pattern.object.type;
+      const fileName = `knit-wit-${shapeName}-${timestamp}.png`;
+
+      // Save to device
+      const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+
+      // Convert blob to base64 and save
+      const base64 = await this.blobToBase64(response.data);
+      await FileSystem.writeAsStringAsync(fileUri, base64, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      // Share the file
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(fileUri, {
+          mimeType: 'image/png',
+          dialogTitle: 'Save or Share Pattern PNG',
+        });
+      }
+
+      return {
+        success: true,
+        filePath: fileUri,
+        fileName,
+        sizeBytes: response.data.size,
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to export PNG';
+      return {
+        success: false,
+        error: message,
+      };
+    }
   },
 
   /**
