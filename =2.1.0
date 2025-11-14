@@ -1,0 +1,14 @@
+Collecting pydantic-settings
+  Downloading pydantic_settings-2.12.0-py3-none-any.whl.metadata (3.4 kB)
+Requirement already satisfied: pydantic>=2.7.0 in /usr/local/lib/python3.11/dist-packages (from pydantic-settings) (2.12.4)
+Collecting python-dotenv>=0.21.0 (from pydantic-settings)
+  Downloading python_dotenv-1.2.1-py3-none-any.whl.metadata (25 kB)
+Requirement already satisfied: typing-inspection>=0.4.0 in /usr/local/lib/python3.11/dist-packages (from pydantic-settings) (0.4.2)
+Requirement already satisfied: annotated-types>=0.6.0 in /usr/local/lib/python3.11/dist-packages (from pydantic>=2.7.0->pydantic-settings) (0.7.0)
+Requirement already satisfied: pydantic-core==2.41.5 in /usr/local/lib/python3.11/dist-packages (from pydantic>=2.7.0->pydantic-settings) (2.41.5)
+Requirement already satisfied: typing-extensions>=4.14.1 in /usr/local/lib/python3.11/dist-packages (from pydantic>=2.7.0->pydantic-settings) (4.15.0)
+Downloading pydantic_settings-2.12.0-py3-none-any.whl (51 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 51.9/51.9 kB 150.3 MB/s eta 0:00:00
+Downloading python_dotenv-1.2.1-py3-none-any.whl (21 kB)
+Installing collected packages: python-dotenv, pydantic-settings
+Successfully installed pydantic-settings-2.12.0 python-dotenv-1.2.1

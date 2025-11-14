@@ -1,13 +1,17 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Platform } from 'react-native';
 import { MainTabParamList } from '../types';
 import { colors, typography } from '../theme';
+import { ScreenLoader } from '../components/common';
 
-// Screens
+// Code-split tab screens for reduced initial bundle size
+// Home screen is loaded eagerly as it's the initial route
 import HomeScreen from '../screens/HomeScreen';
-import GenerateScreen from '../screens/GenerateScreen';
-import SettingsScreen from '../screens/SettingsScreen';
+
+// Generate and Settings screens are lazy-loaded
+const GenerateScreen = lazy(() => import('../screens/GenerateScreen'));
+const SettingsScreen = lazy(() => import('../screens/SettingsScreen'));
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
@@ -53,22 +57,32 @@ export default function MainTabNavigator() {
       />
       <Tab.Screen
         name="Generate"
-        component={GenerateScreen}
         options={{
           title: 'Generate',
           tabBarLabel: 'Generate',
           tabBarAccessibilityLabel: 'Generate pattern tab',
         }}
-      />
+      >
+        {() => (
+          <Suspense fallback={<ScreenLoader />}>
+            <GenerateScreen />
+          </Suspense>
+        )}
+      </Tab.Screen>
       <Tab.Screen
         name="Settings"
-        component={SettingsScreen}
         options={{
           title: 'Settings',
           tabBarLabel: 'Settings',
           tabBarAccessibilityLabel: 'Settings tab',
         }}
-      />
+      >
+        {() => (
+          <Suspense fallback={<ScreenLoader />}>
+            <SettingsScreen />
+          </Suspense>
+        )}
+      </Tab.Screen>
     </Tab.Navigator>
   );
 }

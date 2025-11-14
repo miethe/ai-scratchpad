@@ -6,6 +6,7 @@ Implements C3 (PDF Export) and C5 (JSON DSL Export) from Phase 3.
 """
 
 import io
+import logging
 import math
 from typing import Literal, List, Dict
 from xml.etree import ElementTree as ET
@@ -13,6 +14,9 @@ from xml.etree import ElementTree as ET
 # Import from knit_wit_engine package
 import sys
 from pathlib import Path
+
+# Import Sentry for error tracking
+from app.core import capture_exception, add_breadcrumb
 
 # Add pattern-engine to Python path for imports
 pattern_engine_path = (
@@ -34,6 +38,9 @@ from reportlab.lib.enums import TA_CENTER, TA_LEFT
 # SVG/PNG generation imports
 import cairosvg
 from PIL import Image
+
+# Logger
+logger = logging.getLogger("knit_wit.service.export")
 
 
 class ExportService:
@@ -93,29 +100,60 @@ class ExportService:
             >>> len(pdf_bytes) < 5 * 1024 * 1024  # Under 5 MB
             True
         """
+        # Add breadcrumb for tracing
+        add_breadcrumb(
+            message="Starting PDF generation",
+            category="export",
+            data={
+                "shape_type": dsl.shape.shape_type,
+                "paper_size": paper_size,
+                "total_rounds": dsl.metadata.total_rounds,
+            },
+        )
+
         # Validate paper size
         if paper_size not in ["A4", "letter"]:
-            raise ValueError(f"Invalid paper size: {paper_size}. Must be 'A4' or 'letter'")
+            error = ValueError(f"Invalid paper size: {paper_size}. Must be 'A4' or 'letter'")
+            # Capture validation errors to Sentry
+            capture_exception(
+                error,
+                context={"paper_size": paper_size, "valid_sizes": ["A4", "letter"]},
+                tags={"component": "export_service", "error_type": "validation"},
+            )
+            raise error
 
         # Select paper dimensions
         page_size = A4 if paper_size == "A4" else LETTER
 
-        # Create PDF buffer
-        buffer = io.BytesIO()
+        try:
+            # Create PDF buffer
+            buffer = io.BytesIO()
 
-        # Initialize PDF document
-        doc = SimpleDocTemplate(
-            buffer,
-            pagesize=page_size,
-            rightMargin=0.75 * inch,
-            leftMargin=0.75 * inch,
-            topMargin=0.75 * inch,
-            bottomMargin=0.75 * inch,
-        )
+            # Initialize PDF document
+            doc = SimpleDocTemplate(
+                buffer,
+                pagesize=page_size,
+                rightMargin=0.75 * inch,
+                leftMargin=0.75 * inch,
+                topMargin=0.75 * inch,
+                bottomMargin=0.75 * inch,
+            )
 
-        # Build document sections
-        story = []
-        styles = getSampleStyleSheet()
+            # Build document sections
+            story = []
+            styles = getSampleStyleSheet()
+        except Exception as e:
+            # Capture PDF initialization errors
+            logger.error(f"Failed to initialize PDF document: {e}")
+            capture_exception(
+                e,
+                context={
+                    "paper_size": paper_size,
+                    "shape_type": dsl.shape.shape_type,
+                },
+                tags={"component": "export_service", "operation": "pdf_init"},
+            )
+            raise
 
         # Custom styles
         title_style = ParagraphStyle(
@@ -159,14 +197,38 @@ class ExportService:
         story.append(Spacer(1, 0.2 * inch))
         story.extend(self._create_pattern_section(dsl, body_style))
 
-        # Build PDF
-        doc.build(story)
+        try:
+            # Build PDF
+            doc.build(story)
 
-        # Return PDF bytes
-        pdf_bytes = buffer.getvalue()
-        buffer.close()
+            # Return PDF bytes
+            pdf_bytes = buffer.getvalue()
+            buffer.close()
 
-        return pdf_bytes
+            # Add success breadcrumb
+            add_breadcrumb(
+                message="PDF generation completed",
+                category="export",
+                data={"pdf_size_bytes": len(pdf_bytes), "paper_size": paper_size},
+            )
+
+            logger.info(f"Generated PDF: size={len(pdf_bytes)} bytes, paper={paper_size}")
+
+            return pdf_bytes
+
+        except Exception as e:
+            # Capture PDF generation errors
+            logger.error(f"PDF generation failed: {e}")
+            capture_exception(
+                e,
+                context={
+                    "paper_size": paper_size,
+                    "shape_type": dsl.shape.shape_type,
+                    "total_rounds": dsl.metadata.total_rounds,
+                },
+                tags={"component": "export_service", "operation": "pdf_generation"},
+            )
+            raise
 
     def generate_json(self, dsl: PatternDSL) -> str:
         """
@@ -474,9 +536,21 @@ class ExportService:
                 scale=scale,
             )
 
+            logger.info(f"Generated PNG: size={len(png_bytes)} bytes, dpi={dpi}")
+
             return png_bytes
 
         except Exception as e:
+            # Capture PNG conversion errors
+            logger.error(f"PNG conversion failed: {e}")
+            capture_exception(
+                e,
+                context={
+                    "dpi": dpi,
+                    "svg_length": len(svg_content),
+                },
+                tags={"component": "export_service", "operation": "png_conversion"},
+            )
             raise ValueError(f"Failed to convert SVG to PNG: {str(e)}")
 
     def _frame_to_svg(self, frame, shape_type: str) -> str:

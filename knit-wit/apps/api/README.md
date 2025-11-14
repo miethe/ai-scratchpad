@@ -99,7 +99,114 @@ PORT=8000
 
 # CORS
 CORS_ORIGINS=http://localhost:3000,http://localhost:19006
+
+# Logging
+LOG_LEVEL=INFO
+LOG_DIR=logs/telemetry
+LOG_RETENTION_DAYS=90
+LOG_ENABLE_CONSOLE=true
+
+# Error Tracking (Sentry)
+SENTRY_DSN=                          # Your Sentry DSN from sentry.io
+SENTRY_ENVIRONMENT=development       # development, staging, or production
+SENTRY_TRACES_SAMPLE_RATE=0.1       # 0.0 to 1.0 (10% of transactions)
+SENTRY_ENABLED=true                  # Set to false to disable Sentry
 ```
+
+## Error Tracking with Sentry
+
+The API uses [Sentry](https://sentry.io) for production error tracking and monitoring.
+
+### Setup Sentry
+
+1. **Create a Sentry Account**
+   - Go to [sentry.io](https://sentry.io) and create a free account
+   - Create a new project for "Python" / "FastAPI"
+
+2. **Get Your DSN**
+   - Navigate to Project Settings → Client Keys (DSN)
+   - Copy your DSN (looks like: `https://examplePublicKey@o0.ingest.sentry.io/0`)
+
+3. **Configure Environment**
+   ```bash
+   # In your .env file
+   SENTRY_DSN=https://your-dsn@sentry.io/project-id
+   SENTRY_ENVIRONMENT=development
+   SENTRY_ENABLED=true
+   ```
+
+4. **Test Error Tracking**
+   - Start the API server
+   - Trigger an error (e.g., invalid API request)
+   - Check Sentry dashboard for captured error
+
+### Features
+
+- **Automatic Exception Capture**: All unhandled exceptions are automatically sent to Sentry
+- **Stack Traces**: Full stack traces with local variables
+- **Request Context**: Captures request URL, headers, and parameters
+- **Correlation IDs**: Each request gets a unique ID for tracing through logs and errors
+- **Breadcrumbs**: Trail of events leading up to an error
+- **PII Filtering**: Automatically filters sensitive data (passwords, tokens, API keys)
+- **Performance Monitoring**: Tracks slow API endpoints (configurable sample rate)
+
+### Manual Error Reporting
+
+Use Sentry helpers in your code for manual error tracking:
+
+```python
+from app.core import capture_exception, capture_message, add_breadcrumb
+
+# Capture exception with context
+try:
+    risky_operation()
+except ValueError as e:
+    capture_exception(
+        e,
+        context={"user_input": data, "step": "validation"},
+        tags={"component": "pattern_generator"}
+    )
+    raise
+
+# Log important events
+capture_message(
+    "Pattern generation took longer than expected",
+    level="warning",
+    context={"duration_ms": 5000, "shape": "sphere"}
+)
+
+# Add breadcrumbs for context
+add_breadcrumb(
+    message="Starting PDF generation",
+    category="export",
+    data={"shape": "sphere", "paper_size": "A4"}
+)
+```
+
+### Correlation IDs
+
+Every request automatically gets a unique correlation ID that appears in:
+- Response headers: `X-Correlation-ID`
+- Structured logs: `correlation_id` field
+- Sentry events: Tagged with correlation ID
+
+You can provide your own correlation ID:
+```bash
+curl -H "X-Correlation-ID: my-custom-id" http://localhost:8000/api/v1/patterns
+```
+
+### Disabling Sentry
+
+For local development or testing, disable Sentry:
+```bash
+# In .env
+SENTRY_ENABLED=false
+
+# Or remove/leave empty SENTRY_DSN
+SENTRY_DSN=
+```
+
+Tests automatically disable Sentry via `tests/conftest.py`.
 
 ## Testing
 

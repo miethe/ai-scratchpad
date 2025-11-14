@@ -1,9 +1,6 @@
 import type { Theme, ThemeColors, ThemeShadows, ThemeMode } from './types';
 import { createTypography } from './typography';
 
-// Import the comprehensive Kid Mode theme
-import { kidModeTheme as baseKidModeTheme } from './kidModeTheme';
-
 const defaultColors: ThemeColors = {
   // Primary palette
   primary: '#6B4EFF',
@@ -163,6 +160,101 @@ const darkShadows: ThemeShadows = {
   },
 };
 
+// Inline Kid Mode theme data (extracted from kidModeTheme.ts)
+// This avoids importing the entire file for tree-shaking
+const kidModeColors: ThemeColors = {
+  primary: '#FF6B9D',
+  primaryLight: '#FFB3D0',
+  primaryDark: '#E63D7A',
+  secondary: '#FFC837',
+  secondaryLight: '#FFE29F',
+  secondaryDark: '#E6A800',
+  white: '#FFFFFF',
+  black: '#000000',
+  gray50: '#FAFAF9',
+  gray100: '#F5F5F4',
+  gray200: '#E7E5E4',
+  gray300: '#D6D3D1',
+  gray400: '#A8A29E',
+  gray500: '#78716C',
+  gray600: '#57534E',
+  gray700: '#44403C',
+  gray800: '#292524',
+  gray900: '#1C1917',
+  success: '#4CAF50',
+  warning: '#FF9800',
+  error: '#F44336',
+  info: '#2196F3',
+  background: '#FFF8E1',
+  backgroundSecondary: '#FFECB3',
+  surface: '#FFFFFF',
+  surfaceSecondary: '#FFF8E1',
+  textPrimary: '#2D3748',
+  textSecondary: '#4A5568',
+  textTertiary: '#718096',
+  textInverse: '#FFFFFF',
+  border: '#E2E8F0',
+  borderLight: '#F7FAFC',
+  borderDark: '#CBD5E0',
+};
+
+const kidModeSpacing = {
+  xs: 8,
+  sm: 16,
+  md: 24,
+  lg: 32,
+  xl: 48,
+  xxl: 64,
+  xxxl: 80,
+};
+
+const kidModeBorderRadius = {
+  none: 0,
+  sm: 8,
+  md: 16,
+  lg: 20,
+  xl: 24,
+  xxl: 32,
+  full: 9999,
+};
+
+const kidModeTouchTargets = {
+  minimum: 56,
+  comfortable: 64,
+  kidMode: 72,
+};
+
+const kidModeShadows: ThemeShadows = {
+  sm: {
+    shadowColor: '#FF6B9D',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 1,
+  },
+  md: {
+    shadowColor: '#FF6B9D',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  lg: {
+    shadowColor: '#FF6B9D',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.16,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  xl: {
+    shadowColor: '#FF6B9D',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.20,
+    shadowRadius: 20,
+    elevation: 8,
+  },
+};
+
 /**
  * Create a theme based on mode and dyslexia font preference
  */
@@ -206,10 +298,11 @@ export function createTheme(options: {
     case 'kidMode':
       return {
         ...baseTheme,
-        colors: baseKidModeTheme.colors,
-        spacing: baseKidModeTheme.spacing,
-        borderRadius: baseKidModeTheme.borderRadius,
-        touchTargets: baseKidModeTheme.touchTargets,
+        colors: kidModeColors,
+        spacing: kidModeSpacing,
+        borderRadius: kidModeBorderRadius,
+        touchTargets: kidModeTouchTargets,
+        shadows: kidModeShadows,
       };
 
     case 'darkMode':
@@ -223,9 +316,9 @@ export function createTheme(options: {
       return {
         ...baseTheme,
         colors: kidModeDarkColors,
-        spacing: baseKidModeTheme.spacing,
-        borderRadius: baseKidModeTheme.borderRadius,
-        touchTargets: baseKidModeTheme.touchTargets,
+        spacing: kidModeSpacing,
+        borderRadius: kidModeBorderRadius,
+        touchTargets: kidModeTouchTargets,
         shadows: darkShadows,
       };
 

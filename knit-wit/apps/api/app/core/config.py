@@ -59,6 +59,26 @@ class Settings(BaseSettings):
         description="Enable console logging (in addition to file logging)"
     )
 
+    # Error Tracking (Sentry) configuration
+    sentry_dsn: str = Field(
+        default="",
+        description="Sentry DSN for error tracking (leave empty to disable)"
+    )
+    sentry_environment: str = Field(
+        default="development",
+        description="Sentry environment (development, staging, production)"
+    )
+    sentry_traces_sample_rate: float = Field(
+        default=0.1,
+        description="Sentry traces sample rate (0.0 to 1.0)",
+        ge=0.0,
+        le=1.0
+    )
+    sentry_enabled: bool = Field(
+        default=True,
+        description="Enable/disable Sentry error tracking"
+    )
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
