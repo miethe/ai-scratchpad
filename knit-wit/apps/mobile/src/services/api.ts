@@ -48,39 +48,75 @@ async function fetchWithTimeout(
 }
 
 /**
+ * Extended RequestInit with axios-compatible options
+ */
+interface ApiRequestOptions extends RequestInit {
+  params?: Record<string, any>;
+  responseType?: 'json' | 'text' | 'blob' | 'arraybuffer';
+  timeout?: number;
+}
+
+/**
  * Generic API request handler
  */
 async function apiRequest<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: ApiRequestOptions = {}
 ): Promise<T> {
-  const url = `${API_BASE_URL}${endpoint}`;
+  const { params, responseType = 'json', timeout = 10000, ...fetchOptions } = options;
+  
+  // Build URL with query parameters
+  let url = `${API_BASE_URL}${endpoint}`;
+  if (params) {
+    const queryString = new URLSearchParams(params).toString();
+    url += `?${queryString}`;
+  }
 
   const response = await fetchWithTimeout(url, {
-    ...options,
+    ...fetchOptions,
     headers: {
       'Content-Type': 'application/json',
-      ...options.headers,
+      ...fetchOptions.headers,
     },
-  });
-
-  // Parse response
-  let data;
-  const contentType = response.headers.get('content-type');
-  if (contentType && contentType.includes('application/json')) {
-    data = await response.json();
-  } else {
-    data = await response.text();
-  }
+  }, timeout);
 
   // Handle non-2xx responses
   if (!response.ok) {
+    let errorData;
+    try {
+      errorData = await response.json();
+    } catch {
+      errorData = await response.text();
+    }
     throw new ApiError(
       response.status,
       response.statusText,
-      data,
-      data?.message || data?.error || `Request failed: ${response.statusText}`
+      errorData,
+      errorData?.message || errorData?.error || `Request failed: ${response.statusText}`
     );
+  }
+
+  // Parse response based on requested type
+  let data;
+  switch (responseType) {
+    case 'blob':
+      data = await response.blob();
+      break;
+    case 'arraybuffer':
+      data = await response.arrayBuffer();
+      break;
+    case 'text':
+      data = await response.text();
+      break;
+    case 'json':
+    default:
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        data = await response.text();
+      }
+      break;
   }
 
   return data;
@@ -157,24 +193,24 @@ export const patternApi = {
  * consider using a more complete adapter if needed.
  */
 export const apiClient = {
-  get: <T = any>(url: string, config?: RequestInit) =>
+  get: <T = any>(url: string, config?: ApiRequestOptions) =>
     apiRequest<T>(url, { method: 'GET', ...config }).then(data => ({ data })),
 
-  post: <T = any>(url: string, body?: any, config?: RequestInit) =>
+  post: <T = any>(url: string, body?: any, config?: ApiRequestOptions) =>
     apiRequest<T>(url, {
       method: 'POST',
       body: body ? JSON.stringify(body) : undefined,
       ...config,
     }).then(data => ({ data })),
 
-  put: <T = any>(url: string, body?: any, config?: RequestInit) =>
+  put: <T = any>(url: string, body?: any, config?: ApiRequestOptions) =>
     apiRequest<T>(url, {
       method: 'PUT',
       body: body ? JSON.stringify(body) : undefined,
       ...config,
     }).then(data => ({ data })),
 
-  delete: <T = any>(url: string, config?: RequestInit) =>
+  delete: <T = any>(url: string, config?: ApiRequestOptions) =>
     apiRequest<T>(url, { method: 'DELETE', ...config }).then(data => ({ data })),
 };
 
