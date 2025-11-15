@@ -146,11 +146,18 @@ export const ExportScreen: React.FC<ExportScreenProps> = ({ route }) => {
           </Text>
         </View>
 
-        <View style={styles.patternInfo}>
+        <View
+          style={styles.patternInfo}
+          accessibilityRole="list"
+          accessibilityLabel="Pattern details"
+        >
           <Text style={styles.patternInfoLabel}>
             {kidMode ? 'About Your Pattern' : 'Pattern Details'}
           </Text>
-          <View style={styles.patternInfoRow}>
+          <View
+            style={styles.patternInfoRow}
+            accessibilityRole="listitem"
+          >
             <Text style={styles.patternInfoKey}>
               {kidMode ? 'Shape:' : 'Shape:'}
             </Text>
@@ -163,7 +170,10 @@ export const ExportScreen: React.FC<ExportScreenProps> = ({ route }) => {
                   pattern.object.type.slice(1)}
             </Text>
           </View>
-          <View style={styles.patternInfoRow}>
+          <View
+            style={styles.patternInfoRow}
+            accessibilityRole="listitem"
+          >
             <Text style={styles.patternInfoKey}>
               {kidMode ? 'Steps:' : 'Rounds:'}
             </Text>
@@ -171,7 +181,10 @@ export const ExportScreen: React.FC<ExportScreenProps> = ({ route }) => {
               {pattern.rounds.length}
             </Text>
           </View>
-          <View style={styles.patternInfoRow}>
+          <View
+            style={styles.patternInfoRow}
+            accessibilityRole="listitem"
+          >
             <Text style={styles.patternInfoKey}>
               {kidMode ? 'Stitch:' : 'Stitch:'}
             </Text>

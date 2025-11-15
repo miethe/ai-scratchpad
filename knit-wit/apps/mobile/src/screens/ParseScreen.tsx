@@ -86,7 +86,12 @@ export default function ParseScreen({ navigation }: Props) {
 
     if (validation.isValid && validation.parsedDSL) {
       return (
-        <View style={styles.successContainer}>
+        <View
+          style={styles.successContainer}
+          accessibilityRole="alert"
+          accessibilityLiveRegion="polite"
+          accessibilityLabel="Pattern validation successful"
+        >
           <View style={styles.successHeader}>
             <View style={styles.successIcon}>
               <Text style={styles.successIconText}>✓</Text>
@@ -112,7 +117,12 @@ export default function ParseScreen({ navigation }: Props) {
     }
 
     return (
-      <View style={styles.errorContainer}>
+      <View
+        style={styles.errorContainer}
+        accessibilityRole="alert"
+        accessibilityLiveRegion="polite"
+        accessibilityLabel="Pattern validation errors detected"
+      >
         <View style={styles.errorHeader}>
           <View style={styles.errorIcon}>
             <Text style={styles.errorIconText}>✕</Text>

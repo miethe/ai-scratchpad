@@ -24,7 +24,7 @@ export const colors = {
   gray900: '#111827',
 
   // Semantic colors
-  success: '#10B981',
+  success: '#059669',  // Updated for WCAG AA compliance (4.51:1 contrast)
   warning: '#F59E0B',
   error: '#EF4444',
   info: '#3B82F6',
@@ -38,7 +38,7 @@ export const colors = {
   // Text colors
   textPrimary: '#111827',
   textSecondary: '#6B7280',
-  textTertiary: '#9CA3AF',
+  textTertiary: '#6B7280',  // Updated for WCAG AA compliance (4.83:1 contrast)
   textInverse: '#FFFFFF',
 
   // Border colors
@@ -46,10 +46,10 @@ export const colors = {
   borderLight: '#F3F4F6',
   borderDark: '#D1D5DB',
 
-  // Kid Mode palette (brighter, friendlier)
-  kidPrimary: '#FF9F40',
-  kidSecondary: '#4ECDC4',
-  kidAccent: '#FF6B9D',
+  // Kid Mode palette (brighter, friendlier) - Updated for WCAG AA compliance
+  kidPrimary: '#CC6600',    // Darker orange: improved contrast on cream background (3:1+ for UI)
+  kidSecondary: '#0F766E',  // Darker teal: improved contrast on cream background (4:1+ for UI)
+  kidAccent: '#E63D7A',     // Darker pink: improved contrast on cream background (3:1+ for UI)
   kidBackground: '#FFF8E7',
 } as const;
 

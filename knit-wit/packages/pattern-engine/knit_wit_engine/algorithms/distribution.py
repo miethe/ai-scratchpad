@@ -88,6 +88,7 @@ def even_distribution(total_stitches: int, num_changes: int, offset: int = 0) ->
     indices = []
     gap = total_stitches / num_changes
     position = offset
+    needs_sorting = False  # Track if wrapping occurred
 
     for i in range(num_changes):
         # Round to nearest integer position
@@ -96,6 +97,7 @@ def even_distribution(total_stitches: int, num_changes: int, offset: int = 0) ->
         # Handle wrap-around for offset
         if stitch_index > total_stitches:
             stitch_index -= total_stitches
+            needs_sorting = True  # Wrapping breaks monotonic order
 
         # Ensure we're in valid 1-indexed range
         if stitch_index < 1:
@@ -104,7 +106,8 @@ def even_distribution(total_stitches: int, num_changes: int, offset: int = 0) ->
         indices.append(stitch_index)
         position += gap
 
-    return sorted(indices)
+    # Only sort if wrapping occurred (optimization: skip sort for monotonic sequences)
+    return sorted(indices) if needs_sorting else indices
 
 
 def jitter_offset(round_number: int, base_offset: int = 0) -> int:

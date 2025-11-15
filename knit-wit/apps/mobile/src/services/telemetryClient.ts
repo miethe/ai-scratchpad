@@ -1,5 +1,4 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios, { AxiosError } from 'axios';
 import { Platform } from 'react-native';
 
 const TELEMETRY_CONSENT_KEY = '@knit-wit/telemetry_consent';
@@ -100,25 +99,38 @@ class TelemetryClient {
    */
   private async sendEvent(event: TelemetryEvent): Promise<void> {
     try {
-      await axios.post(
-        `${this.apiUrl}/telemetry/events`,
-        event,
-        {
-          timeout: 5000, // Don't wait more than 5 seconds
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      // Create abort controller for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+      const response = await fetch(`${this.apiUrl}/telemetry/events`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(event),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      // Parse response for logging in development
+      if (__DEV__ && !response.ok) {
+        const data = await response.json().catch(() => ({}));
+        console.warn('Telemetry error:', {
+          status: response.status,
+          statusText: response.statusText,
+          data,
+        });
+      }
     } catch (error) {
       // Silent fail - don't block user experience
       // Only log in development for debugging
       if (__DEV__) {
-        if (error instanceof AxiosError) {
+        if (error instanceof Error) {
           console.warn('Telemetry error:', {
             message: error.message,
-            status: error.response?.status,
-            data: error.response?.data,
+            name: error.name,
           });
         } else {
           console.warn('Telemetry error:', error);

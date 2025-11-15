@@ -15,6 +15,8 @@ from fastapi.responses import JSONResponse
 from app.api.v1 import api_router
 from app.core import settings
 from app.core.logging_config import init_logging
+from app.core.sentry_config import init_sentry
+from app.middleware import CorrelationIDMiddleware
 
 
 @asynccontextmanager
@@ -31,6 +33,18 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         retention_days=settings.log_retention_days,
         enable_console=settings.log_enable_console,
     )
+
+    # Initialize Sentry error tracking
+    if settings.sentry_enabled and settings.sentry_dsn:
+        init_sentry(
+            dsn=settings.sentry_dsn,
+            environment=settings.sentry_environment,
+            traces_sample_rate=settings.sentry_traces_sample_rate,
+            release=f"{settings.app_name}@{settings.app_version}",
+        )
+        print(f"Sentry initialized: environment={settings.sentry_environment}")
+    else:
+        print("Sentry disabled (no DSN provided or SENTRY_ENABLED=false)")
 
     # Startup logic
     print(f"Starting {settings.app_name} v{settings.app_version}")
@@ -73,6 +87,9 @@ app.add_middleware(
     allow_methods=settings.cors_methods,
     allow_headers=settings.cors_headers,
 )
+
+# Add correlation ID middleware for request tracing
+app.add_middleware(CorrelationIDMiddleware)
 
 
 # Health check endpoint (root level, not versioned)

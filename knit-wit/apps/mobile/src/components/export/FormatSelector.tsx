@@ -47,14 +47,14 @@ const FORMAT_OPTIONS: FormatOption[] = [
     label: 'SVG Image',
     description: 'Scalable vector diagram',
     icon: '🖼️',
-    available: false,
+    available: true,
   },
   {
     format: 'png',
     label: 'PNG Image',
     description: 'Raster diagram for sharing',
     icon: '🖼️',
-    available: false,
+    available: true,
   },
 ];
 

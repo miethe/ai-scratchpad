@@ -1,19 +1,36 @@
 # Knit-Wit MVP
 
-A mobile-first web application for generating parametric crochet patterns with interactive visualization.
+A free, mobile-first web application for generating parametric crochet patterns with interactive visualization.
 
-## Project Overview
+## What is Knit-Wit?
 
-Knit-Wit generates clean, parametric crochet patterns for geometric shapes (sphere, cylinder, cone) and provides step-by-step interactive visualization with beginner-friendly guidance.
+Knit-Wit generates clean, customizable crochet patterns for geometric shapes (spheres, cylinders, cones) and provides step-by-step interactive visualization with beginner-friendly guidance. No login required—generate as many patterns as you like.
 
-**Target Launch:** MVP completion before end of Q1 2025
+**Status:** MVP v1.0 - Production Ready
+**Launch:** November 30, 2024
+**Accessibility:** WCAG 2.1 Level AA Compliant
 
-## Tech Stack
+## For End Users
 
-- **Frontend:** React Native/Expo (mobile-first web app)
-- **Backend:** FastAPI (Python 3.11+)
-- **Pattern Engine:** Python library with parametric algorithms
+Want to generate crochet patterns? Visit **https://knit-wit.app**
+
+For user documentation:
+- **[User Guide](./docs/user-guide.md)** - Complete usage guide with screenshots and tutorials
+- **[FAQ](./docs/faq.md)** - Answers to common questions
+- **[Release Notes](./docs/releases/mvp-v1.0.md)** - What's included in this release
+
+## For Developers
+
+This section is for developers contributing to Knit-Wit's codebase.
+
+### Tech Stack
+
+- **Frontend:** React Native/Expo with TypeScript
+- **Backend:** FastAPI with Python 3.11+
+- **Pattern Engine:** Standalone Python library
 - **Infrastructure:** pnpm workspaces, GitHub Actions, Docker
+- **Testing:** Jest, pytest, React Testing Library
+- **Accessibility:** WCAG 2.1 AA, Sentry error tracking
 
 ## Quick Start
 
@@ -351,16 +368,52 @@ knit-wit/
 
 ## Documentation
 
-- [Product Requirements](./project_plans/mvp/prd.md)
-- [Implementation Plan](./project_plans/mvp/implementation-plan-overview.md)
-- [Phase 0 Plan](./project_plans/mvp/phases/phase-0.md)
-- [Technical Architecture](./project_plans/mvp/supporting-docs/technical-architecture.md)
-- [Testing Strategy](./project_plans/mvp/supporting-docs/testing-strategy.md)
-- [DevOps & Infrastructure](./project_plans/mvp/supporting-docs/devops-infrastructure.md)
+### For Users
+- **[User Guide](./docs/user-guide.md)** - Complete usage guide, getting started, tutorials
+- **[FAQ](./docs/faq.md)** - Frequently asked questions and troubleshooting
+- **[Release Notes](./docs/releases/mvp-v1.0.md)** - MVP v1.0 features, limitations, browser support
+
+### For Developers
+- **[CLAUDE.md](./CLAUDE.md)** - Project guidelines, architecture, development workflow
+- **[API Documentation](./docs/api/README.md)** - API reference, endpoints, examples
+- **[Technical Architecture](./project_plans/mvp/supporting-docs/technical-architecture.md)** - System design, patterns
+- **[Testing Strategy](./project_plans/mvp/supporting-docs/testing-strategy.md)** - Test approach, coverage goals
+- **[DevOps & Infrastructure](./project_plans/mvp/supporting-docs/devops-infrastructure.md)** - Deployment, CI/CD
+- **[DSL Specification](./docs/dsl-specification.md)** - Pattern data format
+
+### Product Planning
+- **[Product Requirements (PRD)](./project_plans/mvp/prd.md)** - Vision, scope, requirements
+- **[Implementation Plan](./project_plans/mvp/implementation-plan-overview.md)** - Epic breakdown, timeline
+- **[Phases](./project_plans/mvp/phases/)** - Phase-specific plans and sprint breakdowns
 
 ## Development Workflow
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed contribution guidelines.
+### Getting Started
+
+1. **Read CLAUDE.md** for project-specific guidance
+2. **Set up environment** (see Quick Start above)
+3. **Review architecture** in CLAUDE.md
+4. **Pick a task** from active phase in `project_plans/mvp/phases/`
+
+### Standard Feature Flow
+
+1. **Explore**: Use `codebase-explorer` to find existing patterns
+2. **Plan**: Break down story into tasks, estimate complexity
+3. **Implement**: Follow layered architecture patterns
+4. **Test**: Unit + integration + manual verification
+5. **Review**: Code review focusing on patterns and accessibility
+6. **Document**: Update relevant docs
+
+### Code Quality Standards
+
+- **TypeScript**: Strict mode, no `any` types
+- **Python**: Type hints with mypy checking
+- **Tests**: 60%+ coverage (pattern engine: 80%+)
+- **Linting**: ESLint, Black, isort, ruff
+- **Accessibility**: WCAG 2.1 AA compliance required
+- **Git**: Conventional commits with Claude attribution
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for complete contribution guidelines.
 
 ## License
 

@@ -80,3 +80,9 @@ export {
   PatternOverlay,
   type AccessibilityLegendProps,
 } from './AccessibilityPatterns';
+
+/**
+ * Note: kidModeTheme.ts file is kept for documentation but not imported
+ * to enable tree-shaking. The Kid Mode theme is now inlined in themes.ts
+ * and only included in the bundle when createTheme({ mode: 'kidMode' }) is called.
+ */
