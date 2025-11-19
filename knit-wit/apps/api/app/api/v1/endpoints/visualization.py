@@ -6,29 +6,22 @@ Converts PatternDSL to visualization frames for interactive round-by-round rende
 
 from fastapi import APIRouter, HTTPException, status
 from app.models.visualization import VisualizationResponse
+from app.models.frontend_dsl import FrontendPatternDSL
 from app.services.visualization_service import VisualizationService
-import sys
-from pathlib import Path
-
-# Add pattern engine to Python path
-pattern_engine_path = Path(__file__).resolve().parents[6] / "packages" / "pattern-engine"
-if str(pattern_engine_path) not in sys.path:
-    sys.path.insert(0, str(pattern_engine_path))
-
-from knit_wit_engine.models.dsl import PatternDSL
+from app.utils.dsl_converter import frontend_dsl_to_pattern_dsl
 
 router = APIRouter(prefix="/visualization", tags=["visualization"])
 visualization_service = VisualizationService()
 
 
 @router.post("/frames", response_model=VisualizationResponse, status_code=status.HTTP_200_OK)
-async def generate_visualization_frames(pattern: PatternDSL) -> VisualizationResponse:
+async def generate_visualization_frames(pattern: FrontendPatternDSL) -> VisualizationResponse:
     """
     Convert PatternDSL to visualization frames.
 
     **Performance:** < 100ms for typical patterns (< 50 rounds)
 
-    **Request Body:** PatternDSL object (JSON)
+    **Request Body:** Frontend PatternDSL object (JSON) - matches format returned by /patterns/generate
     **Response:** VisualizationResponse with frames array
 
     **Example Request:**
@@ -42,11 +35,17 @@ async def generate_visualization_frames(pattern: PatternDSL) -> VisualizationRes
         "round_mode": "spiral",
         "gauge": {"sts_per_10cm": 14, "rows_per_10cm": 16}
       },
-      "shape": {"shape_type": "sphere", "params": {"diameter": 10}},
+      "object": {"type": "sphere", "params": {"diameter": 10}},
       "rounds": [
-        {"round_number": 0, "total_stitches": 6, "stitches": [{"stitch_type": "sc", "count": 6}]},
-        {"round_number": 1, "total_stitches": 12, "stitches": [{"stitch_type": "inc", "count": 6}]}
-      ]
+        {"r": 0, "ops": [{"op": "sc", "count": 6}], "stitches": 6},
+        {"r": 1, "ops": [{"op": "inc", "count": 6}], "stitches": 12}
+      ],
+      "materials": {
+        "yarn_weight": "worsted",
+        "hook_size_mm": 4.0,
+        "yardage_estimate": 25
+      },
+      "notes": ["Work in a spiral; use a stitch marker."]
     }
     ```
 
@@ -76,7 +75,7 @@ async def generate_visualization_frames(pattern: PatternDSL) -> VisualizationRes
     - 500: Visualization generation failed
 
     Args:
-        pattern: PatternDSL object from request body
+        pattern: Frontend PatternDSL object from request body
 
     Returns:
         VisualizationResponse: Frame-by-frame visualization data
@@ -85,7 +84,11 @@ async def generate_visualization_frames(pattern: PatternDSL) -> VisualizationRes
         HTTPException: 422 for validation errors, 500 for server errors
     """
     try:
-        response = visualization_service.pattern_to_visualization(pattern)
+        # Convert frontend DSL format to pattern engine format
+        pattern_dsl = frontend_dsl_to_pattern_dsl(pattern)
+
+        # Generate visualization frames
+        response = visualization_service.pattern_to_visualization(pattern_dsl)
         return response
     except ValueError as e:
         raise HTTPException(

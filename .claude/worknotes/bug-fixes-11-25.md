@@ -1,18 +1,17 @@
-# Bug Fixes - November 25, 2024
+# Bug Fixes - November 25, 2025
 
-## Web App Pattern Generation 404 Error
+## 422 Error on /api/v1/visualization/frames
 
-**Issue**: Web app attempting to generate patterns returned 404 error on POST `/api/v1/patterns/generate`
+**Issue**: POST to `/api/v1/visualization/frames` returned 422 with ~100 "Field required" errors
 
-**Root Cause**: Missing backend endpoint - frontend was calling `/api/v1/patterns/generate` but this endpoint was never implemented in the FastAPI backend
+**Root Cause**: Schema mismatch - endpoint expected pattern engine's internal `PatternDSL` format but frontend sends the frontend DSL format from `/patterns/generate`
 
 **Fix**:
-- Created `apps/api/app/api/v1/endpoints/patterns.py` with `/generate` endpoint
-- Integrated pattern engine compilers (SphereCompiler, CylinderCompiler, ConeCompiler)
-- Mapped between frontend PatternRequest format and pattern engine DSL format
-- Registered patterns router in API v1 init
-- Tested successfully with sphere generation request
+- Created `app/models/frontend_dsl.py` with Pydantic models matching frontend TypeScript types
+- Created `app/utils/dsl_converter.py` to convert frontend DSL → pattern engine DSL
+- Updated `visualization.py` endpoint to accept `FrontendPatternDSL` and convert before processing
 
 **Files Changed**:
-- `apps/api/app/api/v1/endpoints/patterns.py` (new)
-- `apps/api/app/api/v1/__init__.py` (added patterns router)
+- `knit-wit/apps/api/app/models/frontend_dsl.py` (new)
+- `knit-wit/apps/api/app/utils/dsl_converter.py` (new)
+- `knit-wit/apps/api/app/api/v1/endpoints/visualization.py` (modified)
