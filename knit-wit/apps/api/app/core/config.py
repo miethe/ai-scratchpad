@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     port: int = Field(default=8000, description="Server port")
 
     # CORS configuration
-    cors_origins: List[str] = Field(
+    cors_origins: List[str] | str = Field(
         default=[
             "http://localhost:3000",  # Frontend dev server
             "http://localhost:19006",  # Expo dev server
@@ -38,8 +38,8 @@ class Settings(BaseSettings):
         description="Allowed CORS origins"
     )
     cors_credentials: bool = Field(default=True, description="Allow credentials in CORS")
-    cors_methods: List[str] = Field(default=["*"], description="Allowed HTTP methods")
-    cors_headers: List[str] = Field(default=["*"], description="Allowed HTTP headers")
+    cors_methods: List[str] | str = Field(default=["*"], description="Allowed HTTP methods")
+    cors_headers: List[str] | str = Field(default=["*"], description="Allowed HTTP headers")
 
     # API configuration
     api_v1_prefix: str = Field(default="/api/v1", description="API v1 route prefix")
@@ -86,12 +86,12 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    @field_validator("cors_origins", mode="before")
+    @field_validator("cors_origins", "cors_methods", "cors_headers", mode="before")
     @classmethod
-    def parse_cors_origins(cls, v: str | List[str]) -> List[str]:
-        """Parse CORS origins from comma-separated string or list."""
+    def parse_cors_list_fields(cls, v: str | List[str]) -> List[str]:
+        """Parse CORS-related fields from comma-separated strings."""
         if isinstance(v, str):
-            return [origin.strip() for origin in v.split(",") if origin.strip()]
+            return [part.strip() for part in v.split(",") if part.strip()]
         return v
 
     @field_validator("log_level")
