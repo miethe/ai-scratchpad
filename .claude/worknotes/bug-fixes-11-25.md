@@ -129,3 +129,33 @@ These checks provide:
 - Helps identify data quality issues upstream (pattern engine bugs, API transmission errors)
 - Improves developer experience when debugging pattern generation issues
 - No performance impact (validation is O(n) which we're already doing for iteration)
+
+## Stitch Count Mismatch Validation Error (422)
+
+**Issue**: After adding validation, all /visualize requests failed with 422: "Invalid pattern DSL: Stitch count mismatch in round 1: total_stitches=18, but sum of stitch instructions=6"
+
+**Root Cause**:
+The DSL converter and visualization service were treating all operations as producing 1 stitch, but crochet operations have different semantics:
+- Foundation stitches (MR, ch): Don't count toward total stitches
+- Increases (inc): 1 operation produces 2 stitches
+- Decreases (dec): 1 operation produces 1 stitch (consumes 2 from previous round)
+- Regular stitches (sc, hdc, dc): 1 operation produces 1 stitch
+
+The validation was comparing operation count (6) with actual stitch count (18), causing false failures.
+
+**Fix**:
+Updated both converter and visualization service to understand crochet operation semantics:
+- Skip foundation stitches (MR, ch) in stitch count calculations
+- Multiply inc operations by 2 for actual stitch count
+- Calculate expected stitches based on operation type, not just operation count
+- Added detailed error messages showing operation breakdown
+
+**Testing**:
+- Created test with MR + 6 sc + 6 inc = 18 total stitches
+- Verified conversion and visualization both succeed
+- Confirmed stitch count validation now works correctly
+
+**Files Changed**:
+- `knit-wit/apps/api/app/utils/dsl_converter.py` (updated stitch calculation)
+- `knit-wit/apps/api/app/services/visualization_service.py` (updated validation logic)
+- `knit-wit/BUGFIX-SUMMARY.md` (created detailed documentation)

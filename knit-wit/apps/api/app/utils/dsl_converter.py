@@ -79,22 +79,69 @@ def frontend_dsl_to_pattern_dsl(frontend_dsl: FrontendPatternDSL) -> PatternDSL:
     )
 
     # Convert rounds
+    # Foundation stitches that don't count toward total_stitches
+    foundation_stitches = {"MR", "mr", "Ch", "ch"}
+
     rounds = []
     for frontend_round in frontend_dsl.rounds:
         stitches = []
+        total_count = 0  # Track actual stitch count for validation
+
         for op in frontend_round.ops:
             # Convert each operation to stitch instruction
-            # Handle repeat by expanding into individual stitches
-            count = op.count
-            if op.repeat:
-                # For sequences with repeats, multiply the count
-                count = op.count * op.repeat
+            # The count field represents the number of OPERATIONS, not stitches produced
+            # Different operations produce different numbers of stitches:
+            #   - sc: 1 operation = 1 stitch
+            #   - inc: 1 operation = 2 stitches (2 sc in same stitch)
+            #   - dec: 1 operation = 1 stitch (sc2tog: consumes 2, produces 1)
+            #   - MR: foundation stitch (counts as 0)
+            # The repeat field (if present) multiplies the operation count
+            # Examples:
+            #   - {"op": "sc", "count": 6} → 6 sc operations → 6 stitches
+            #   - {"op": "inc", "count": 6} → 6 inc operations → 12 stitches
+            #   - {"op": "sc", "count": 2, "repeat": 6} → 12 sc operations → 12 stitches
 
+            # Calculate number of operations
+            if op.repeat and op.repeat > 0:
+                # Operation with repeat: multiply count by repeat
+                num_operations = op.count * op.repeat
+            else:
+                # Simple operation: use count as-is
+                num_operations = op.count
+
+            # Create stitch instruction with the operation count
+            # (The pattern engine expects count to be number of operations, not stitches)
             stitch = StitchInstruction(
                 stitch_type=op.op,
-                count=count,
+                count=num_operations,
             )
             stitches.append(stitch)
+
+            # Calculate stitches produced for validation
+            # Add to total count only if not a foundation stitch
+            if op.op not in foundation_stitches:
+                # Calculate stitches based on operation type
+                if op.op.lower() == "inc":
+                    # Increase: 1 operation produces 2 stitches
+                    stitches_produced = num_operations * 2
+                elif op.op.lower() == "dec":
+                    # Decrease: 1 operation produces 1 stitch (consumes 2)
+                    stitches_produced = num_operations * 1
+                else:
+                    # Regular stitches (sc, hdc, dc, etc.): 1 operation = 1 stitch
+                    stitches_produced = num_operations
+
+                total_count += stitches_produced
+
+        # Validate that our conversion matches the expected total
+        if total_count != frontend_round.stitches:
+            ops_debug = [f"{op.op}(count={op.count}, repeat={op.repeat})" for op in frontend_round.ops]
+            raise ValueError(
+                f"DSL conversion error in round {frontend_round.r}: "
+                f"Converted stitch count ({total_count}) does not match "
+                f"expected total ({frontend_round.stitches}). "
+                f"Operations: {ops_debug}"
+            )
 
         round_inst = RoundInstruction(
             round_number=frontend_round.r,

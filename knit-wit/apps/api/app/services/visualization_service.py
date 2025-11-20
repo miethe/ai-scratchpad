@@ -142,11 +142,32 @@ class VisualizationService:
             return nodes
 
         # Validate that stitch instructions match total stitch count
-        actual_stitch_count = sum(s.count for s in round_inst.stitches)
+        # Note: Foundation stitches (MR, ch) don't count toward the total
+        # Note: Inc operations produce 2 stitches per operation, dec produces 1
+        foundation_stitches = {"MR", "mr", "Ch", "ch"}
+        actual_stitch_count = 0
+        for s in round_inst.stitches:
+            if s.stitch_type in foundation_stitches:
+                continue  # Skip foundation stitches
+            elif s.stitch_type.lower() == "inc":
+                # Increase: 1 operation produces 2 stitches
+                actual_stitch_count += s.count * 2
+            elif s.stitch_type.lower() == "dec":
+                # Decrease: 1 operation produces 1 stitch (consumes 2)
+                actual_stitch_count += s.count * 1
+            else:
+                # Regular stitches: 1 operation = 1 stitch
+                actual_stitch_count += s.count
+
         if actual_stitch_count != stitch_count:
+            # Include diagnostic info in error message
+            stitch_breakdown = ", ".join(
+                f"{s.stitch_type}({s.count})" for s in round_inst.stitches
+            )
             raise ValueError(
                 f"Stitch count mismatch in round {round_inst.round_number}: "
-                f"total_stitches={stitch_count}, but sum of stitch instructions={actual_stitch_count}"
+                f"total_stitches={stitch_count}, but calculated stitch count={actual_stitch_count}. "
+                f"Stitches: [{stitch_breakdown}]"
             )
 
         angle_step = (2 * math.pi) / stitch_count
@@ -154,6 +175,10 @@ class VisualizationService:
         for stitch_inst in round_inst.stitches:
             stitch_type = stitch_inst.stitch_type
             count = stitch_inst.count
+
+            # Skip foundation stitches (MR, ch) - they don't produce nodes
+            if stitch_type in foundation_stitches:
+                continue
 
             # Expand each stitch instruction into individual nodes
             for _ in range(count):
@@ -380,11 +405,32 @@ class VisualizationService:
             return nodes
 
         # Validate that stitch instructions match total stitch count
-        actual_stitch_count = sum(s.count for s in round_inst.stitches)
+        # Note: Foundation stitches (MR, ch) don't count toward the total
+        # Note: Inc operations produce 2 stitches per operation, dec produces 1
+        foundation_stitches = {"MR", "mr", "Ch", "ch"}
+        actual_stitch_count = 0
+        for s in round_inst.stitches:
+            if s.stitch_type in foundation_stitches:
+                continue  # Skip foundation stitches
+            elif s.stitch_type.lower() == "inc":
+                # Increase: 1 operation produces 2 stitches
+                actual_stitch_count += s.count * 2
+            elif s.stitch_type.lower() == "dec":
+                # Decrease: 1 operation produces 1 stitch (consumes 2)
+                actual_stitch_count += s.count * 1
+            else:
+                # Regular stitches: 1 operation = 1 stitch
+                actual_stitch_count += s.count
+
         if actual_stitch_count != stitch_count:
+            # Include diagnostic info in error message
+            stitch_breakdown = ", ".join(
+                f"{s.stitch_type}({s.count})" for s in round_inst.stitches
+            )
             raise ValueError(
                 f"Stitch count mismatch in round {round_inst.round_number}: "
-                f"total_stitches={stitch_count}, but sum of stitch instructions={actual_stitch_count}"
+                f"total_stitches={stitch_count}, but calculated stitch count={actual_stitch_count}. "
+                f"Stitches: [{stitch_breakdown}]"
             )
 
         # Generate 3D coordinates based on shape type
@@ -405,6 +451,10 @@ class VisualizationService:
         for stitch_inst in round_inst.stitches:
             stitch_type = stitch_inst.stitch_type
             count = stitch_inst.count
+
+            # Skip foundation stitches (MR, ch) - they don't produce nodes
+            if stitch_type in foundation_stitches:
+                continue
 
             for _ in range(count):
                 # Defensive check to prevent index out of range
