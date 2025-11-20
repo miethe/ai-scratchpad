@@ -421,3 +421,267 @@ class TestVisualizationService:
 
         # Node IDs still use DSL round number (0-indexed)
         assert all(node.id.startswith("r0s") for node in frame.nodes)
+
+
+class TestVisualizationService3D:
+    """Test suite for 3D visualization features."""
+
+    @pytest.fixture
+    def service(self):
+        """Create VisualizationService instance."""
+        return VisualizationService()
+
+    @pytest.fixture
+    def sample_gauge(self):
+        """Create sample gauge info."""
+        return GaugeInfo(
+            stitches_per_cm=1.4, rows_per_cm=1.6, hook_size_mm=4.0, yarn_weight="worsted"
+        )
+
+    @pytest.fixture
+    def sphere_pattern(self, sample_gauge):
+        """Create sample sphere pattern."""
+        return PatternDSL(
+            shape=ShapeParameters(shape_type="sphere", diameter_cm=10.0),
+            gauge=sample_gauge,
+            rounds=[
+                RoundInstruction(
+                    round_number=0,
+                    stitches=[StitchInstruction(stitch_type="sc", count=6)],
+                    total_stitches=6,
+                ),
+                RoundInstruction(
+                    round_number=1,
+                    stitches=[StitchInstruction(stitch_type="inc", count=6)],
+                    total_stitches=12,
+                ),
+                RoundInstruction(
+                    round_number=2,
+                    stitches=[StitchInstruction(stitch_type="sc", count=12)],
+                    total_stitches=12,
+                ),
+            ],
+            metadata=PatternMetadata(
+                generated_at=datetime.now(),
+                engine_version="0.1.0",
+                total_rounds=3,
+            ),
+        )
+
+    @pytest.fixture
+    def cylinder_pattern(self, sample_gauge):
+        """Create sample cylinder pattern."""
+        return PatternDSL(
+            shape=ShapeParameters(shape_type="cylinder", diameter_cm=8.0, height_cm=12.0),
+            gauge=sample_gauge,
+            rounds=[
+                RoundInstruction(
+                    round_number=0,
+                    stitches=[StitchInstruction(stitch_type="sc", count=8)],
+                    total_stitches=8,
+                ),
+                RoundInstruction(
+                    round_number=1,
+                    stitches=[StitchInstruction(stitch_type="sc", count=8)],
+                    total_stitches=8,
+                ),
+            ],
+            metadata=PatternMetadata(
+                generated_at=datetime.now(),
+                engine_version="0.1.0",
+                total_rounds=2,
+            ),
+        )
+
+    def test_sphere_3d_coordinates_on_surface(self, service):
+        """Verify sphere 3D coordinates lie on sphere surface."""
+        radius = service.BASE_RADIUS
+        total_rounds = 10
+        stitch_count = 12
+
+        for round_index in range(total_rounds):
+            coords = service._generate_sphere_3d_coordinates(
+                round_index, total_rounds, stitch_count
+            )
+
+            assert len(coords) == stitch_count
+
+            for x, y, z in coords:
+                distance = math.sqrt(x**2 + y**2 + z**2)
+                # All points should be on sphere surface
+                assert abs(distance - radius) < 0.01
+
+    def test_cylinder_3d_coordinates_constant_radius(self, service):
+        """Verify cylinder coordinates maintain constant radius."""
+        radius = service.BASE_RADIUS
+        stitch_count = 8
+
+        for round_index in range(5):
+            coords = service._generate_cylinder_3d_coordinates(round_index, stitch_count)
+
+            assert len(coords) == stitch_count
+
+            for x, y, z in coords:
+                radial_distance = math.sqrt(x**2 + y**2)
+                # All points should have same radius
+                assert abs(radial_distance - radius) < 0.01
+                # Z should match round index
+                expected_z = round_index * service.BASE_ROW_HEIGHT
+                assert abs(z - expected_z) < 0.01
+
+    def test_cone_3d_coordinates_taper(self, service):
+        """Verify cone coordinates taper correctly."""
+        total_rounds = 10
+        stitch_count = 12
+
+        # Get coordinates at different heights
+        coords_base = service._generate_cone_3d_coordinates(0, total_rounds, stitch_count)
+        coords_mid = service._generate_cone_3d_coordinates(5, total_rounds, stitch_count)
+        coords_top = service._generate_cone_3d_coordinates(9, total_rounds, stitch_count)
+
+        # Calculate radii at each level
+        def get_radius(coords):
+            x, y, z = coords[0]
+            return math.sqrt(x**2 + y**2)
+
+        r_base = get_radius(coords_base)
+        r_mid = get_radius(coords_mid)
+        r_top = get_radius(coords_top)
+
+        # Radius should decrease from base to top
+        assert r_base > r_mid > r_top
+
+    def test_3d_frame_has_position_3d(self, service, sphere_pattern):
+        """Verify 3D frames have position_3d field populated."""
+        frames = service.dsl_to_frames_3d(sphere_pattern)
+
+        for frame in frames:
+            for node in frame.nodes:
+                # All nodes should have 3D coordinates
+                assert node.position_3d is not None
+                assert len(node.position_3d) == 3
+                assert all(isinstance(coord, float) for coord in node.position_3d)
+
+                # All nodes should have depth ordering
+                assert node.depth_order is not None
+                assert isinstance(node.depth_order, int)
+                assert node.depth_order >= 0
+
+                # All nodes should have depth factor
+                assert node.depth_factor is not None
+                assert 0.0 <= node.depth_factor <= 1.0
+
+    def test_3d_frame_has_projection_metadata(self, service, sphere_pattern):
+        """Verify 3D frames include projection metadata."""
+        frames = service.dsl_to_frames_3d(sphere_pattern)
+
+        for frame in frames:
+            assert frame.projection is not None
+            assert frame.projection.type == "isometric"
+            assert frame.projection.angle_deg == 30.0
+            assert "x_min" in frame.projection.bounds_3d
+            assert "x_max" in frame.projection.bounds_3d
+            assert "y_min" in frame.projection.bounds_3d
+            assert "y_max" in frame.projection.bounds_3d
+            assert "z_min" in frame.projection.bounds_3d
+            assert "z_max" in frame.projection.bounds_3d
+
+    def test_depth_ordering_correct(self, service, sphere_pattern):
+        """Verify depth_order increases with z-coordinate."""
+        frames = service.dsl_to_frames_3d(sphere_pattern)
+
+        # Collect all nodes
+        all_nodes = []
+        for frame in frames:
+            all_nodes.extend(frame.nodes)
+
+        # Sort by depth_order
+        sorted_by_depth = sorted(all_nodes, key=lambda n: n.depth_order)
+
+        # Verify z-coordinates are non-decreasing
+        for i in range(len(sorted_by_depth) - 1):
+            z1 = sorted_by_depth[i].position_3d[2]
+            z2 = sorted_by_depth[i + 1].position_3d[2]
+            assert z1 <= z2 + 0.01  # Allow small floating point errors
+
+    def test_2d_mode_backward_compatible(self, service, sphere_pattern):
+        """Verify 2D mode does not include 3D fields."""
+        frames_2d = service.dsl_to_frames(sphere_pattern)
+
+        for frame in frames_2d:
+            # Should not have projection metadata
+            assert frame.projection is None
+
+            for node in frame.nodes:
+                # Should not have 3D fields
+                assert node.position_3d is None
+                assert node.depth_order is None
+                assert node.depth_factor is None
+
+    def test_pattern_to_visualization_3d(self, service, sphere_pattern):
+        """Test high-level 3D visualization method."""
+        response = service.pattern_to_visualization_3d(sphere_pattern)
+
+        assert isinstance(response, VisualizationResponse)
+        assert response.total_rounds == 3
+        assert response.shape_type == "sphere"
+        assert len(response.frames) == 3
+
+        # Verify all frames have 3D data
+        for frame in response.frames:
+            assert frame.projection is not None
+            assert all(node.position_3d is not None for node in frame.nodes)
+
+    def test_cylinder_3d_coordinates(self, service, cylinder_pattern):
+        """Test cylinder-specific 3D coordinate generation."""
+        frames = service.dsl_to_frames_3d(cylinder_pattern)
+
+        # Cylinder should stack rounds vertically
+        for i, frame in enumerate(frames):
+            for node in frame.nodes:
+                x, y, z = node.position_3d
+                expected_z = i * service.BASE_ROW_HEIGHT
+                assert abs(z - expected_z) < 0.01
+
+    def test_depth_factor_normalization(self, service, sphere_pattern):
+        """Verify depth_factor is normalized to [0, 1]."""
+        frames = service.dsl_to_frames_3d(sphere_pattern)
+
+        # Collect all depth factors
+        depth_factors = []
+        for frame in frames:
+            for node in frame.nodes:
+                depth_factors.append(node.depth_factor)
+
+        # Should have at least one near 0 and one near 1
+        assert min(depth_factors) < 0.1  # Close to 0
+        assert max(depth_factors) > 0.9  # Close to 1
+
+        # All should be in [0, 1]
+        assert all(0.0 <= df <= 1.0 for df in depth_factors)
+
+    def test_sphere_north_pole_coordinates(self, service):
+        """Verify north pole (first round) has correct z-coordinate."""
+        total_rounds = 10
+        stitch_count = 6
+
+        coords = service._generate_sphere_3d_coordinates(0, total_rounds, stitch_count)
+
+        # North pole should have z ≈ radius
+        z_values = [z for _, _, z in coords]
+        expected_z = service.BASE_RADIUS
+        assert all(abs(z - expected_z) < 0.01 for z in z_values)
+
+    def test_sphere_south_pole_coordinates(self, service):
+        """Verify south pole (last round) has correct z-coordinate."""
+        total_rounds = 10
+        stitch_count = 6
+
+        coords = service._generate_sphere_3d_coordinates(
+            total_rounds - 1, total_rounds, stitch_count
+        )
+
+        # South pole should have z ≈ -radius
+        z_values = [z for _, _, z in coords]
+        expected_z = -service.BASE_RADIUS
+        assert all(abs(z - expected_z) < 0.01 for z in z_values)

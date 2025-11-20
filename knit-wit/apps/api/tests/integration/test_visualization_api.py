@@ -242,3 +242,195 @@ class TestVisualizationAPI:
 
         # Check tags
         assert "visualization" in post_spec["tags"]
+
+
+class TestVisualizationAPI3D:
+    """Integration tests for 3D visualization mode"""
+
+    def test_3d_mode_query_parameter(self):
+        """POST /visualization/frames?mode=3d returns 3D coordinates"""
+        compiler = SphereCompiler()
+        gauge = Gauge(sts_per_10cm=14.0, rows_per_10cm=16.0)
+        pattern = compiler.generate(diameter_cm=10.0, gauge=gauge, yarn_weight="Worsted")
+        pattern_json = pattern.model_dump(mode="json")
+
+        # Request with mode=3d
+        response = client.post(
+            "/api/v1/visualization/frames?mode=3d",
+            json=pattern_json
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+
+        # Verify response has 3D data
+        assert "frames" in data
+        assert len(data["frames"]) > 0
+
+        frame = data["frames"][0]
+        node = frame["nodes"][0]
+
+        # 3D mode should have position_3d
+        assert "position_3d" in node
+        assert len(node["position_3d"]) == 3
+        assert all(isinstance(coord, (int, float)) for coord in node["position_3d"])
+
+        # Should have depth ordering
+        assert "depth_order" in node
+        assert isinstance(node["depth_order"], int)
+
+        # Should have depth factor
+        assert "depth_factor" in node
+        assert 0.0 <= node["depth_factor"] <= 1.0
+
+        # Should have projection metadata
+        assert "projection" in frame
+        assert frame["projection"]["type"] == "isometric"
+        assert frame["projection"]["angle_deg"] == 30.0
+        assert "bounds_3d" in frame["projection"]
+
+    def test_2d_mode_backward_compatible(self):
+        """POST /visualization/frames?mode=2d (or default) does NOT include 3D fields"""
+        compiler = SphereCompiler()
+        gauge = Gauge(sts_per_10cm=14.0, rows_per_10cm=16.0)
+        pattern = compiler.generate(diameter_cm=10.0, gauge=gauge, yarn_weight="Worsted")
+        pattern_json = pattern.model_dump(mode="json")
+
+        # Test default (no mode parameter)
+        response = client.post("/api/v1/visualization/frames", json=pattern_json)
+        assert response.status_code == 200
+        data = response.json()
+
+        frame = data["frames"][0]
+        node = frame["nodes"][0]
+
+        # 2D mode should NOT have 3D fields
+        assert "position_3d" not in node or node["position_3d"] is None
+        assert "depth_order" not in node or node["depth_order"] is None
+        assert "depth_factor" not in node or node["depth_factor"] is None
+        assert "projection" not in frame or frame["projection"] is None
+
+        # Should still have 2D position
+        assert "position" in node
+        assert len(node["position"]) == 2
+
+    def test_3d_mode_explicit_2d(self):
+        """POST /visualization/frames?mode=2d explicitly returns 2D data"""
+        compiler = SphereCompiler()
+        gauge = Gauge(sts_per_10cm=14.0, rows_per_10cm=16.0)
+        pattern = compiler.generate(diameter_cm=10.0, gauge=gauge, yarn_weight="Worsted")
+        pattern_json = pattern.model_dump(mode="json")
+
+        response = client.post(
+            "/api/v1/visualization/frames?mode=2d",
+            json=pattern_json
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+
+        frame = data["frames"][0]
+        node = frame["nodes"][0]
+
+        # Explicit 2D should not have 3D fields
+        assert "position_3d" not in node or node["position_3d"] is None
+
+    def test_3d_sphere_coordinates_valid(self):
+        """Verify sphere 3D coordinates lie on sphere surface"""
+        compiler = SphereCompiler()
+        gauge = Gauge(sts_per_10cm=14.0, rows_per_10cm=16.0)
+        pattern = compiler.generate(diameter_cm=10.0, gauge=gauge, yarn_weight="Worsted")
+
+        response = client.post(
+            "/api/v1/visualization/frames?mode=3d",
+            json=pattern.model_dump(mode="json")
+        )
+
+        data = response.json()
+
+        # Get first frame nodes
+        frame = data["frames"][0]
+        nodes = frame["nodes"]
+
+        # All nodes should lie approximately on sphere surface
+        # Use BASE_RADIUS from service (100.0)
+        expected_radius = 100.0
+
+        for node in nodes:
+            x, y, z = node["position_3d"]
+            distance = (x**2 + y**2 + z**2) ** 0.5
+            # Allow some tolerance for floating point
+            assert abs(distance - expected_radius) < 1.0
+
+    def test_3d_depth_ordering_valid(self):
+        """Verify depth_order is consistent across frames"""
+        compiler = SphereCompiler()
+        gauge = Gauge(sts_per_10cm=14.0, rows_per_10cm=16.0)
+        pattern = compiler.generate(diameter_cm=10.0, gauge=gauge, yarn_weight="Worsted")
+
+        response = client.post(
+            "/api/v1/visualization/frames?mode=3d",
+            json=pattern.model_dump(mode="json")
+        )
+
+        data = response.json()
+
+        # Collect all nodes
+        all_nodes = []
+        for frame in data["frames"]:
+            all_nodes.extend(frame["nodes"])
+
+        # Verify depth_order values are unique and sequential
+        depth_orders = [node["depth_order"] for node in all_nodes]
+        assert len(set(depth_orders)) == len(depth_orders)  # All unique
+        assert min(depth_orders) == 0
+        assert max(depth_orders) == len(all_nodes) - 1
+
+    def test_3d_projection_metadata_complete(self):
+        """Verify projection metadata has all required fields"""
+        compiler = SphereCompiler()
+        gauge = Gauge(sts_per_10cm=14.0, rows_per_10cm=16.0)
+        pattern = compiler.generate(diameter_cm=10.0, gauge=gauge, yarn_weight="Worsted")
+
+        response = client.post(
+            "/api/v1/visualization/frames?mode=3d",
+            json=pattern.model_dump(mode="json")
+        )
+
+        data = response.json()
+        frame = data["frames"][0]
+        projection = frame["projection"]
+
+        # Verify all required fields
+        assert "type" in projection
+        assert projection["type"] in ["isometric", "dimetric", "perspective"]
+
+        assert "angle_deg" in projection
+        assert 0 <= projection["angle_deg"] <= 90
+
+        assert "bounds_3d" in projection
+        bounds = projection["bounds_3d"]
+        assert all(key in bounds for key in ["x_min", "x_max", "y_min", "y_max", "z_min", "z_max"])
+        assert bounds["x_min"] < bounds["x_max"]
+        assert bounds["y_min"] < bounds["y_max"]
+        assert bounds["z_min"] < bounds["z_max"]
+
+    def test_3d_mode_performance(self):
+        """Verify 3D mode meets performance target (< 150ms)"""
+        compiler = SphereCompiler()
+        gauge = Gauge(sts_per_10cm=14.0, rows_per_10cm=16.0)
+        pattern = compiler.generate(diameter_cm=15.0, gauge=gauge, yarn_weight="Worsted")
+        pattern_json = pattern.model_dump(mode="json")
+
+        # Measure 3D mode response time
+        start = time.perf_counter()
+        response = client.post(
+            "/api/v1/visualization/frames?mode=3d",
+            json=pattern_json
+        )
+        elapsed_ms = (time.perf_counter() - start) * 1000
+
+        assert response.status_code == 200
+        assert elapsed_ms < 150.0  # Performance target: < 150ms for 3D
+
+        print(f"\n3D Performance: {elapsed_ms:.2f}ms for {len(pattern.rounds)} rounds")
