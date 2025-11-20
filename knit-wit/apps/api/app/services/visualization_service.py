@@ -142,13 +142,19 @@ class VisualizationService:
             return nodes
 
         # Validate that stitch instructions match total stitch count
-        # Note: Foundation stitches (MR, ch) don't count toward the total
+        # Note: Ch is always foundation (0 stitches)
+        # Note: MR(count=1) is foundation (0 stitches), MR(count>1) produces count stitches
         # Note: Inc operations produce 2 stitches per operation, dec produces 1
-        foundation_stitches = {"MR", "mr", "Ch", "ch"}
+        foundation_stitches = {"Ch", "ch"}
         actual_stitch_count = 0
         for s in round_inst.stitches:
             if s.stitch_type in foundation_stitches:
-                continue  # Skip foundation stitches
+                continue  # Skip chain foundation stitches
+            elif s.stitch_type in {"MR", "mr"}:
+                # Magic ring: count > 1 produces stitches, count == 1 is foundation
+                if s.count > 1:
+                    actual_stitch_count += s.count
+                # else: MR(count=1) is foundation, add 0
             elif s.stitch_type.lower() == "inc":
                 # Increase: 1 operation produces 2 stitches
                 actual_stitch_count += s.count * 2
@@ -176,9 +182,12 @@ class VisualizationService:
             stitch_type = stitch_inst.stitch_type
             count = stitch_inst.count
 
-            # Skip foundation stitches (MR, ch) - they don't produce nodes
+            # Skip chain foundation stitches - they don't produce nodes
+            # Note: MR(count=1) is foundation and skipped, MR(count>1) produces nodes
             if stitch_type in foundation_stitches:
                 continue
+            elif stitch_type in {"MR", "mr"} and count <= 1:
+                continue  # Skip MR foundation (count=1)
 
             # Expand each stitch instruction into individual nodes
             for _ in range(count):
@@ -405,13 +414,19 @@ class VisualizationService:
             return nodes
 
         # Validate that stitch instructions match total stitch count
-        # Note: Foundation stitches (MR, ch) don't count toward the total
+        # Note: Ch is always foundation (0 stitches)
+        # Note: MR(count=1) is foundation (0 stitches), MR(count>1) produces count stitches
         # Note: Inc operations produce 2 stitches per operation, dec produces 1
-        foundation_stitches = {"MR", "mr", "Ch", "ch"}
+        foundation_stitches = {"Ch", "ch"}
         actual_stitch_count = 0
         for s in round_inst.stitches:
             if s.stitch_type in foundation_stitches:
-                continue  # Skip foundation stitches
+                continue  # Skip chain foundation stitches
+            elif s.stitch_type in {"MR", "mr"}:
+                # Magic ring: count > 1 produces stitches, count == 1 is foundation
+                if s.count > 1:
+                    actual_stitch_count += s.count
+                # else: MR(count=1) is foundation, add 0
             elif s.stitch_type.lower() == "inc":
                 # Increase: 1 operation produces 2 stitches
                 actual_stitch_count += s.count * 2
@@ -452,9 +467,12 @@ class VisualizationService:
             stitch_type = stitch_inst.stitch_type
             count = stitch_inst.count
 
-            # Skip foundation stitches (MR, ch) - they don't produce nodes
+            # Skip chain foundation stitches - they don't produce nodes
+            # Note: MR(count=1) is foundation and skipped, MR(count>1) produces nodes
             if stitch_type in foundation_stitches:
                 continue
+            elif stitch_type in {"MR", "mr"} and count <= 1:
+                continue  # Skip MR foundation (count=1)
 
             for _ in range(count):
                 # Defensive check to prevent index out of range

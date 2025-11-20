@@ -5,6 +5,15 @@ All notable changes to Knit-Wit will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- **Magic Ring Stitch Counting**: Fixed MR (magic ring) operation semantics in DSL converter and visualization service
+  - `MR(count=1)`: Correctly treated as foundation stitch (produces 0 stitches)
+  - `MR(count>1)`: Correctly produces count stitches (e.g., `MR(count=6)` produces 6 stitches)
+  - Resolved visualization errors where `MR(count=6)` was incorrectly counted as 0 stitches
+  - Files updated: `apps/api/app/utils/dsl_converter.py`, `apps/api/app/services/visualization_service.py`
+
 ## [1.0.0] - 2024-11-30
 
 ### MVP Release

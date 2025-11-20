@@ -79,8 +79,8 @@ def frontend_dsl_to_pattern_dsl(frontend_dsl: FrontendPatternDSL) -> PatternDSL:
     )
 
     # Convert rounds
-    # Foundation stitches that don't count toward total_stitches
-    foundation_stitches = {"MR", "mr", "Ch", "ch"}
+    # Chain is a foundation stitch that doesn't count toward total_stitches
+    foundation_stitches = {"Ch", "ch"}
 
     rounds = []
     for frontend_round in frontend_dsl.rounds:
@@ -94,12 +94,15 @@ def frontend_dsl_to_pattern_dsl(frontend_dsl: FrontendPatternDSL) -> PatternDSL:
             #   - sc: 1 operation = 1 stitch
             #   - inc: 1 operation = 2 stitches (2 sc in same stitch)
             #   - dec: 1 operation = 1 stitch (sc2tog: consumes 2, produces 1)
-            #   - MR: foundation stitch (counts as 0)
+            #   - MR(count=1): foundation stitch (counts as 0)
+            #   - MR(count=N) where N > 1: produces N stitches in magic ring
+            #   - ch: foundation stitch (counts as 0)
             # The repeat field (if present) multiplies the operation count
             # Examples:
             #   - {"op": "sc", "count": 6} → 6 sc operations → 6 stitches
             #   - {"op": "inc", "count": 6} → 6 inc operations → 12 stitches
             #   - {"op": "sc", "count": 2, "repeat": 6} → 12 sc operations → 12 stitches
+            #   - {"op": "MR", "count": 6} → 6 stitches in magic ring
 
             # Calculate number of operations
             if op.repeat and op.repeat > 0:
@@ -118,8 +121,17 @@ def frontend_dsl_to_pattern_dsl(frontend_dsl: FrontendPatternDSL) -> PatternDSL:
             stitches.append(stitch)
 
             # Calculate stitches produced for validation
-            # Add to total count only if not a foundation stitch
-            if op.op not in foundation_stitches:
+            # MR semantics: MR(count=1) is foundation (0 stitches), MR(count>1) produces count stitches
+            if op.op in foundation_stitches:
+                # Chain: always foundation, no stitches
+                stitches_produced = 0
+            elif op.op in {"MR", "mr"}:
+                # Magic ring: count > 1 produces stitches, count == 1 is foundation
+                if num_operations > 1:
+                    stitches_produced = num_operations
+                else:
+                    stitches_produced = 0
+            else:
                 # Calculate stitches based on operation type
                 if op.op.lower() == "inc":
                     # Increase: 1 operation produces 2 stitches
@@ -131,7 +143,7 @@ def frontend_dsl_to_pattern_dsl(frontend_dsl: FrontendPatternDSL) -> PatternDSL:
                     # Regular stitches (sc, hdc, dc, etc.): 1 operation = 1 stitch
                     stitches_produced = num_operations
 
-                total_count += stitches_produced
+            total_count += stitches_produced
 
         # Validate that our conversion matches the expected total
         if total_count != frontend_round.stitches:

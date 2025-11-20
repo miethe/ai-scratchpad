@@ -159,3 +159,24 @@ Updated both converter and visualization service to understand crochet operation
 - `knit-wit/apps/api/app/utils/dsl_converter.py` (updated stitch calculation)
 - `knit-wit/apps/api/app/services/visualization_service.py` (updated validation logic)
 - `knit-wit/BUGFIX-SUMMARY.md` (created detailed documentation)
+
+## MR Operation Stitch Count Error (422)
+
+**Issue**: Visualization still failed with "DSL conversion error in round 0: Converted stitch count (0) does not match expected total (6). Operations: ['MR(count=6)']"
+
+**Root Cause**:
+Code treated ALL MR (magic ring) operations as foundation stitches producing 0 stitches, but MR semantics are:
+- `MR(count=1)`: Foundation stitch (produces 0 stitches)
+- `MR(count>1)`: Produces count stitches (e.g., `MR(count=6)` produces 6 stitches in magic ring)
+
+**Fix**:
+Updated stitch counting logic to check MR count:
+- Only `ch` operations are pure foundation (always 0 stitches)
+- `MR(count<=1)`: Foundation case, produces 0 stitches
+- `MR(count>1)`: Produces count stitches
+- Skip `MR(count<=1)` operations when generating visualization nodes
+
+**Files Changed**:
+- `knit-wit/apps/api/app/utils/dsl_converter.py` (fixed MR stitch counting)
+- `knit-wit/apps/api/app/services/visualization_service.py` (fixed MR validation and node generation)
+- `knit-wit/CHANGELOG.md` (documented fix)
