@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { VisualizationFrame } from '../types/visualization';
+import type { VisualizationFrame, VisualizationMode } from '../types/visualization';
 
 interface VisualizationState {
   // Frame data from API
@@ -21,6 +21,7 @@ interface VisualizationState {
   highlightChanges: boolean;
   showStitchCount: boolean;
   showRoundNumbers: boolean;
+  visualizationMode: VisualizationMode;
 
   // Frame management actions
   setFrames: (frames: VisualizationFrame[], shapeType?: string | null) => void;
@@ -46,6 +47,7 @@ interface VisualizationState {
   setHighlightChanges: (enabled: boolean) => void;
   setShowStitchCount: (enabled: boolean) => void;
   setShowRoundNumbers: (enabled: boolean) => void;
+  setVisualizationMode: (mode: VisualizationMode) => void;
 
   // Reset
   resetVisualization: () => void;
@@ -76,6 +78,7 @@ export const useVisualizationStore = create<VisualizationState>((set, get) => ({
   highlightChanges: true,
   showStitchCount: true,
   showRoundNumbers: true,
+  visualizationMode: '2d',
 
   // Frame management actions
   setFrames: (frames, shapeType = null) =>
@@ -152,6 +155,8 @@ export const useVisualizationStore = create<VisualizationState>((set, get) => ({
 
   setShowRoundNumbers: (enabled) => set({ showRoundNumbers: enabled }),
 
+  setVisualizationMode: (mode) => set({ visualizationMode: mode }),
+
   // Reset
   resetVisualization: () =>
     set({
@@ -167,5 +172,6 @@ export const useVisualizationStore = create<VisualizationState>((set, get) => ({
       highlightChanges: true,
       showStitchCount: true,
       showRoundNumbers: true,
+      visualizationMode: '2d',
     }),
 }));

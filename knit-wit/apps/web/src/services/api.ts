@@ -1,5 +1,5 @@
 import type { PatternRequest, PatternDSL } from '../types';
-import type { VisualizationResponse } from '../types/visualization';
+import type { VisualizationResponse, VisualizationMode } from '../types/visualization';
 
 // API configuration
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
@@ -168,10 +168,11 @@ export const patternApi = {
   /**
    * Visualize a pattern - convert DSL to frames
    */
-  async visualize(dsl: PatternDSL): Promise<VisualizationResponse> {
+  async visualize(dsl: PatternDSL, mode: VisualizationMode = '2d'): Promise<VisualizationResponse> {
     return apiRequest<VisualizationResponse>('/visualization/frames', {
       method: 'POST',
       body: JSON.stringify(dsl),
+      params: { mode },
     });
   },
 
