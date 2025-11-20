@@ -141,6 +141,14 @@ class VisualizationService:
         if stitch_count == 0:
             return nodes
 
+        # Validate that stitch instructions match total stitch count
+        actual_stitch_count = sum(s.count for s in round_inst.stitches)
+        if actual_stitch_count != stitch_count:
+            raise ValueError(
+                f"Stitch count mismatch in round {round_inst.round_number}: "
+                f"total_stitches={stitch_count}, but sum of stitch instructions={actual_stitch_count}"
+            )
+
         angle_step = (2 * math.pi) / stitch_count
 
         for stitch_inst in round_inst.stitches:
@@ -149,6 +157,13 @@ class VisualizationService:
 
             # Expand each stitch instruction into individual nodes
             for _ in range(count):
+                # Defensive check
+                if stitch_idx >= stitch_count:
+                    raise IndexError(
+                        f"Index out of range in round {round_inst.round_number}: "
+                        f"stitch_idx={stitch_idx}, stitch_count={stitch_count}"
+                    )
+
                 # Compute polar coordinates
                 angle = stitch_idx * angle_step
 
@@ -364,10 +379,25 @@ class VisualizationService:
         if stitch_count == 0:
             return nodes
 
+        # Validate that stitch instructions match total stitch count
+        actual_stitch_count = sum(s.count for s in round_inst.stitches)
+        if actual_stitch_count != stitch_count:
+            raise ValueError(
+                f"Stitch count mismatch in round {round_inst.round_number}: "
+                f"total_stitches={stitch_count}, but sum of stitch instructions={actual_stitch_count}"
+            )
+
         # Generate 3D coordinates based on shape type
         coordinates_3d = self._generate_shape_3d_coordinates(
             round_inst, round_index, total_rounds, stitch_count, shape_type
         )
+
+        # Validate coordinates list length
+        if len(coordinates_3d) != stitch_count:
+            raise ValueError(
+                f"3D coordinate count mismatch in round {round_inst.round_number}: "
+                f"expected {stitch_count} coordinates, got {len(coordinates_3d)}"
+            )
 
         angle_step = (2 * math.pi) / stitch_count
         stitch_idx = 0
@@ -377,6 +407,14 @@ class VisualizationService:
             count = stitch_inst.count
 
             for _ in range(count):
+                # Defensive check to prevent index out of range
+                if stitch_idx >= len(coordinates_3d):
+                    raise IndexError(
+                        f"Index out of range in round {round_inst.round_number}: "
+                        f"stitch_idx={stitch_idx}, coordinates_3d length={len(coordinates_3d)}, "
+                        f"stitch_count={stitch_count}"
+                    )
+
                 # 2D coordinates (polar → Cartesian)
                 angle = stitch_idx * angle_step
                 x_2d = self.BASE_RADIUS * math.cos(angle)

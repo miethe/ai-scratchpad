@@ -1,4 +1,4 @@
-# Bug Fixes - November 25, 2025
+# Bug Fixes - November 20, 2025
 
 ## 422 Error on /api/v1/visualization/frames
 
@@ -62,3 +62,70 @@
 - `knit-wit/apps/web/src/services/api.ts` (added mode parameter)
 - `knit-wit/apps/web/src/stores/useVisualizationStore.ts` (added mode state)
 - `knit-wit/apps/web/src/screens/VisualizationScreen.tsx` (implemented 3D rendering)
+
+## 3D Visualization "List Index Out of Range" Error (500)
+
+**Issue**: 3D visualization failed with 500 error: "Visualization generation failed: list index out of range"
+
+**Symptoms**:
+- Error occurred when clicking "3D View" toggle button on /visualize page
+- 2D mode worked correctly
+- Error message was cryptic with no indication of which round or what data was problematic
+
+**Root Cause Analysis**:
+The error occurred in `_generate_nodes_3d()` at line 386 of `visualization_service.py`:
+```python
+x_3d, y_3d, z_3d = coordinates_3d[stitch_idx]
+```
+
+The issue was a potential mismatch between:
+1. The `coordinates_3d` list length (generated based on `round_inst.total_stitches`)
+2. The actual sum of stitch counts in `round_inst.stitches`
+
+When iterating through stitch instructions and incrementing `stitch_idx`, if the actual stitch count didn't match `total_stitches`, the index would go out of bounds. This could happen due to:
+- Malformed pattern DSL from the pattern engine
+- Data corruption during API transmission
+- Frontend sending modified pattern data
+- Pattern engine bugs in stitch count calculation
+
+**Fix Implementation**:
+Added comprehensive defensive validation in both 2D and 3D node generation methods:
+
+1. **Pre-flight validation**: Verify stitch instruction sum matches `total_stitches`
+   ```python
+   actual_stitch_count = sum(s.count for s in round_inst.stitches)
+   if actual_stitch_count != stitch_count:
+       raise ValueError(f"Stitch count mismatch in round {round_inst.round_number}: ...")
+   ```
+
+2. **Coordinate list validation** (3D only): Ensure generated coordinates match expected count
+   ```python
+   if len(coordinates_3d) != stitch_count:
+       raise ValueError(f"3D coordinate count mismatch in round {round_inst.round_number}: ...")
+   ```
+
+3. **Runtime bounds checking**: Defensive check before list access
+   ```python
+   if stitch_idx >= len(coordinates_3d):
+       raise IndexError(f"Index out of range in round {round_inst.round_number}: ...")
+   ```
+
+These checks provide:
+- **Early detection**: Catch data issues before index access
+- **Clear error messages**: Include round number, expected vs actual counts
+- **Debugging context**: Provide enough information to trace the issue
+- **Fail-fast behavior**: Stop processing immediately with actionable error
+
+**Testing**:
+- Tested with valid pattern: Both 2D and 3D modes render successfully
+- Tested with invalid pattern (mismatched stitch count): Clear validation error instead of cryptic index error
+- Verified error messages include round number and diagnostic information
+
+**Files Changed**:
+- `knit-wit/apps/api/app/services/visualization_service.py` (added validation to `_generate_nodes()` and `_generate_nodes_3d()`)
+
+**Impact**:
+- Transforms cryptic "list index out of range" errors into clear, actionable error messages
+- Helps identify data quality issues upstream (pattern engine bugs, API transmission errors)
+- Improves developer experience when debugging pattern generation issues
+- No performance impact (validation is O(n) which we're already doing for iteration)
