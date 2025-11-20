@@ -283,7 +283,10 @@ class SphereCompiler:
                 offset = jitter_offset(round_num)
 
                 # Get evenly-distributed positions for decreases
-                dec_indices = even_distribution(current_stitches, target_decrease, offset)
+                # Important: Decreases consume 2 stitches (positions N and N+1), so they
+                # cannot be placed at the last position. Distribute within range [1, current_stitches-1]
+                # to ensure all decrease positions have a valid N+1 stitch to consume.
+                dec_indices = even_distribution(current_stitches - 1, target_decrease, offset)
 
                 # Build stitch instructions
                 # Decreases consume 2 stitches to make 1
@@ -292,7 +295,7 @@ class SphereCompiler:
 
                 i = 1
                 while i <= current_stitches:
-                    if i in dec_set and i < current_stitches:
+                    if i in dec_set:
                         # Decrease: sc2tog (consumes 2 stitches, produces 1)
                         stitch_list.append(StitchInstruction.model_construct(stitch_type="dec", count=1))
                         i += 2  # Skip next stitch (consumed by decrease)

@@ -180,3 +180,19 @@ Updated stitch counting logic to check MR count:
 - `knit-wit/apps/api/app/utils/dsl_converter.py` (fixed MR stitch counting)
 - `knit-wit/apps/api/app/services/visualization_service.py` (fixed MR validation and node generation)
 - `knit-wit/CHANGELOG.md` (documented fix)
+
+## Pattern Generator Decrease Distribution Bug (422)
+
+**Issue**: Round 12 validation error: "Converted stitch count (37) does not match expected total (36)" with operations: sc(9), dec(1), sc(8), dec(1), sc(8), dec(1), sc(9)
+
+**Root Cause**:
+Bug in sphere pattern generator decrease phase (`sphere.py` lines 286-289). The `even_distribution()` function was placing decrease operations at the last stitch position (e.g., position 39 in a 39-stitch round). Since decrease consumes 2 stitches (positions N and N+1), placing a decrease at the last position had no valid N+1 stitch. The guard condition prevented execution, causing the decrease to be skipped, resulting in +1 extra stitch.
+
+**Fix**:
+Changed decrease distribution from `even_distribution(current_stitches, ...)` to `even_distribution(current_stitches - 1, ...)`. This ensures decrease positions are only distributed within range [1, current_stitches-1], guaranteeing every decrease has a valid next stitch to consume.
+
+**Validation**:
+Generated full 10cm sphere pattern (19 rounds) and validated every round. All rounds now produce correct stitch counts, including round 12 which was producing 37 instead of 36.
+
+**Files Changed**:
+- `knit-wit/packages/pattern-engine/knit_wit_engine/shapes/sphere.py` (fixed decrease distribution)
