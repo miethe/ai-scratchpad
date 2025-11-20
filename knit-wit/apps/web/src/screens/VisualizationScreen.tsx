@@ -122,11 +122,62 @@ export default function VisualizationScreen() {
           </div>
           <div style={{ marginTop: spacing.xl, padding: spacing.xl, backgroundColor: colors.background, borderRadius: borderRadius.lg }}>
             <svg width="400" height="400" viewBox="-200 -200 400 400">
-              {/* Placeholder SVG - actual visualization would render nodes and edges */}
-              <circle cx="0" cy="0" r="150" fill="none" stroke={colors.primary} strokeWidth="2" />
-              <text x="0" y="0" textAnchor="middle" fontSize="20" fill={colors.textPrimary}>
-                SVG Visualization
-              </text>
+              {/* Render edges (lines connecting stitches) */}
+              {currentFrame?.edges.map((edge, idx) => {
+                const sourceNode = currentFrame.nodes.find((n) => n.id === edge.source);
+                const targetNode = currentFrame.nodes.find((n) => n.id === edge.target);
+                if (!sourceNode || !targetNode) return null;
+
+                return (
+                  <line
+                    key={`edge-${idx}`}
+                    x1={sourceNode.position[0]}
+                    y1={sourceNode.position[1]}
+                    x2={targetNode.position[0]}
+                    y2={targetNode.position[1]}
+                    stroke={colors.border}
+                    strokeWidth="1.5"
+                  />
+                );
+              })}
+
+              {/* Render nodes (stitches as circles) */}
+              {currentFrame?.nodes.map((node) => {
+                const isSelected = selectedNodeId === node.id;
+                let fillColor: string = colors.stitchNormal;
+
+                if (node.highlight === 'increase') {
+                  fillColor = colors.stitchIncrease;
+                } else if (node.highlight === 'decrease') {
+                  fillColor = colors.stitchDecrease;
+                }
+
+                return (
+                  <g key={node.id}>
+                    <circle
+                      cx={node.position[0]}
+                      cy={node.position[1]}
+                      r={isSelected ? 8 : 6}
+                      fill={fillColor}
+                      stroke={isSelected ? colors.primary : colors.border}
+                      strokeWidth={isSelected ? 2 : 1}
+                      onClick={() => setSelectedNodeId(node.id)}
+                      style={{ cursor: 'pointer' }}
+                    />
+                    {isSelected && (
+                      <text
+                        x={node.position[0]}
+                        y={node.position[1] - 15}
+                        textAnchor="middle"
+                        fontSize="12"
+                        fill={colors.textPrimary}
+                      >
+                        {node.stitch_type}
+                      </text>
+                    )}
+                  </g>
+                );
+              })}
             </svg>
           </div>
         </div>

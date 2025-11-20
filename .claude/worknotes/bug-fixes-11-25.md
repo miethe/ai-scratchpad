@@ -15,3 +15,18 @@
 - `knit-wit/apps/api/app/models/frontend_dsl.py` (new)
 - `knit-wit/apps/api/app/utils/dsl_converter.py` (new)
 - `knit-wit/apps/api/app/api/v1/endpoints/visualization.py` (modified)
+
+## Static SVG Visualization Instead of Actual Pattern
+
+**Issue**: Visualization screen showed static "SVG Visualization" text in a circle instead of rendering the actual pattern with nodes, edges, and highlights
+
+**Root Cause**: Frontend had placeholder SVG rendering code instead of implementing the actual visualization using API data
+
+**Fix**:
+- Implemented proper SVG rendering in VisualizationScreen with nodes, edges, color-coded stitches
+- Added interactive node selection showing stitch type
+- Color coding: blue (normal), green (increase), red (decrease)
+- Proper data flow using `currentFrame.nodes` and `currentFrame.edges` from API
+
+**Files Changed**:
+- `knit-wit/apps/web/src/screens/VisualizationScreen.tsx` (modified)
