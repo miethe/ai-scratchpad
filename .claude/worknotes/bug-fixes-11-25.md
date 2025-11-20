@@ -30,3 +30,35 @@
 
 **Files Changed**:
 - `knit-wit/apps/web/src/screens/VisualizationScreen.tsx` (modified)
+
+## 3D Visualization Feature Implementation
+
+**Feature**: Added 3D isometric visualization with 2D/3D toggle for progressive pattern construction
+
+**Implementation**:
+- Comprehensive architecture design with isometric projection (30° angle)
+- Backend 3D coordinate generation for sphere, cylinder, cone shapes
+- Shape-aware geometric algorithms (spherical coords, cylindrical stacking, linear taper)
+- Painter's algorithm depth sorting for correct occlusion
+- Frontend SVG rendering with depth cues (size 60-100%, opacity 70-100%)
+- Segmented control toggle UI between 2D and 3D views
+- Query parameter ?mode=3d on /visualization/frames endpoint
+
+**Testing**:
+- 27/28 tests passed including all 12 new 3D tests
+- Verified sphere, cylinder, cone coordinate generation
+- Confirmed backward compatibility with 2D mode
+- Performance <150ms (meets design target)
+
+**Files Changed**:
+- `knit-wit/docs/architecture/3d-visualization-design.md` (new)
+- `knit-wit/docs/architecture/3d-visualization-recommendations.md` (new)
+- `knit-wit/apps/api/app/models/visualization.py` (extended with 3D fields)
+- `knit-wit/apps/api/app/services/visualization_service.py` (added 3D generators)
+- `knit-wit/apps/api/app/api/v1/endpoints/visualization.py` (added mode param)
+- `knit-wit/apps/api/tests/unit/test_visualization_service.py` (added 3D tests)
+- `knit-wit/apps/api/tests/integration/test_visualization_api.py` (added 3D integration tests)
+- `knit-wit/apps/web/src/types/visualization.ts` (extended with 3D types)
+- `knit-wit/apps/web/src/services/api.ts` (added mode parameter)
+- `knit-wit/apps/web/src/stores/useVisualizationStore.ts` (added mode state)
+- `knit-wit/apps/web/src/screens/VisualizationScreen.tsx` (implemented 3D rendering)
