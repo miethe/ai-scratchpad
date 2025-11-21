@@ -56,7 +56,7 @@ describe('Visualization Accessibility', () => {
 
   describe('SVGRenderer', () => {
     it('announces round changes to screen readers', () => {
-      render(<SVGRenderer frame={mockFrame} width={375} height={400} />);
+      render(<SVGRenderer frames={[mockFrame]} currentRound={1} width={375} height={400} />);
 
       expect(AccessibilityInfo.announceForAccessibility).toHaveBeenCalledWith(
         'Round 1, 3 stitches'
@@ -64,12 +64,12 @@ describe('Visualization Accessibility', () => {
     });
 
     it('announces when round number changes', () => {
-      const { rerender } = render(<SVGRenderer frame={mockFrame} width={375} height={400} />);
+      const { rerender } = render(<SVGRenderer frames={[mockFrame]} currentRound={1} width={375} height={400} />);
 
       jest.clearAllMocks();
 
       const newFrame = { ...mockFrame, round_number: 2, stitch_count: 6 };
-      rerender(<SVGRenderer frame={newFrame} width={375} height={400} />);
+      rerender(<SVGRenderer frames={[newFrame]} currentRound={1} width={375} height={400} />);
 
       expect(AccessibilityInfo.announceForAccessibility).toHaveBeenCalledWith(
         'Round 2, 6 stitches'
@@ -77,7 +77,7 @@ describe('Visualization Accessibility', () => {
     });
 
     it('all nodes have accessibility role button', () => {
-      const { UNSAFE_getAllByProps } = render(<SVGRenderer frame={mockFrame} width={375} height={400} />);
+      const { UNSAFE_getAllByProps } = render(<SVGRenderer frames={[mockFrame]} currentRound={1} width={375} height={400} />);
 
       const buttons = UNSAFE_getAllByProps({ accessibilityRole: 'button' });
       // Each node may be rendered as both a component and element, so check for at least expected count
@@ -85,7 +85,7 @@ describe('Visualization Accessibility', () => {
     });
 
     it('all nodes have descriptive accessibility labels', () => {
-      const { UNSAFE_getAllByProps } = render(<SVGRenderer frame={mockFrame} width={375} height={400} />);
+      const { UNSAFE_getAllByProps } = render(<SVGRenderer frames={[mockFrame]} currentRound={1} width={375} height={400} />);
 
       const normalNode = UNSAFE_getAllByProps({
         accessibilityLabel: 'Stitch r1s0, sc, normal'
@@ -104,7 +104,7 @@ describe('Visualization Accessibility', () => {
     });
 
     it('all nodes have accessibility hints', () => {
-      const { UNSAFE_getAllByProps } = render(<SVGRenderer frame={mockFrame} width={375} height={400} />);
+      const { UNSAFE_getAllByProps } = render(<SVGRenderer frames={[mockFrame]} currentRound={1} width={375} height={400} />);
 
       const nodesWithHints = UNSAFE_getAllByProps({
         accessibilityHint: 'Tap to view details'
@@ -216,7 +216,7 @@ describe('Visualization Accessibility', () => {
       // Note: The circles have r={8} but the effective touch target
       // should be increased to meet accessibility standards.
       // This test documents the current state; enhancement needed.
-      render(<SVGRenderer frame={mockFrame} width={375} height={400} />);
+      render(<SVGRenderer frames={[mockFrame]} currentRound={1} width={375} height={400} />);
 
       // SVG Circle components should exist
       const circles = mockFrame.nodes.length;

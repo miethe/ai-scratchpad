@@ -5,11 +5,31 @@ import type { VisualizationFrame, RenderNode } from '../../types/visualization';
 import { debounce } from '../../utils/performance';
 
 interface SVGRendererProps {
-  frame: VisualizationFrame;
+  frames: VisualizationFrame[];
+  currentRound: number;
   width?: number;
   height?: number;
   onStitchTap?: (nodeId: string) => void;
 }
+
+/**
+ * Apply isometric projection to 3D coordinates
+ * Converts (x, y, z) to 2D screen coordinates using isometric projection
+ */
+const applyIsometricProjection = (
+  x: number,
+  y: number,
+  z: number,
+  angleDeg: number = 30
+): [number, number] => {
+  const angle = (angleDeg * Math.PI) / 180;
+
+  // Isometric projection formula
+  const screenX = (x - y) * Math.cos(angle);
+  const screenY = (x + y) * Math.sin(angle) - z;
+
+  return [screenX, screenY];
+};
 
 /**
  * Calculate visible bounds for viewport culling
@@ -94,7 +114,8 @@ const getLODParams = (lodLevel: 'minimal' | 'reduced' | 'full') => {
 
 export const SVGRenderer = React.memo<SVGRendererProps>(
   ({
-    frame,
+    frames,
+    currentRound,
     width = Dimensions.get('window').width - 32,
     height = 400,
     onStitchTap,
@@ -106,26 +127,41 @@ export const SVGRenderer = React.memo<SVGRendererProps>(
     // Leave 20% padding on each side
     const scale = Math.min(width, height) / 250;
 
+    // Check if we have 3D data
+    const has3DData = frames.length > 0 && frames[0].projection !== undefined;
+    const projectionAngle = frames[0]?.projection?.angle_deg ?? 30;
+
     // Memoize color mapping function (prevents recreation on every render)
-    const getStitchColor = useCallback((highlight: string): string => {
-      switch (highlight) {
-        case 'increase':
-          return '#10B981'; // Green (WCAG AA compliant)
-        case 'decrease':
-          return '#EF4444'; // Red (WCAG AA compliant)
-        default:
-          return '#6B7280'; // Gray
-      }
+    const getStitchColor = useCallback((highlight: string, isCurrent: boolean): string => {
+      const baseColor = (() => {
+        switch (highlight) {
+          case 'increase':
+            return '#10B981'; // Green (WCAG AA compliant)
+          case 'decrease':
+            return '#EF4444'; // Red (WCAG AA compliant)
+          default:
+            return '#6B7280'; // Gray
+        }
+      })();
+
+      // Slightly fade previous rounds (not current)
+      return isCurrent ? baseColor : baseColor + 'CC'; // Add alpha for 80% opacity
     }, []);
 
-    // Create O(1) node lookup map instead of O(n) array.find()
+    // Create O(1) node lookup map for all nodes across all frames
     const nodeMap = useMemo(() => {
-      return new Map(frame.nodes.map((n) => [n.id, n]));
-    }, [frame.nodes]);
+      const map = new Map<string, { node: RenderNode; frameIndex: number }>();
+      frames.forEach((frame, frameIndex) => {
+        frame.nodes.forEach((node) => {
+          map.set(node.id, { node, frameIndex });
+        });
+      });
+      return map;
+    }, [frames]);
 
     // Memoized node lookup function
     const findNode = useCallback(
-      (id: string) => nodeMap.get(id),
+      (id: string) => nodeMap.get(id)?.node,
       [nodeMap]
     );
 
@@ -142,10 +178,11 @@ export const SVGRenderer = React.memo<SVGRendererProps>(
     );
 
     useEffect(() => {
-      if (frame) {
-        announceRoundChange(frame.round_number, frame.stitch_count);
+      const currentFrame = frames[currentRound - 1];
+      if (currentFrame) {
+        announceRoundChange(currentFrame.round_number, currentFrame.stitch_count);
       }
-    }, [frame.round_number, frame.stitch_count, announceRoundChange]);
+    }, [currentRound, frames, announceRoundChange]);
 
     // Calculate viewport bounds for culling
     const visibleBounds = useMemo(
@@ -157,68 +194,167 @@ export const SVGRenderer = React.memo<SVGRendererProps>(
     const lodLevel = useMemo(() => getLODLevel(scale), [scale]);
     const lodParams = useMemo(() => getLODParams(lodLevel), [lodLevel]);
 
+    // Collect all nodes from cumulative frames with metadata
+    const allNodesWithMeta = useMemo(() => {
+      const nodesWithMeta: Array<{
+        node: RenderNode;
+        frameIndex: number;
+        isCurrent: boolean;
+        screenPosition: [number, number];
+      }> = [];
+
+      frames.forEach((frame, frameIndex) => {
+        const isCurrent = frameIndex === currentRound - 1;
+
+        frame.nodes.forEach((node) => {
+          // Calculate screen position based on 3D or 2D coordinates
+          let screenPosition: [number, number];
+
+          if (has3DData && node.position_3d) {
+            const [x3d, y3d, z3d] = node.position_3d;
+            screenPosition = applyIsometricProjection(x3d, y3d, z3d, projectionAngle);
+          } else {
+            screenPosition = node.position;
+          }
+
+          nodesWithMeta.push({
+            node,
+            frameIndex,
+            isCurrent,
+            screenPosition,
+          });
+        });
+      });
+
+      // Sort by depth for proper layering (back to front)
+      if (has3DData) {
+        nodesWithMeta.sort((a, b) => {
+          const depthA = a.node.depth_order ?? 0;
+          const depthB = b.node.depth_order ?? 0;
+          return depthA - depthB;
+        });
+      }
+
+      return nodesWithMeta;
+    }, [frames, currentRound, has3DData, projectionAngle]);
+
     // Filter visible nodes (viewport culling)
-    const visibleNodes = useMemo(
-      () => frame.nodes.filter((node) => isNodeVisible(node, visibleBounds)),
-      [frame.nodes, visibleBounds]
+    const visibleNodesWithMeta = useMemo(
+      () => allNodesWithMeta.filter((nodeMeta) => {
+        const [x, y] = nodeMeta.screenPosition;
+        return x >= visibleBounds.minX && x <= visibleBounds.maxX &&
+               y >= visibleBounds.minY && y <= visibleBounds.maxY;
+      }),
+      [allNodesWithMeta, visibleBounds]
     );
 
     // Create a Set of visible node IDs for fast edge filtering
     const visibleNodeIds = useMemo(
-      () => new Set(visibleNodes.map((n) => n.id)),
-      [visibleNodes]
+      () => new Set(visibleNodesWithMeta.map((nm) => nm.node.id)),
+      [visibleNodesWithMeta]
     );
+
+    // Collect all edges from cumulative frames
+    const allEdges = useMemo(() => {
+      return frames.flatMap(frame => frame.edges);
+    }, [frames]);
 
     // Filter visible edges (only render if both source and target are visible)
     const visibleEdges = useMemo(
       () =>
-        frame.edges.filter(
+        allEdges.filter(
           (edge) =>
             visibleNodeIds.has(edge.source) && visibleNodeIds.has(edge.target)
         ),
-      [frame.edges, visibleNodeIds]
+      [allEdges, visibleNodeIds]
     );
 
     // Memoize rendered edges with LOD
     const renderedEdges = useMemo(
       () =>
         visibleEdges.map((edge, idx) => {
-          const source = findNode(edge.source);
-          const target = findNode(edge.target);
-          if (!source || !target) return null;
+          const sourceData = nodeMap.get(edge.source);
+          const targetData = nodeMap.get(edge.target);
+          if (!sourceData || !targetData) return null;
+
+          const sourceNode = sourceData.node;
+          const targetNode = targetData.node;
+
+          // Calculate screen positions for source and target
+          let sourcePos: [number, number];
+          let targetPos: [number, number];
+
+          if (has3DData && sourceNode.position_3d && targetNode.position_3d) {
+            sourcePos = applyIsometricProjection(
+              sourceNode.position_3d[0],
+              sourceNode.position_3d[1],
+              sourceNode.position_3d[2],
+              projectionAngle
+            );
+            targetPos = applyIsometricProjection(
+              targetNode.position_3d[0],
+              targetNode.position_3d[1],
+              targetNode.position_3d[2],
+              projectionAngle
+            );
+          } else {
+            sourcePos = sourceNode.position;
+            targetPos = targetNode.position;
+          }
 
           return (
             <Line
               key={`edge-${idx}`}
-              x1={source.position[0]}
-              y1={source.position[1]}
-              x2={target.position[0]}
-              y2={target.position[1]}
+              x1={sourcePos[0]}
+              y1={sourcePos[1]}
+              x2={targetPos[0]}
+              y2={targetPos[1]}
               stroke="#D1D5DB"
               strokeWidth={lodParams.edgeStrokeWidth}
+              opacity={0.5}
             />
           );
         }),
-      [visibleEdges, findNode, lodParams.edgeStrokeWidth]
+      [visibleEdges, nodeMap, has3DData, projectionAngle, lodParams.edgeStrokeWidth]
     );
 
-    // Memoize rendered nodes with LOD
+    // Memoize rendered nodes with LOD and depth cues
     const renderedNodes = useMemo(
       () =>
-        visibleNodes.map((node) => {
+        visibleNodesWithMeta.map((nodeMeta) => {
+          const { node, isCurrent, screenPosition } = nodeMeta;
+          const [x, y] = screenPosition;
+
           const highlightText =
             node.highlight === 'normal' ? 'normal' : node.highlight;
           const accessibilityLabel = `Stitch ${node.id}, ${node.stitch_type}, ${highlightText}`;
 
+          // Apply depth cues if 3D data is available
+          let radius = lodParams.nodeRadius;
+          let opacity = 1.0;
+
+          if (has3DData && node.depth_factor !== undefined) {
+            // Scale radius from 60% to 100% based on depth
+            radius = lodParams.nodeRadius * (0.6 + 0.4 * node.depth_factor);
+            // Scale opacity from 70% to 100% based on depth
+            opacity = 0.7 + 0.3 * node.depth_factor;
+          }
+
+          // Further reduce opacity for non-current rounds
+          if (!isCurrent) {
+            opacity *= 0.8;
+          }
+
           return (
             <Circle
               key={node.id}
-              cx={node.position[0]}
-              cy={node.position[1]}
-              r={lodParams.nodeRadius}
-              fill={getStitchColor(node.highlight)}
+              cx={x}
+              cy={y}
+              r={radius}
+              fill={getStitchColor(node.highlight, isCurrent)}
               stroke={lodParams.nodeStroke}
               strokeWidth={lodParams.nodeStrokeWidth}
+              opacity={opacity}
               onPress={() => onStitchTap?.(node.id)}
               // Accessibility
               accessibilityRole="button"
@@ -228,12 +364,13 @@ export const SVGRenderer = React.memo<SVGRendererProps>(
           );
         }),
       [
-        visibleNodes,
+        visibleNodesWithMeta,
         onStitchTap,
         getStitchColor,
         lodParams.nodeRadius,
         lodParams.nodeStroke,
         lodParams.nodeStrokeWidth,
+        has3DData,
       ]
     );
 
@@ -252,10 +389,11 @@ export const SVGRenderer = React.memo<SVGRendererProps>(
     );
   },
   (prevProps, nextProps) => {
-    // Custom comparison: only re-render if frame round, dimensions, or tap handler changes
+    // Custom comparison: only re-render if frames, current round, dimensions, or tap handler changes
     // This prevents unnecessary re-renders when other state changes
     return (
-      prevProps.frame.round_number === nextProps.frame.round_number &&
+      prevProps.frames === nextProps.frames &&
+      prevProps.currentRound === nextProps.currentRound &&
       prevProps.width === nextProps.width &&
       prevProps.height === nextProps.height &&
       prevProps.onStitchTap === nextProps.onStitchTap

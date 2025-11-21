@@ -169,10 +169,11 @@ export const patternApi = {
   /**
    * Visualize a pattern - convert DSL to frames
    */
-  async visualize(dsl: PatternDSL): Promise<VisualizationResponse> {
+  async visualize(dsl: PatternDSL, mode: '2d' | '3d' = '3d'): Promise<VisualizationResponse> {
     return apiRequest<VisualizationResponse>('/visualization/frames', {
       method: 'POST',
       body: JSON.stringify(dsl),
+      params: { mode },
     });
   },
 

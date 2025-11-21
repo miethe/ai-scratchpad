@@ -113,6 +113,8 @@ export const VisualizationScreen: React.FC<VisualizationScreenProps> = ({ route 
     );
   }
 
+  // Get all frames up to current round for cumulative rendering
+  const cumulativeFrames = frames.slice(0, currentRound);
   const currentFrame = frames[currentRound - 1]; // Convert 1-indexed to 0-indexed
 
   const selectedNode = selectedNodeId
@@ -151,7 +153,8 @@ export const VisualizationScreen: React.FC<VisualizationScreenProps> = ({ route 
         }
       >
         <SVGRenderer
-          frame={currentFrame}
+          frames={cumulativeFrames}
+          currentRound={currentRound}
           onStitchTap={handleStitchTap}
         />
         <Legend />
